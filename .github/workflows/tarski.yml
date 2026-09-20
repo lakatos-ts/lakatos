@@ -301,7 +301,7 @@ jobs:
             --write "shard-${{ matrix.shard }}.json"
 
       - name: Upload this shard's counts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test262-shard-${{ matrix.shard }}
           path: tarski/shard-${{ matrix.shard }}.json
