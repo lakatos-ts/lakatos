@@ -104,7 +104,7 @@ Delete the directory when you want the space back.
 carries only progress and crashes. The envelope's shape — one entry per
 annotation, each with an SZS status — is documented in the
 [root README](../../README.md) and pinned by
-[`schemas/envelope.schema.json`](../../schemas/envelope.schema.json). The
+[`core/schemas/envelope.schema.json`](../../core/schemas/envelope.schema.json). The
 failure detail pabst attaches to a flagged annotation is the engine's own
 issue format ([`schemas/issue.schema.json`](schemas/issue.schema.json)):
 
