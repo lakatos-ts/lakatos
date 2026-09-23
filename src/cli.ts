@@ -42,7 +42,10 @@ import {
   type PropertyIdentity,
 } from "./envelope.js";
 import { executeSource } from "./exe.js";
-import { withInterruptGuard, type InterruptSignal } from "./interrupt.js";
+import {
+  withInterruptGuard,
+  type InterruptSignal,
+} from "@lakatos-ts/core/interrupt";
 import { claimRunDir, RUN_ROOT, TYPECHECK_CACHE } from "./run-dir.js";
 
 /** Envelope entries for extraction-level input errors, with their

@@ -1,17 +1,8 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2023",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "lib": ["ES2023"],
-    "types": ["node"],
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "declaration": true,
     "outDir": "dist",
-    "rootDir": ".",
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "rootDir": "."
   },
   "include": [
     "src",
@@ -19,5 +10,6 @@
     "engines/pabst/src",
     "engines/thales/frontend/src",
     "tarski/frontend/src"
-  ]
+  ],
+  "references": [{ "path": "./core" }]
 }

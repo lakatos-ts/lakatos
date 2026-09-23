@@ -3,7 +3,10 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { interruptedBy, type InterruptSignal } from "../../../src/interrupt.js";
+import {
+  interruptedBy,
+  type InterruptSignal,
+} from "@lakatos-ts/core/interrupt";
 import type { FileResult, VitestJson } from "./vitest-json.js";
 
 export type RunResult =

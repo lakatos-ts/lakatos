@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import {
   interruptedBy,
   type InterruptSignal,
-} from "../../../../src/interrupt.js";
+} from "@lakatos-ts/core/interrupt";
 import { isProveStatus, type ProveStatus } from "../../../../src/szs.js";
 
 /** One #thales_prove verdict line: the contract printed by ThalesDsl.

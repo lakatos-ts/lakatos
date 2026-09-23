@@ -2,9 +2,22 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  resolve: {
+    alias: [
+      {
+        // Suites run the workspace package from source: a change in core
+        // reaches an engine's tests without a build, and coverage sees it.
+        find: /^@lakatos-ts\/core\/(envelope|szs|interrupt|run-dir)$/,
+        replacement: fileURLToPath(
+          new URL("./core/src/$1.ts", import.meta.url),
+        ),
+      },
+    ],
+  },
   test: {
     include: [
       "tests/**/*.test.ts",
+      "core/tests/**/*.test.ts",
       "lemma/tests/**/*.test.ts",
       "engines/pabst/tests/**/*.test.ts",
       "engines/thales/frontend/tests/**/*.test.ts",
@@ -21,6 +34,7 @@ export default defineConfig({
       all: true,
       include: [
         "src/**/*.ts",
+        "core/src/**/*.ts",
         "lemma/src/**/*.ts",
         "engines/pabst/src/**/*.ts",
         "engines/thales/frontend/src/**/*.ts",
