@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { randomSeed, parseSeed } from "../src/seed.js";
-import { expectLemmaError } from "../../../lemma/tests/helpers/errors.js";
+import { expectLemmaError } from "./helpers/errors.js";
 
 describe("randomSeed", () => {
   it("returns an integer in the 32-bit unsigned range", () => {

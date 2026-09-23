@@ -18,7 +18,9 @@ const TREES = [
 /** Anchored on `from`, so prose and `vi.mock` targets are not hits. Mocking a
  * lemma internal is fine — the seam is narrower than the barrel. */
 const FROM_CLAUSE = /\bfrom\s+["']([^"']+)["']/g;
-const LEMMA_MODULE = /(?:^|\/)lemma\/src\/(.+)$/;
+
+/** The one way in: the package, whose only export is the barrel. */
+const PACKAGE = "@lakatos-ts/lemma";
 
 function tsFiles(tree: string): string[] {
   return readdirSync(path.join(REPO, tree), { recursive: true })
@@ -28,23 +30,23 @@ function tsFiles(tree: string): string[] {
 }
 
 describe("lemma's public surface", () => {
-  it("is reached only through the barrel", () => {
-    const deep: string[] = [];
+  it("is reached only by package name, and only the barrel", () => {
+    const offenders: string[] = [];
     for (const tree of TREES) {
       for (const file of tsFiles(tree)) {
         const text = readFileSync(path.join(REPO, file), "utf8");
         for (const [, specifier] of text.matchAll(FROM_CLAUSE)) {
-          const tail = LEMMA_MODULE.exec(specifier!)?.[1];
-          if (tail !== undefined && tail !== "index.js") {
-            deep.push(`${file} -> lemma/src/${tail}`);
-          }
+          const relative = /(?:^|\/)lemma\/(src|tests)\//.test(specifier!);
+          const subpath = specifier!.startsWith(`${PACKAGE}/`);
+          if (relative || subpath) offenders.push(`${file} -> ${specifier}`);
         }
       }
     }
     expect(
-      deep,
-      "these deep-import a lemma internal; import the barrel instead, adding " +
-        "the name to it if it belongs in lemma's public surface",
+      offenders,
+      `these reach lemma by a relative path or a subpath; import "${PACKAGE}" ` +
+        "instead, adding the name to the barrel if it belongs in lemma's " +
+        "public surface",
     ).toEqual([]);
   });
 });

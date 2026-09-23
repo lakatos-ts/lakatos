@@ -117,6 +117,7 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     fs.copyFileSync(
       path.join(
         repoRoot,
+        "lemma",
         "spec",
         "fixtures",
         "binder",

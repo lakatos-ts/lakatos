@@ -10,7 +10,7 @@ import {
   numberConstraints,
   type Primitive,
   regexGuardDomainError,
-} from "../../../lemma/src/index.js";
+} from "@lakatos-ts/lemma";
 
 export const DOMAIN_TABLE: Record<Primitive, string> = {
   int: "fc.integer()",
@@ -30,7 +30,7 @@ export function arbitraryFor(
   const { domain, range, pattern } = binder;
   if (isClassDomain(domain)) {
     // Generation draws the constructor's argument tuple; the emitted test
-    // runs the real constructor on it (spec/semantics.md).
+    // runs the real constructor on it (lemma/spec/semantics.md).
     if (domain.ctorParams === undefined) throw unresolved(domain.className);
     return ctorTuple(domain.ctorParams);
   }

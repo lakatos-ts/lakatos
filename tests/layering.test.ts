@@ -9,8 +9,16 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PACKAGES: { dir: string; forbidden: string[] }[] = [
   { dir: "core/src", forbidden: ["src", "lemma", "engines", "tarski"] },
   { dir: "lemma/src", forbidden: ["src", "engines", "tarski"] },
-  { dir: "engines/pabst/src", forbidden: ["src", "engines/thales"] },
-  { dir: "engines/thales/frontend/src", forbidden: ["src", "engines/pabst"] },
+  {
+    dir: "lemma/tests",
+    forbidden: ["src", "tests", "core", "engines", "tarski"],
+  },
+  { dir: "src", forbidden: ["core", "lemma"] },
+  { dir: "engines/pabst/src", forbidden: ["src", "lemma", "engines/thales"] },
+  {
+    dir: "engines/thales/frontend/src",
+    forbidden: ["src", "lemma", "engines/pabst"],
+  },
   { dir: "tarski/frontend/src", forbidden: ["src", "lemma", "engines"] },
 ];
 
@@ -54,5 +62,49 @@ describe("import layering", () => {
       /["']@lakatos-ts\//.test(readFileSync(f, "utf8")),
     );
     expect(offenders).toEqual([]);
+  });
+
+  it("lemma's sources name no other workspace package", () => {
+    const offenders = tsFiles(path.join(root, "lemma/src")).filter((f) =>
+      /["']@lakatos-ts\//.test(readFileSync(f, "utf8")),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it("lemma is a workspace package the root builds first", () => {
+    const pkg = JSON.parse(
+      readFileSync(path.join(root, "lemma/package.json"), "utf8"),
+    ) as { name: string; exports: Record<string, unknown> };
+    expect(pkg.name).toBe("@lakatos-ts/lemma");
+    expect(Object.keys(pkg.exports)).toEqual(["."]);
+    const rootTsconfig = JSON.parse(
+      readFileSync(path.join(root, "tsconfig.json"), "utf8"),
+    ) as { references: { path: string }[]; include: string[] };
+    expect(rootTsconfig.references.map((r) => r.path)).toContain("./lemma");
+    expect(rootTsconfig.include).not.toContain("lemma/src");
+  });
+
+  it("lemma declares every package its sources import at runtime", () => {
+    const pkg = JSON.parse(
+      readFileSync(path.join(root, "lemma/package.json"), "utf8"),
+    ) as {
+      dependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+    };
+    const declared = new Set([
+      ...Object.keys(pkg.dependencies ?? {}),
+      ...Object.keys(pkg.peerDependencies ?? {}),
+    ]);
+    const undeclared = new Set<string>();
+    for (const file of tsFiles(path.join(root, "lemma/src"))) {
+      const text = readFileSync(file, "utf8");
+      for (const [, name] of text.matchAll(
+        /^import\s+(?!type\b)[^"]*?from\s+"([^".][^"]*)"/gm,
+      )) {
+        if (!name!.startsWith("node:") && !declared.has(name!))
+          undeclared.add(name!);
+      }
+    }
+    expect([...undeclared]).toEqual([]);
   });
 });

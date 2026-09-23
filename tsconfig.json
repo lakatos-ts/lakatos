@@ -6,10 +6,9 @@
   },
   "include": [
     "src",
-    "lemma/src",
     "engines/pabst/src",
     "engines/thales/frontend/src",
     "tarski/frontend/src"
   ],
-  "references": [{ "path": "./core" }]
+  "references": [{ "path": "./core" }, { "path": "./lemma" }]
 }

@@ -161,6 +161,10 @@ Everything is one repository, an npm workspace:
 - [`core/`](core/) — `@lakatos-ts/core`: what every tool shares at
   runtime — the result envelope and its JSON Schema, the SZS status
   vocabulary, interrupt handling, and run-directory claiming.
+- [`lemma/`](lemma/) — `@lakatos-ts/lemma`: the Lemma annotation
+  language — its [spec](lemma/spec/) (grammar, prose semantics, and
+  conformance fixtures) and the implementation both engines share
+  (discovery, `@ensures` extraction, parsing, the typecheck gate).
 - [`engines/thales/`](engines/thales/) — the proof engine: an emitter
   that renders annotated TypeScript as plain Lean 4, with a graded
   automatic discharge ladder (exhaustive checking on bounded domains,
@@ -172,8 +176,6 @@ Everything is one repository, an npm workspace:
   the value domain, and their kernel-checked theory) and, over the same
   definitions, an evaluator for a growing fragment of JavaScript, with a
   TypeScript parser bridge whose ESTree JSON is the seam between the two.
-- [`spec/`](spec/) — the Lemma annotation language: grammar, prose
-  semantics, and conformance fixtures.
 
 ## Architecture
 
@@ -198,7 +200,7 @@ manage. Today that bundle does not exist yet: `lakatos prove` needs the
 Lean toolchain (elan/lake) on PATH and a lakatos checkout, per Status
 above.
 
-Properties are written in [Lemma](spec/), a little specification language
+Properties are written in [Lemma](lemma/spec/), a little specification language
 embedded in JSDoc — annotated files remain ordinary TypeScript accepted by
 `tsc --strict`.
 
@@ -206,7 +208,7 @@ What a `PROVED` verdict rests on — per declaration, the envelope's
 `model` field says whether the prover's model was proved equal to the
 evaluator's run of it, and why not — and the limits that remain are
 stated in the spec's
-[What a Theorem rests on](spec/semantics.md#what-a-theorem-rests-on).
+[What a Theorem rests on](lemma/spec/semantics.md#what-a-theorem-rests-on).
 
 ## Commands
 
@@ -221,7 +223,7 @@ stated in the spec's
   their primitives with, so you can watch a program the prover reasons
   about actually run. Two limits are worth stating in place, and both are
   the ones
-  [What a Theorem rests on](spec/semantics.md#what-a-theorem-rests-on)
+  [What a Theorem rests on](lemma/spec/semantics.md#what-a-theorem-rests-on)
   spells out: a proof's model is checked against the evaluator one
   declaration at a time, and where that check did not go through only the
   _primitives_ are shared (the envelope's `model` field says which);

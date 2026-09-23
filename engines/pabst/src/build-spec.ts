@@ -16,7 +16,7 @@ import {
   type RawAnnotation,
   resolveClassBinders,
   unsupportedRangeReason,
-} from "../../../lemma/src/index.js";
+} from "@lakatos-ts/lemma";
 import { enumerationCases } from "./enumerate.js";
 import { lowerTop } from "./lower.js";
 import type { PropertySpec } from "./ir.js";

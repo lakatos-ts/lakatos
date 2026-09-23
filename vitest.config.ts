@@ -12,6 +12,13 @@ export default defineConfig({
           new URL("./core/src/$1.ts", import.meta.url),
         ),
       },
+      {
+        // Same for lemma: the barrel is its only export.
+        find: /^@lakatos-ts\/lemma$/,
+        replacement: fileURLToPath(
+          new URL("./lemma/src/index.ts", import.meta.url),
+        ),
+      },
     ],
   },
   test: {

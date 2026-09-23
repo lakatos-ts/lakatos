@@ -43,15 +43,15 @@ implementation exists or a standards venue asks for a normative reference
 ## Implementations
 
 The reference implementation of the grammar — file discovery, `@ensures`
-extraction, and prefix/formula parsing — lives in [`lemma/`](../lemma/) at
+extraction, and prefix/formula parsing — lives in [`lemma/`](../) at
 the repository root, exercised against `fixtures/` in CI. Two engines
 build on it, one from each side of the proofs-and-refutations dialectic:
 
-- [`engines/pabst/`](../engines/pabst/) (TypeScript) — the **refutation
+- [`engines/pabst/`](../../engines/pabst/) (TypeScript) — the **refutation
   engine**: compiles properties to
   [fast-check](https://fast-check.dev/) runs and hunts for
   counterexamples.
-- [`engines/thales/`](../engines/thales/) (Lean 4) — the **proof
+- [`engines/thales/`](../../engines/thales/) (Lean 4) — the **proof
   engine**: compiles the annotated code to Lean and attempts to prove each
   property for all inputs.
 

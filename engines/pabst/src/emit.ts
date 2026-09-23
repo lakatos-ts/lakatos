@@ -11,7 +11,7 @@ import {
 import { ctorCall, ctorShape } from "./ctor.js";
 import { arbitraryFor } from "./domains.js";
 import { emitEnumerated } from "./enumerate.js";
-import { isClassDomain, qualifiedName } from "../../../lemma/src/index.js";
+import { isClassDomain, qualifiedName } from "@lakatos-ts/lemma";
 import type { PropertySpec } from "./ir.js";
 
 const SRC_EXT = /\.(ts|tsx|mts|cts|js|mjs|cjs)$/;
@@ -108,7 +108,7 @@ function emitProp(
   const arbs = s.binders.map((b) => arbitraryFor(b)).join(", ");
   // A class binder's generated value is its constructor-argument tuple;
   // the instance is constructed in the test body so a throwing tuple can
-  // discard the sample (it denotes no instance — spec/semantics.md).
+  // discard the sample (it denotes no instance — lemma/spec/semantics.md).
   const shapes = s.binders.map((b) =>
     isClassDomain(b.domain) ? ctorShape(b.domain) : null,
   );

@@ -15,7 +15,7 @@ import { EmptyAfterClampError } from "../src/range.js";
 import { typecheckProject } from "../src/typecheck.js";
 import { annotationKey } from "../src/qualified-name.js";
 import type { ClassTable } from "../src/class-domain.js";
-import { useTempProject } from "../../tests/helpers/cli.js";
+import { useTempProject } from "./helpers/temp-project.js";
 
 /** Parse every annotation of a module the way the CLI does. */
 function annotationsOf(src: string, file = "m.ts") {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseBody } from "../../../lemma/src/index.js";
+import { parseBody } from "@lakatos-ts/lemma";
 import { lowerTop } from "../src/lower.js";
 
 // Lower the parsed AST to a string so assertions read clearly.

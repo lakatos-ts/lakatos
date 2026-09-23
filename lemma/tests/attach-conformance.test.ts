@@ -7,7 +7,6 @@ import { extractFromSource } from "../src/extract.js";
 const FIXTURES = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
-  "..",
   "spec",
   "fixtures",
   "attach",

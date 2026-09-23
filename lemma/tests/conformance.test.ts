@@ -15,7 +15,6 @@ interface Fixture {
 const FIXTURES = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
-  "..",
   "spec",
   "fixtures",
 );

@@ -11,7 +11,6 @@ import { LemmaError } from "../src/errors.js";
 const FIXTURES = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
-  "..",
   "spec",
   "fixtures",
   "binder",

@@ -30,7 +30,7 @@ Thales is one engine in a small constellation, each part with one job:
 - [pabst](../../pabst/) is the refutation engine: properties become
   fast-check runs hunting for counterexamples.
 - Thales is the proof engine.
-- [Lemma](../../../spec/) is the specification language the other
+- [Lemma](../../../lemma/spec/) is the specification language the other
   three share (see "The spec dialect" below).
 
 The dependency arrows point one way: lakatos depends on both engines,
@@ -101,7 +101,7 @@ work, sequenced below.
 
 ## The spec dialect
 
-The dialect is [Lemma](../../../spec/): `@ensures{name}` with
+The dialect is [Lemma](../../../lemma/spec/): `@ensures{name}` with
 `forall` binders and `==>`, living entirely inside JSDoc, so
 `tsc --strict` and the rest of the ecosystem see ordinary TypeScript.
 The grammar was developed in pabst and now has a

@@ -6,7 +6,7 @@ Start from `src/cli.ts` (the `prove|refute|check` spine; `check` is still a NotT
 
 ## Layering
 
-`engines/thales/` (proofs, Lean) and `engines/pabst/` (refutations, fast-check) never depend on each other. Both may depend on `core/` (`@lakatos-ts/core`: the shared runtime — envelope, SZS statuses, interrupt handling, run directories; depends on nothing in the repo), `lemma/` (the Lemma annotation language: discovery, `@ensures` extraction, parsing; spec and conformance corpus in `spec/`) and `tarski/` (the shared JS-semantics Lean package thales proves against; see its `CLAUDE.md`), which depend on no engine. `src/` may depend on all of them. The root is a private npm workspace root; `core/` is its first workspace package, and `engines/thales/package.json` is private dev tooling for its check scripts, not a package.
+`engines/thales/` (proofs, Lean) and `engines/pabst/` (refutations, fast-check) never depend on each other. Both may depend on `core/` (`@lakatos-ts/core`: the shared runtime — envelope, SZS statuses, interrupt handling, run directories; depends on nothing in the repo), `lemma/` (`@lakatos-ts/lemma`: the Lemma annotation language — discovery, `@ensures` extraction, parsing, the typecheck gate; its spec and conformance corpus in `lemma/spec/`) and `tarski/` (the shared JS-semantics Lean package thales proves against; see its `CLAUDE.md`), which depend on no engine. `src/` may depend on all of them. The root is a private npm workspace root; `core/` and `lemma/` are its workspace packages, and `engines/thales/package.json` is private dev tooling for its check scripts, not a package.
 
 ## Building and testing
 
