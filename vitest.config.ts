@@ -121,14 +121,18 @@ export default defineConfig({
         // fallthrough became unreachable once spread got an arm of its
         // own, so the three accessor forms are the function's tail rather
         // than a guarded arm, and `declarators` no longer answers `null`.
+        // Reseeded 2026-09-23: the shared runtime moved into core/ and the
+        // two verdict joins into their engines, so the denominator is the
+        // same code under new paths; the schema helper in core/tests/helpers
+        // and the layering test joined it fully covered.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
         // worktree under .claude/ silently reports every loaded file instead
         // — different denominator, different numbers.
         autoUpdate: true,
-        statements: 99.66,
-        branches: 98.97,
+        statements: 99.67,
+        branches: 98.98,
         functions: 100,
         lines: 99.74,
       },
