@@ -30,17 +30,17 @@ import {
   typeFormulas,
   unsupportedRangeReason,
 } from "../lemma/src/index.js";
+import { joinRefuteVerdicts } from "../engines/pabst/src/join.js";
+import { joinProveVerdicts } from "../engines/thales/frontend/src/join.js";
 import {
   identityOf,
   interruptedResults,
-  joinProveVerdicts,
-  joinRefuteVerdicts,
   UNSUPPORTED_RANGE_KIND,
   type AnnotationResult,
   type Envelope,
   type PlannedProperty,
   type PropertyIdentity,
-} from "./envelope.js";
+} from "@lakatos-ts/core/envelope";
 import { executeSource } from "./exe.js";
 import {
   withInterruptGuard,

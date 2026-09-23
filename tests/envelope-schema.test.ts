@@ -6,7 +6,7 @@ import {
   MODEL_CARRIERS,
   UNSUPPORTED_RANGE_KIND,
   type Envelope,
-} from "../src/envelope.js";
+} from "@lakatos-ts/core/envelope";
 import { SZS_STATUSES } from "@lakatos-ts/core/szs";
 import { QUALIFIED_NAME_PATTERN } from "../lemma/src/index.js";
 

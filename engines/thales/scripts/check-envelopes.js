@@ -21,9 +21,7 @@ const { qualifiedName } = await import(
 );
 // The envelope's own rule for the model field, so the store and the CLI
 // cannot drift: same build-first failure mode as the lemma import above.
-const { modelFor } = await import(
-  path.join(repoRoot, "dist", "src", "envelope.js")
-);
+const { modelFor } = await import("@lakatos-ts/core/envelope");
 
 const CONFORMANCE = "engines/thales/tests/conformance";
 
