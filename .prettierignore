@@ -15,7 +15,7 @@ tarski/lake-manifest.json
 engines/thales/CHANGELOG.md
 
 # the Lemma spec's fixtures are conformance inputs, not repo prose
-spec/
+lemma/spec/
 
 # bd rewrites its own config and metadata
 .beads/

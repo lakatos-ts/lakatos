@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import {
   copyFileSync,
+  existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -30,7 +31,7 @@ const ROOTS = [
   "engines/thales/tests/fixtures",
   "engines/thales/tests/conformance",
   "engines/pabst/tests/fixtures",
-  "spec/fixtures",
+  "lemma/spec/fixtures",
 ];
 
 function walk(dir: string, out: string[]): string[] {
@@ -90,12 +91,15 @@ const UNSUPPORTED: Record<string, string> = {
   "engines/thales/tests/conformance/theorem/imported-scale/main.ts":
     "ImportDeclaration",
   "engines/thales/tests/fixtures/tracer.ts": "FunctionDeclaration async",
-  "spec/fixtures/attach/reject/anonymous-class.ts": "ClassDeclaration",
-  "spec/fixtures/attach/reject/computed-name.ts": "ComputedPropertyName",
-  "spec/fixtures/attach/reject/private-getter.ts": "MethodDefinition private",
-  "spec/fixtures/binder/reject/ctor-param-optional.ts": "LogicalExpression ??",
-  "spec/fixtures/island/accept/reexported-import.ts": "ImportDeclaration",
-  "spec/fixtures/island/reject/imported-not-reexported.ts": "ImportDeclaration",
+  "lemma/spec/fixtures/attach/reject/anonymous-class.ts": "ClassDeclaration",
+  "lemma/spec/fixtures/attach/reject/computed-name.ts": "ComputedPropertyName",
+  "lemma/spec/fixtures/attach/reject/private-getter.ts":
+    "MethodDefinition private",
+  "lemma/spec/fixtures/binder/reject/ctor-param-optional.ts":
+    "LogicalExpression ??",
+  "lemma/spec/fixtures/island/accept/reexported-import.ts": "ImportDeclaration",
+  "lemma/spec/fixtures/island/reject/imported-not-reexported.ts":
+    "ImportDeclaration",
 };
 
 /**
@@ -112,6 +116,13 @@ const EXEC_TIMEOUT_MS = 30_000;
 
 /** The whole corpus, run once: two spawns a fixture is enough. */
 const MEASURE_TIMEOUT_MS = 600_000;
+
+describe("the fixture roots", () => {
+  it("all exist, so the walk never runs over a stale path", () => {
+    for (const root of ROOTS)
+      expect(existsSync(path.join(REPO, root)), root).toBe(true);
+  });
+});
 
 describe.runIf(e2e)(
   "every @ensures fixture, on the evaluator and on Node",

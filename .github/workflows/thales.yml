@@ -6,7 +6,6 @@ on:
     paths:
       - "engines/thales/**"
       - "tarski/**"
-      - "spec/**"
       - "src/**"
       - "core/**"
       - "tests/**"

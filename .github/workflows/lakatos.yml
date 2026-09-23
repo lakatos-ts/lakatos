@@ -15,7 +15,6 @@ on:
       - "tarski/frontend/**"
       - "tarski/Test/Tarski/fixtures/**"
       - "tarski/test262/**"
-      - "spec/**"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"

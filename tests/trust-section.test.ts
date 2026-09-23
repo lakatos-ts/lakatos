@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const SPEC = path.join(REPO, "spec", "semantics.md");
+const SPEC = path.join(REPO, "lemma", "spec", "semantics.md");
 const spec = readFileSync(SPEC, "utf8");
 const readme = readFileSync(path.join(REPO, "README.md"), "utf8");
 
@@ -48,7 +48,7 @@ describe("the trust section", () => {
 
   it("links the committed test262 results table", () => {
     const targets = [...trust.matchAll(/\]\(([^)]+)\)/g)].map(([, t]) => t!);
-    const resolved = targets.map((t) => path.resolve(REPO, "spec", t));
+    const resolved = targets.map((t) => path.resolve(REPO, "lemma", "spec", t));
     for (const [i, file] of resolved.entries()) {
       expect(existsSync(file), `${targets[i]} does not resolve to a file`).toBe(
         true,
@@ -99,6 +99,6 @@ describe("the trust section", () => {
 describe("the README", () => {
   it("points at the trust section from its architecture section", () => {
     const architecture = section(readme, "## Architecture", /^## /m);
-    expect(architecture).toContain(`spec/semantics.md#${slug(HEADING)}`);
+    expect(architecture).toContain(`lemma/spec/semantics.md#${slug(HEADING)}`);
   });
 });
