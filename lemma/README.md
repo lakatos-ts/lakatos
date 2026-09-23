@@ -17,4 +17,6 @@ Import the package, not a path:
 `import { parseBody } from "@lakatos-ts/lemma"`. The barrel `src/index.ts`
 is the whole public surface; everything else under `src/` is internal.
 
-Lemma depends on `typescript` and on nothing else in this repository.
+Lemma depends on `typescript`, takes `fast-check` as a peer (its range and
+string-pattern arbitraries must share the generated tests' copy), and
+depends on nothing else in this repository.

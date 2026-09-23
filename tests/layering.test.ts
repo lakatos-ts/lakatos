@@ -83,4 +83,28 @@ describe("import layering", () => {
     expect(rootTsconfig.references.map((r) => r.path)).toContain("./lemma");
     expect(rootTsconfig.include).not.toContain("lemma/src");
   });
+
+  it("lemma declares every package its sources import at runtime", () => {
+    const pkg = JSON.parse(
+      readFileSync(path.join(root, "lemma/package.json"), "utf8"),
+    ) as {
+      dependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+    };
+    const declared = new Set([
+      ...Object.keys(pkg.dependencies ?? {}),
+      ...Object.keys(pkg.peerDependencies ?? {}),
+    ]);
+    const undeclared = new Set<string>();
+    for (const file of tsFiles(path.join(root, "lemma/src"))) {
+      const text = readFileSync(file, "utf8");
+      for (const [, name] of text.matchAll(
+        /^import\s+(?!type\b)[^"]*?from\s+"([^".][^"]*)"/gm,
+      )) {
+        if (!name!.startsWith("node:") && !declared.has(name!))
+          undeclared.add(name!);
+      }
+    }
+    expect([...undeclared]).toEqual([]);
+  });
 });
