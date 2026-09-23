@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import fc from "fast-check";
 import { arbitraryFor, DOMAIN_TABLE } from "../src/domains.js";
-import { isPrimitive } from "../../../lemma/src/index.js";
+import { isPrimitive } from "@lakatos-ts/lemma";
 
 describe("domains", () => {
   it("maps every domain to its fast-check arbitrary", () => {

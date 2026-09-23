@@ -11,7 +11,7 @@ import {
 import { ctorCall, ctorShape } from "./ctor.js";
 import { arbitraryFor } from "./domains.js";
 import { emitEnumerated } from "./enumerate.js";
-import { isClassDomain, qualifiedName } from "../../../lemma/src/index.js";
+import { isClassDomain, qualifiedName } from "@lakatos-ts/lemma";
 import type { PropertySpec } from "./ir.js";
 
 const SRC_EXT = /\.(ts|tsx|mts|cts|js|mjs|cjs)$/;

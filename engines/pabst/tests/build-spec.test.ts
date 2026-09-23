@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { buildSpecs } from "../src/build-spec.js";
-import { annotationKey, LemmaError } from "../../../lemma/src/index.js";
+import { annotationKey, LemmaError } from "@lakatos-ts/lemma";
 
 const FIXTURE = new URL("./fixtures/e2e/readme-example.ts", import.meta.url)
   .pathname;

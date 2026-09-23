@@ -29,7 +29,7 @@ import {
   typecheckProject,
   typeFormulas,
   unsupportedRangeReason,
-} from "../lemma/src/index.js";
+} from "@lakatos-ts/lemma";
 import { joinRefuteVerdicts } from "../engines/pabst/src/join.js";
 import { joinProveVerdicts } from "../engines/thales/frontend/src/join.js";
 import {

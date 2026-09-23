@@ -4,7 +4,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { emitModule } from "../src/emission.js";
 import { writeEmissionArtifacts } from "../src/emission-artifacts.js";
-import { annotationKey } from "../../../../lemma/src/index.js";
+import { annotationKey } from "@lakatos-ts/lemma";
 
 const OUT = "out";
 

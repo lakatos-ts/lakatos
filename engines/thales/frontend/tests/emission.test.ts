@@ -9,7 +9,7 @@ import {
   type EmitStmt,
   emitModule,
 } from "../src/emission.js";
-import { annotationKey, LemmaError } from "../../../../lemma/src/index.js";
+import { annotationKey, LemmaError } from "@lakatos-ts/lemma";
 
 /** A declaration's own name. A residual site is named by its owner and
  * index, so a list assertion stays total rather than hiding one. */

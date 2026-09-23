@@ -10,7 +10,7 @@ import {
   numberConstraints,
   type Primitive,
   regexGuardDomainError,
-} from "../../../lemma/src/index.js";
+} from "@lakatos-ts/lemma";
 
 export const DOMAIN_TABLE: Record<Primitive, string> = {
   int: "fc.integer()",

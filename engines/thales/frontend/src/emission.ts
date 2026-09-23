@@ -15,7 +15,7 @@ import {
   qualifiedName,
   type RawAnnotation,
   unsupportedRangeReason,
-} from "../../../../lemma/src/index.js";
+} from "@lakatos-ts/lemma";
 import {
   bindingIdentifiers,
   chainReading,

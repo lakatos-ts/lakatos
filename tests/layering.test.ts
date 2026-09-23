@@ -13,8 +13,12 @@ const PACKAGES: { dir: string; forbidden: string[] }[] = [
     dir: "lemma/tests",
     forbidden: ["src", "tests", "core", "engines", "tarski"],
   },
-  { dir: "engines/pabst/src", forbidden: ["src", "engines/thales"] },
-  { dir: "engines/thales/frontend/src", forbidden: ["src", "engines/pabst"] },
+  { dir: "src", forbidden: ["core", "lemma"] },
+  { dir: "engines/pabst/src", forbidden: ["src", "lemma", "engines/thales"] },
+  {
+    dir: "engines/thales/frontend/src",
+    forbidden: ["src", "lemma", "engines/pabst"],
+  },
   { dir: "tarski/frontend/src", forbidden: ["src", "lemma", "engines"] },
 ];
 

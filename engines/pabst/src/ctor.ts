@@ -2,7 +2,7 @@ import {
   type ClassCtorDomain,
   type CtorParam,
   isClassCtorDomain,
-} from "../../../lemma/src/index.js";
+} from "@lakatos-ts/lemma";
 import type { CtorShape } from "./runtime.js";
 
 /** The construction expression for one binder, over the argument tuple
