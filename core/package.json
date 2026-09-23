@@ -1,0 +1,43 @@
+{
+  "name": "@lakatos-ts/core",
+  "version": "0.1.0",
+  "description": "What every lakatos-ts tool shares at runtime: the result envelope and its schema, the SZS status vocabulary, interrupt handling, and run-directory claiming.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts",
+    "schemas"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakatos-ts/lakatos.git",
+    "directory": "core"
+  },
+  "homepage": "https://github.com/lakatos-ts/lakatos#readme",
+  "bugs": {
+    "url": "https://github.com/lakatos-ts/lakatos/issues"
+  },
+  "exports": {
+    "./envelope": {
+      "types": "./dist/envelope.d.ts",
+      "default": "./dist/envelope.js"
+    },
+    "./szs": {
+      "types": "./dist/szs.d.ts",
+      "default": "./dist/szs.js"
+    },
+    "./interrupt": {
+      "types": "./dist/interrupt.d.ts",
+      "default": "./dist/interrupt.js"
+    },
+    "./run-dir": {
+      "types": "./dist/run-dir.d.ts",
+      "default": "./dist/run-dir.js"
+    },
+    "./schemas/envelope.schema.json": "./schemas/envelope.schema.json"
+  }
+}

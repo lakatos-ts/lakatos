@@ -1,4 +1,7 @@
-import type { IssueKind } from "../engines/pabst/src/contract.js";
+/** The kinds of issue the refutation engine reports; each maps to one
+ * status below. The engine's contract re-exports this so the wire format
+ * and the vocabulary agree by construction. */
+export type IssueKind = "falsified" | "threw" | "exhausted" | "budget";
 
 /**
  * SZS statuses lakatos emits (https://tptp.org/UserDocs/SZSOntology/), the

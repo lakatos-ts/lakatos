@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import {
   interruptedBy,
   type InterruptSignal,
-} from "../../../../src/interrupt.js";
-import { isProveStatus, type ProveStatus } from "../../../../src/szs.js";
+} from "@lakatos-ts/core/interrupt";
+import { isProveStatus, type ProveStatus } from "@lakatos-ts/core/szs";
 
 /** One #thales_prove verdict line: the contract printed by ThalesDsl.
  * Counterexample values are integers (outside the JS safe-integer range,

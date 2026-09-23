@@ -6,7 +6,9 @@
  * each seam import this module instead of spelling the string twice.
  */
 
-export type IssueKind = "falsified" | "threw" | "exhausted" | "budget";
+import type { IssueKind } from "@lakatos-ts/core/szs";
+
+export type { IssueKind };
 
 export interface Issue {
   file: string;

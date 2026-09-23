@@ -72,7 +72,7 @@ $ echo $?
 1
 ```
 
-The report (schema: `schemas/envelope.schema.json`) lists every scraped
+The report (schema: `core/schemas/envelope.schema.json`) lists every scraped
 annotation with an [SZS ontology](https://tptp.org/UserDocs/SZSOntology/)
 status:
 
@@ -155,9 +155,12 @@ the Lean toolchain is not here.
 
 ## Layout
 
-Everything is one repository, one product, one version number:
+Everything is one repository, an npm workspace:
 
 - `src/` — the lakatos CLI frontend (the npm package at the repo root).
+- [`core/`](core/) — `@lakatos-ts/core`: what every tool shares at
+  runtime — the result envelope and its JSON Schema, the SZS status
+  vocabulary, interrupt handling, and run-directory claiming.
 - [`engines/thales/`](engines/thales/) — the proof engine: an emitter
   that renders annotated TypeScript as plain Lean 4, with a graded
   automatic discharge ladder (exhaustive checking on bounded domains,

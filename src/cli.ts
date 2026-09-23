@@ -30,20 +30,28 @@ import {
   typeFormulas,
   unsupportedRangeReason,
 } from "../lemma/src/index.js";
+import { joinRefuteVerdicts } from "../engines/pabst/src/join.js";
+import { joinProveVerdicts } from "../engines/thales/frontend/src/join.js";
 import {
   identityOf,
   interruptedResults,
-  joinProveVerdicts,
-  joinRefuteVerdicts,
   UNSUPPORTED_RANGE_KIND,
   type AnnotationResult,
   type Envelope,
   type PlannedProperty,
   type PropertyIdentity,
-} from "./envelope.js";
+} from "@lakatos-ts/core/envelope";
 import { executeSource } from "./exe.js";
-import { withInterruptGuard, type InterruptSignal } from "./interrupt.js";
-import { claimRunDir, RUN_ROOT, TYPECHECK_CACHE } from "./run-dir.js";
+import {
+  withInterruptGuard,
+  type InterruptSignal,
+} from "@lakatos-ts/core/interrupt";
+import {
+  claimRunDir,
+  RUN_ROOT,
+  RunDirError,
+  TYPECHECK_CACHE,
+} from "@lakatos-ts/core/run-dir";
 
 /** Envelope entries for extraction-level input errors, with their
  * diagnostics echoed to stderr. Any such entry makes the run exit 2.
@@ -510,9 +518,9 @@ export async function main(
     return 2;
   }
   // User-facing errors below — a bad --seed, file resolution coming up
-  // empty, a malformed tsconfig, compile errors — are LemmaErrors and map
-  // to the documented exit-2 error mode; anything else is an internal bug
-  // and crashes loudly.
+  // empty, a malformed tsconfig, compile errors, an unusable run root — are
+  // LemmaErrors or RunDirErrors and map to the documented exit-2 error
+  // mode; anything else is an internal bug and crashes loudly.
   try {
     // exe has no envelope and so no spine: it is the one verb whose stdout
     // is the program's rather than lakatos's.
@@ -530,7 +538,7 @@ export async function main(
     // Awaited, not returned: the catch below must see the run's rejection.
     return await runCommand(spine, patterns);
   } catch (e) {
-    if (e instanceof LemmaError) {
+    if (e instanceof LemmaError || e instanceof RunDirError) {
       console.error(`error: ${e.message}`);
       return 2;
     }

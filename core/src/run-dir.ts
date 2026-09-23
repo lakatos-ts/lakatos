@@ -1,6 +1,5 @@
 import { mkdirSync } from "node:fs";
 import * as path from "node:path";
-import { LemmaError } from "../lemma/src/index.js";
 
 /** The root every run's artifacts land under, one directory per invocation. */
 export const RUN_ROOT = ".lakatos";
@@ -8,6 +7,12 @@ export const RUN_ROOT = ".lakatos";
 /** The incremental tsc cache, under the run root but not of any one run:
  * clearing it between runs costs a cold program every time. */
 export const TYPECHECK_CACHE = "typecheck.tsbuildinfo";
+
+/** Claiming failed for a reason the user can act on: the run root itself
+ * is unusable. Reported like any other input error, never as a crash. */
+export class RunDirError extends Error {
+  override name = "RunDirError";
+}
 
 /**
  * Where one invocation's artifacts go, named by the instant the envelope
@@ -46,7 +51,7 @@ export function claimRunDir(startedAt: string): string {
       if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
     }
   }
-  throw new LemmaError(
+  throw new RunDirError(
     `${base}: no free run directory after ${MAX_CLAIM_ATTEMPTS} attempts`,
   );
 }

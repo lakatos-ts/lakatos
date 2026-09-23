@@ -5,7 +5,7 @@ import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 import { main } from "../src/cli.js";
 import { runTests } from "../engines/pabst/src/run.js";
 import { runEmission } from "../engines/thales/frontend/src/run.js";
-import { RUN_ROOT } from "../src/run-dir.js";
+import { RUN_ROOT } from "@lakatos-ts/core/run-dir";
 
 // An interrupted run still honors the output contract: one schema-valid
 // envelope on stdout in which every annotation the engine was to evaluate

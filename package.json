@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "Proofs and refutations for TypeScript.",
   "type": "module",
+  "private": true,
+  "workspaces": [
+    "core"
+  ],
   "files": [
     "dist",
     "schemas"
@@ -30,8 +34,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.tests.json",
+    "build": "tsc -b tsconfig.json",
+    "typecheck": "tsc -b core && tsc -p tsconfig.tests.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",

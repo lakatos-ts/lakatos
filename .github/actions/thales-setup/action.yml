@@ -33,7 +33,9 @@ runs:
       shell: bash
 
     - name: Build the front end
-      run: npx tsc -p tsconfig.json
+      # The root script, not a bare tsc: core is a referenced project and
+      # must be emitted before the front end resolves it.
+      run: npm run build
       shell: bash
 
     # Restore only. The push-to-main warmer is the single writer; several

@@ -6,7 +6,7 @@ import {
   runForEnvelope,
   useRepoScratchDir,
 } from "./helpers/cli.js";
-import type { Envelope } from "../src/envelope.js";
+import type { Envelope } from "@lakatos-ts/core/envelope";
 import { square } from "../engines/thales/tests/conformance/countersatisfiable/zero-edge.js";
 import { f } from "../engines/thales/tests/conformance/countersatisfiable/commutes.js";
 

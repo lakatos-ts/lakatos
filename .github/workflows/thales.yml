@@ -8,12 +8,14 @@ on:
       - "tarski/**"
       - "spec/**"
       - "src/**"
+      - "core/**"
       - "tests/**"
       - "lemma/**"
       - "schemas/**"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
+      - "tsconfig.base.json"
       - ".github/workflows/thales.yml"
   # No path filter: this job is a required check on main, and a required
   # check that never reports reads as pending forever, not as skipped. The

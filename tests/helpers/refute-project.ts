@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { DEFAULT_TSCONFIG } from "./cli.js";
-import { RUN_ROOT, TYPECHECK_CACHE } from "../../src/run-dir.js";
+import { RUN_ROOT, TYPECHECK_CACHE } from "@lakatos-ts/core/run-dir";
 
 /** The README-usage project the refute CLI suites run in: two annotated
  * files, one plain, one class, and the input-error, stacked, and guarded

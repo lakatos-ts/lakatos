@@ -9,11 +9,13 @@
   },
   "include": [
     "src",
+    "core/src",
     "lemma/src",
     "engines/pabst/src",
     "engines/thales/frontend/src",
     "tarski/frontend/src",
     "tests",
+    "core/tests",
     "lemma/tests",
     "engines/pabst/tests",
     "engines/thales/frontend/tests",

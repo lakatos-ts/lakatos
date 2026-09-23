@@ -4,7 +4,7 @@ import * as path from "node:path";
 import * as os from "node:os";
 import { main } from "../../src/cli.js";
 import { expectValidEnvelope } from "./envelope-schema.js";
-import type { Envelope } from "../../src/envelope.js";
+import type { Envelope } from "@lakatos-ts/core/envelope";
 import {
   BUILD_TIMEOUT_MS,
   LEAN_TIMEOUT_MS,

@@ -17,7 +17,7 @@ const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
  */
 export default function setup(): void {
   if (realpathSync(process.cwd()) !== realpathSync(repoRoot)) return;
-  execFileSync("npx", ["tsc", "-p", "tsconfig.json"], {
+  execFileSync("npx", ["tsc", "-b", "tsconfig.json"], {
     cwd: repoRoot,
     stdio: "inherit",
   });
