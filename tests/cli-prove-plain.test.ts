@@ -10,7 +10,7 @@ import {
   type ProveVerdict,
 } from "../src/envelope.js";
 import type { ProveStatus } from "@lakatos-ts/core/szs";
-import { RUN_ROOT } from "../src/run-dir.js";
+import { RUN_ROOT } from "@lakatos-ts/core/run-dir";
 
 // The emission pipeline through the CLI spine. The engine is mocked at the
 // same module seam cli-prove.test.ts uses; this file pins the containment,

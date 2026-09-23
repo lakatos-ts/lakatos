@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runMainRaw, useTempProject } from "./helpers/cli.js";
-import { RUN_ROOT } from "../src/run-dir.js";
+import { RUN_ROOT } from "@lakatos-ts/core/run-dir";
 import type { BinaryResult } from "../tarski/frontend/src/binary.js";
 
 // The evaluator is mocked at the module seam the prove tests use for
