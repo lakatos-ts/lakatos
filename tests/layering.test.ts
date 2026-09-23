@@ -9,6 +9,10 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PACKAGES: { dir: string; forbidden: string[] }[] = [
   { dir: "core/src", forbidden: ["src", "lemma", "engines", "tarski"] },
   { dir: "lemma/src", forbidden: ["src", "engines", "tarski"] },
+  {
+    dir: "lemma/tests",
+    forbidden: ["src", "tests", "core", "engines", "tarski"],
+  },
   { dir: "engines/pabst/src", forbidden: ["src", "engines/thales"] },
   { dir: "engines/thales/frontend/src", forbidden: ["src", "engines/pabst"] },
   { dir: "tarski/frontend/src", forbidden: ["src", "lemma", "engines"] },

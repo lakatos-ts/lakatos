@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { typecheckProject } from "../src/typecheck.js";
 import { LemmaError } from "../src/errors.js";
-import { useTempProject } from "../../tests/helpers/cli.js";
+import { useTempProject } from "./helpers/temp-project.js";
 
 describe("typecheckProject: no tsconfig.json", () => {
   useTempProject(
