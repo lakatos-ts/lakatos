@@ -1,0 +1,35 @@
+{
+  "name": "@lakatos-ts/lemma",
+  "version": "0.1.0",
+  "description": "The Lemma annotation language: discovery of annotated files, @ensures extraction, the formula parser, binder domains, the typecheck gate, and the language's spec and conformance corpus.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts",
+    "spec/README.md",
+    "spec/grammar.ebnf",
+    "spec/semantics.md"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakatos-ts/lakatos.git",
+    "directory": "lemma"
+  },
+  "homepage": "https://github.com/lakatos-ts/lakatos#readme",
+  "bugs": {
+    "url": "https://github.com/lakatos-ts/lakatos/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "typescript": "^6.0.3"
+  }
+}

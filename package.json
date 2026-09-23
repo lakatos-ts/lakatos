@@ -5,7 +5,8 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "core"
+    "core",
+    "lemma"
   ],
   "files": [
     "dist",
@@ -35,7 +36,7 @@
   },
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "typecheck": "tsc -b core && tsc -p tsconfig.tests.json",
+    "typecheck": "tsc -b core lemma && tsc -p tsconfig.tests.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",

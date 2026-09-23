@@ -55,4 +55,24 @@ describe("import layering", () => {
     );
     expect(offenders).toEqual([]);
   });
+
+  it("lemma's sources name no other workspace package", () => {
+    const offenders = tsFiles(path.join(root, "lemma/src")).filter((f) =>
+      /["']@lakatos-ts\//.test(readFileSync(f, "utf8")),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it("lemma is a workspace package the root builds first", () => {
+    const pkg = JSON.parse(
+      readFileSync(path.join(root, "lemma/package.json"), "utf8"),
+    ) as { name: string; exports: Record<string, unknown> };
+    expect(pkg.name).toBe("@lakatos-ts/lemma");
+    expect(Object.keys(pkg.exports)).toEqual(["."]);
+    const rootTsconfig = JSON.parse(
+      readFileSync(path.join(root, "tsconfig.json"), "utf8"),
+    ) as { references: { path: string }[]; include: string[] };
+    expect(rootTsconfig.references.map((r) => r.path)).toContain("./lemma");
+    expect(rootTsconfig.include).not.toContain("lemma/src");
+  });
 });
