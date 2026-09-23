@@ -6,9 +6,11 @@ import {
   MODEL_CARRIERS,
   UNSUPPORTED_RANGE_KIND,
   type Envelope,
-} from "@lakatos-ts/core/envelope";
-import { SZS_STATUSES } from "@lakatos-ts/core/szs";
-import { QUALIFIED_NAME_PATTERN } from "../lemma/src/index.js";
+} from "../src/envelope.js";
+import { SZS_STATUSES } from "../src/szs.js";
+// The schema's function-name pattern mirrors the language's qualified-name
+// grammar. Core does not depend on lemma, so the pin reads lemma's source.
+import { QUALIFIED_NAME_PATTERN } from "../../lemma/src/index.js";
 
 const META = {
   version: "0.1.0",

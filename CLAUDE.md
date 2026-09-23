@@ -2,15 +2,15 @@
 
 Monorepo for lakatos: proofs and refutations for TypeScript. `README.md` (Layout, Architecture) is the tour; each engine's own `CLAUDE.md` loads when you work under it.
 
-Start from `src/cli.ts` (the `prove|refute|check` spine; `check` is still a NotTried stub) and `src/envelope.ts` + `src/szs.ts` (the per-annotation output contract, schema in `schemas/`).
+Start from `src/cli.ts` (the `prove|refute|check` spine; `check` is still a NotTried stub) and `core/src/envelope.ts` + `core/src/szs.ts` (the per-annotation output contract, schema in `core/schemas/`).
 
 ## Layering
 
-`engines/thales/` (proofs, Lean) and `engines/pabst/` (refutations, fast-check) never depend on each other. Both may depend on `lemma/` (the Lemma annotation language: discovery, `@ensures` extraction, parsing; spec and conformance corpus in `spec/`) and `tarski/` (the shared JS-semantics Lean package thales proves against; see its `CLAUDE.md`), which depend on no engine. `src/` may depend on all of them. One product, one version: `engines/thales/package.json` is private dev tooling for its check scripts, not a second package.
+`engines/thales/` (proofs, Lean) and `engines/pabst/` (refutations, fast-check) never depend on each other. Both may depend on `core/` (`@lakatos-ts/core`: the shared runtime — envelope, SZS statuses, interrupt handling, run directories; depends on nothing in the repo), `lemma/` (the Lemma annotation language: discovery, `@ensures` extraction, parsing; spec and conformance corpus in `spec/`) and `tarski/` (the shared JS-semantics Lean package thales proves against; see its `CLAUDE.md`), which depend on no engine. `src/` may depend on all of them. The root is a private npm workspace root; `core/` is its first workspace package, and `engines/thales/package.json` is private dev tooling for its check scripts, not a package.
 
 ## Building and testing
 
-Every TypeScript part — `src/`, `lemma/`, pabst, thales's `frontend/` — is one root npm package: build, typecheck, test, and format from the repo root. Lean lives in two lake packages: `tarski/` (the semantics library, toolchain pin, tracked manifest) and `engines/thales/` (the prover, which requires `tarski` by path). Run `lake` from the package you are building; building thales builds tarski. `lakatos prove` needs a lakatos checkout with the Lean toolchain; the prove e2e and verdict corpus run only under `LAKATOS_PROVE_E2E=1` (CI: `thales.yml`; `tarski.yml` builds the semantics package and runs its Lean tests; `lakatos.yml` covers the TypeScript suites, typecheck, format, and a coverage gate).
+Every TypeScript part — `src/`, `core/`, `lemma/`, pabst, thales's `frontend/` — builds, typechecks, tests, and formats from the repo root (`tsc -b` builds `core/` first; vitest runs core from source through an alias, the built CLI resolves it through the workspace link). Lean lives in two lake packages: `tarski/` (the semantics library, toolchain pin, tracked manifest) and `engines/thales/` (the prover, which requires `tarski` by path). Run `lake` from the package you are building; building thales builds tarski. `lakatos prove` needs a lakatos checkout with the Lean toolchain; the prove e2e and verdict corpus run only under `LAKATOS_PROVE_E2E=1` (CI: `thales.yml`; `tarski.yml` builds the semantics package and runs its Lean tests; `lakatos.yml` covers the TypeScript suites, typecheck, format, and a coverage gate).
 
 ## Issue tracker
 

@@ -10,6 +10,7 @@ Root-package code: no toolchain, lockfile, or package of its own. Build, test, a
 - `src/codegen.ts` + `src/emit.ts` — string-build one vitest file per source file; `src/enumerate.ts` picks exhaustive enumeration vs sampling; `src/domains.ts` renders arbitraries from lemma's bounds.
 - `src/run.ts` — runs lakatos's own vitest under the current node (no npx) and classifies the outcome.
 - `src/contract.ts` — every string that must agree across emitted test ↔ `src/runtime.ts` ↔ CLI decoder. `tests/contract-pins.test.ts` names every other spelling to update when one changes.
+- `src/join.ts` — reads the issues back out of vitest's JSON and joins them onto the planned identities as `@lakatos-ts/core` envelope entries; `buildEnvelope` is the test-side assembly.
 
 ## What the code can't tell you
 
