@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { encodeIssue, type Issue } from "../engines/pabst/src/contract.js";
-import type { ProveStatus } from "../src/szs.js";
+import type { ProveStatus } from "@lakatos-ts/core/szs";
 import type {
   AssertionResult,
   VitestJson,

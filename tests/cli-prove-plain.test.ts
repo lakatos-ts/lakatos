@@ -9,7 +9,7 @@ import {
   type ProveModelLine,
   type ProveVerdict,
 } from "../src/envelope.js";
-import type { ProveStatus } from "../src/szs.js";
+import type { ProveStatus } from "@lakatos-ts/core/szs";
 import { RUN_ROOT } from "../src/run-dir.js";
 
 // The emission pipeline through the CLI spine. The engine is mocked at the

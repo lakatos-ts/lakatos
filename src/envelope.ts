@@ -8,7 +8,11 @@ import type {
   ModelLine,
 } from "../engines/thales/frontend/src/run.js";
 import type { VitestJson } from "../engines/pabst/src/vitest-json.js";
-import { isProveStatus, szsForIssue, type SzsStatus } from "./szs.js";
+import {
+  isProveStatus,
+  szsForIssue,
+  type SzsStatus,
+} from "@lakatos-ts/core/szs";
 
 /** Identity of one scraped annotation: where it lives and what it claims. */
 export interface PropertyIdentity {

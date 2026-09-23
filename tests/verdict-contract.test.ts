@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { MODEL_STATUSES, PROVE_STATUSES } from "../src/szs.js";
+import { MODEL_STATUSES, PROVE_STATUSES } from "@lakatos-ts/core/szs";
 
 const verdictLean = readFileSync(
   fileURLToPath(
