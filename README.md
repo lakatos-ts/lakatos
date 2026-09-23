@@ -161,6 +161,10 @@ Everything is one repository, an npm workspace:
 - [`core/`](core/) — `@lakatos-ts/core`: what every tool shares at
   runtime — the result envelope and its JSON Schema, the SZS status
   vocabulary, interrupt handling, and run-directory claiming.
+- [`lemma/`](lemma/) — `@lakatos-ts/lemma`: the Lemma annotation
+  language — its [spec](lemma/spec/) (grammar, prose semantics, and
+  conformance fixtures) and the implementation both engines share
+  (discovery, `@ensures` extraction, parsing, the typecheck gate).
 - [`engines/thales/`](engines/thales/) — the proof engine: an emitter
   that renders annotated TypeScript as plain Lean 4, with a graded
   automatic discharge ladder (exhaustive checking on bounded domains,
@@ -172,8 +176,6 @@ Everything is one repository, an npm workspace:
   the value domain, and their kernel-checked theory) and, over the same
   definitions, an evaluator for a growing fragment of JavaScript, with a
   TypeScript parser bridge whose ESTree JSON is the seam between the two.
-- [`spec/`](lemma/spec/) — the Lemma annotation language: grammar, prose
-  semantics, and conformance fixtures.
 
 ## Architecture
 

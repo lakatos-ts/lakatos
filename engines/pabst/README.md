@@ -145,7 +145,7 @@ unexported symbol, which are reported as a one-line message on stderr.
 
 ## Grammar
 
-The normative grammar lives in [`spec/grammar.ebnf`](../../spec/grammar.ebnf);
+The normative grammar lives in [`lemma/spec/grammar.ebnf`](../../lemma/spec/grammar.ebnf);
 this section is the guided tour.
 
 A property is a universally quantified formula in Pabst's **logic surface**.
