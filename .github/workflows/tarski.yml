@@ -411,7 +411,7 @@ jobs:
 
       - name: Download every shard's counts
         if: needs.test262-slice.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: test262-shard-*
           path: tarski/shards
