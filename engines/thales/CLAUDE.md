@@ -30,7 +30,7 @@ UPDATE_ENVELOPES=1 LAKATOS_PROVE_E2E=1 npm run check:envelopes   # regenerate th
 From the repo root (the frontend is root-package code):
 
 ```bash
-npx tsc -p tsconfig.json                      # build (the check scripts need this first)
+npm run build                      # build (the check scripts need this first)
 npx vitest run engines/thales/frontend/tests  # frontend unit tests
 npm run format:check                          # prettier, whole repo, one config
 LAKATOS_PROVE_E2E=1 npx vitest run tests/e2e.test.ts   # full prove e2e (needs Lean)

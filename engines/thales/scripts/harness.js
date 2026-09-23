@@ -27,7 +27,7 @@ export async function frontend(module) {
   } catch (e) {
     if (e?.code !== "ERR_MODULE_NOT_FOUND") throw e;
     console.error(
-      `${path.relative(repoRoot, built)} is missing: build the front end first (npx tsc -p tsconfig.json from the repo root)`,
+      `${path.relative(repoRoot, built)} is missing: build the front end first (npm run build from the repo root)`,
     );
     process.exit(1);
   }
