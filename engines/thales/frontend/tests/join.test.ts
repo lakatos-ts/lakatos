@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import type { ProveStatus } from "@lakatos-ts/core/szs";
+import type { ProveStatus } from "@lakatos/core/szs";
 import {
   unstatedModelReason,
   type AnnotationResult,
   type PlannedProperty,
   type PropertyIdentity,
-} from "@lakatos-ts/core/envelope";
+} from "@lakatos/core/envelope";
 import {
   joinProveVerdicts,
   type ProveModelLine,

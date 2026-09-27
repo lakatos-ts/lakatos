@@ -1,5 +1,5 @@
 import { BOOL_ALIAS } from "./contract.js";
-import type { Formula } from "@lakatos-ts/lemma";
+import type { Formula } from "@lakatos/lemma";
 
 /** A pure boolean expression string for any sub-formula (implication = material). */
 export function lowerExpr(f: Formula): string {

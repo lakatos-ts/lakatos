@@ -1,5 +1,5 @@
 {
-  "name": "@lakatos-ts/core",
+  "name": "@lakatos/core",
   "version": "0.1.0",
   "description": "What every lakatos-ts tool shares at runtime: the result envelope and its schema, the SZS status vocabulary, interrupt handling, and run-directory claiming.",
   "type": "module",

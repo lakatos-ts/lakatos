@@ -1,4 +1,4 @@
-# @lakatos-ts/lemma
+# @lakatos/lemma
 
 The Lemma annotation language, end to end: the language itself and its
 reference implementation, versioned together.
@@ -14,7 +14,7 @@ reference implementation, versioned together.
   and the strict-mode typecheck gate (`typecheckProject`).
 
 Import the package, not a path:
-`import { parseBody } from "@lakatos-ts/lemma"`. The barrel `src/index.ts`
+`import { parseBody } from "@lakatos/lemma"`. The barrel `src/index.ts`
 is the whole public surface; everything else under `src/` is internal.
 
 Lemma depends on `typescript`, takes `fast-check` as a peer (its range and

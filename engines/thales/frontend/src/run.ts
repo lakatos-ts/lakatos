@@ -2,11 +2,8 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  interruptedBy,
-  type InterruptSignal,
-} from "@lakatos-ts/core/interrupt";
-import { isProveStatus, type ProveStatus } from "@lakatos-ts/core/szs";
+import { interruptedBy, type InterruptSignal } from "@lakatos/core/interrupt";
+import { isProveStatus, type ProveStatus } from "@lakatos/core/szs";
 
 /** One #thales_prove verdict line: the contract printed by ThalesDsl.
  * Counterexample values are integers (outside the JS safe-integer range,

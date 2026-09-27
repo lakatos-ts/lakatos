@@ -1,10 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { encodeIssue, type Issue } from "../src/contract.js";
 import type { AssertionResult, VitestJson } from "../src/vitest-json.js";
-import type {
-  PlannedProperty,
-  PropertyIdentity,
-} from "@lakatos-ts/core/envelope";
+import type { PlannedProperty, PropertyIdentity } from "@lakatos/core/envelope";
 import {
   buildEnvelope,
   collectIssues,

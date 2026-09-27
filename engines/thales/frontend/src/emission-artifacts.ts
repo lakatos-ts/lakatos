@@ -4,7 +4,7 @@ import {
   type InvalidAnnotation,
   mirrorPath,
   type RawAnnotation,
-} from "@lakatos-ts/lemma";
+} from "@lakatos/lemma";
 import { type ClassifiedAnnotation, emitModule } from "./emission.js";
 
 export interface EmissionArtifact {

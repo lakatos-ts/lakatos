@@ -5,7 +5,7 @@ import { generate, type GenResult } from "../src/codegen.js";
 import { runTests } from "../src/run.js";
 import type { Issue } from "../src/contract.js";
 import { buildEnvelope } from "../src/join.js";
-import type { Envelope } from "@lakatos-ts/core/envelope";
+import type { Envelope } from "@lakatos/core/envelope";
 import { expectValidIssue } from "./helpers/issue-schema.js";
 import { expectValidEnvelope } from "../../../tests/helpers/envelope-schema.js";
 import { META } from "./helpers/fixtures.js";

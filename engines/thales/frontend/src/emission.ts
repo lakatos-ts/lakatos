@@ -15,7 +15,7 @@ import {
   qualifiedName,
   type RawAnnotation,
   unsupportedRangeReason,
-} from "@lakatos-ts/lemma";
+} from "@lakatos/lemma";
 import {
   bindingIdentifiers,
   chainReading,

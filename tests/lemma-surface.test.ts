@@ -20,7 +20,7 @@ const TREES = [
 const FROM_CLAUSE = /\bfrom\s+["']([^"']+)["']/g;
 
 /** The one way in: the package, whose only export is the barrel. */
-const PACKAGE = "@lakatos-ts/lemma";
+const PACKAGE = "@lakatos/lemma";
 
 function tsFiles(tree: string): string[] {
   return readdirSync(path.join(REPO, tree), { recursive: true })

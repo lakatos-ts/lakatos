@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { numberDoubleConstraints, parseRange } from "@lakatos-ts/lemma";
+import { numberDoubleConstraints, parseRange } from "@lakatos/lemma";
 import { numberGuard } from "../engines/thales/frontend/src/readings.js";
 
 /**

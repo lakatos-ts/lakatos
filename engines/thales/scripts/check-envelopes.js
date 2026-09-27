@@ -16,10 +16,10 @@ import { shardOf } from "./shard.js";
 
 const { emitModule } = await frontend("emission");
 const { parseVerdicts, runArtifact } = await frontend("run");
-const { qualifiedName } = await import("@lakatos-ts/lemma");
+const { qualifiedName } = await import("@lakatos/lemma");
 // The envelope's own rule for the model field, so the store and the CLI
 // cannot drift: same build-first failure mode as the lemma import above.
-const { modelFor } = await import("@lakatos-ts/core/envelope");
+const { modelFor } = await import("@lakatos/core/envelope");
 
 const CONFORMANCE = "engines/thales/tests/conformance";
 

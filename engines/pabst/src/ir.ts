@@ -1,4 +1,4 @@
-import type { Binder } from "@lakatos-ts/lemma";
+import type { Binder } from "@lakatos/lemma";
 
 export type {
   Binder,
@@ -6,7 +6,7 @@ export type {
   Primitive,
   Range,
   StringPattern,
-} from "@lakatos-ts/lemma";
+} from "@lakatos/lemma";
 
 export interface PropertySpec {
   name: string;
