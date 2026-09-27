@@ -262,6 +262,28 @@ describe("import layering", () => {
     }
   });
 
+  it("every workspace package ships its license text", () => {
+    const packed = JSON.parse(
+      execFileSync(
+        "npm",
+        [
+          "pack",
+          "--dry-run",
+          "--json",
+          ...["core", "lemma", "pabst", "tarski", "thales"].flatMap((w) => [
+            "-w",
+            w,
+          ]),
+        ],
+        { cwd: root, encoding: "utf8" },
+      ),
+    ) as { name: string; files: { path: string }[] }[];
+    const missing = packed
+      .filter((p) => !p.files.some((f) => f.path === "LICENSE"))
+      .map((p) => p.name);
+    expect(missing).toEqual([]);
+  });
+
   for (const { pkg: pkgDir, src } of [
     { pkg: "lemma", src: "lemma/src" },
     { pkg: "pabst", src: "pabst/src" },
