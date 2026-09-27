@@ -162,6 +162,8 @@ export default defineConfig({
         // Ratcheted 2026-09-27: the CLI's pipeline moved into core's runner
         // and lemma's admission, each with its own unit tests; pabst's bin
         // guard runs only when spawned and carries its own ignore.
+        // Ratcheted again 2026-09-27: the prove spine moved from the CLI into
+        // thales's own package, where the bin's two rethrows each got a test.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
@@ -171,7 +173,7 @@ export default defineConfig({
         statements: 99.69,
         branches: 98.99,
         functions: 100,
-        lines: 99.74,
+        lines: 99.75,
       },
     },
   },
