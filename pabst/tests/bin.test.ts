@@ -77,7 +77,11 @@ describe("the refute API", () => {
     try {
       const report = await refute(["plain.ts"], {
         seed: 7,
-        io: { note: (l) => lines.push(l), emit: () => emitted++ },
+        io: {
+          note: (l) => lines.push(l),
+          emit: () => emitted++,
+          raw: () => {},
+        },
       });
       expect(report.code).toBe(0);
       expect(report.envelope).toMatchObject({

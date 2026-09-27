@@ -101,9 +101,11 @@ function refuteSpine(seed: number): Spine {
       // not vitest's raw status.
       if (result.kind !== "completed") {
         if (result.kind === "no-results") {
-          process.stderr.write(result.stdout);
-          process.stderr.write(result.stderr);
-          return { kind: "unhealthy", messages: [] };
+          return {
+            kind: "unhealthy",
+            messages: [],
+            raw: result.stdout + result.stderr,
+          };
         }
         return { kind: "unhealthy", messages: result.messages };
       }

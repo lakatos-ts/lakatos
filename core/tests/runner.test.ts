@@ -17,14 +17,21 @@ import {
 const TOOL = { name: "tool", version: "9.9.9" };
 const ID = { file: "a.ts", function: "f", property: "p" };
 
-function capture(): ToolIo & { lines: string[]; emitted: Envelope[] } {
+function capture(): ToolIo & {
+  lines: string[];
+  emitted: Envelope[];
+  raws: string[];
+} {
   const lines: string[] = [];
   const emitted: Envelope[] = [];
+  const raws: string[] = [];
   return {
     lines,
     emitted,
+    raws,
     note: (line) => lines.push(line),
     emit: (envelope) => emitted.push(envelope),
+    raw: (text) => raws.push(text),
   };
 }
 
@@ -212,6 +219,25 @@ describe("runTool", () => {
     expect(io.lines).toContain("error: vitest died");
   });
 
+  it("hands an unhealthy run's raw output to the io, before its messages", async () => {
+    const order: string[] = [];
+    await runTool(
+      TOOL,
+      () => admitted(),
+      spine(plan(), {
+        kind: "unhealthy",
+        messages: ["vitest died"],
+        raw: "raw vitest output\n",
+      }),
+      {
+        note: (line) => order.push(line),
+        emit: () => {},
+        raw: (text) => order.push(text),
+      },
+    );
+    expect(order).toEqual(["raw vitest output\n", "error: vitest died"]);
+  });
+
   it("reports an interrupted run as User under the tool's name", async () => {
     const io = capture();
     const report = await runTool(
@@ -269,6 +295,7 @@ describe("runTool", () => {
         emit: () => {
           listening = process.listenerCount("SIGINT");
         },
+        raw: () => {},
       },
     );
     expect(listening).toBeGreaterThan(0);

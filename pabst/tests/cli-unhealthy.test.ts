@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 import { runTests } from "../src/run.js";
+import { refute } from "../src/index.js";
 
 // The output contract holds even when the underlying vitest run is
 // unhealthy: one schema-valid envelope on stdout (every annotation
@@ -52,6 +53,27 @@ describe("cli refute on unhealthy runs", () => {
       expect(Number.isInteger(env.seed)).toBe(true);
       expect(writes.join("")).toContain("raw vitest stdout");
       expect(writes.join("")).toContain("raw vitest stderr");
+    } finally {
+      writeSpy.mockRestore();
+    }
+  });
+
+  it("no-results through the API: the raw output reaches the caller's io, not stderr", async () => {
+    runTestsMock.mockReturnValue({
+      kind: "no-results",
+      status: 137,
+      stdout: "raw vitest stdout\n",
+      stderr: "raw vitest stderr\n",
+    });
+    const writeSpy = vi.spyOn(process.stderr, "write");
+    const raw: string[] = [];
+    try {
+      const report = await refute(["annotated.ts"], {
+        io: { note: () => {}, emit: () => {}, raw: (t) => raw.push(t) },
+      });
+      expect(report.code).toBe(2);
+      expect(raw.join("")).toBe("raw vitest stdout\nraw vitest stderr\n");
+      expect(writeSpy).not.toHaveBeenCalled();
     } finally {
       writeSpy.mockRestore();
     }

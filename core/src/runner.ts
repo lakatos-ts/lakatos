@@ -77,6 +77,8 @@ export type Outcome =
       /** The engine never reported: annotations were produced but not evaluated. */
       kind: "unhealthy";
       messages: string[];
+      /** The engine's own output, passed through verbatim before the messages. */
+      raw?: string;
     }
   | {
       /** A termination signal stopped the engine mid-run. */
@@ -105,12 +107,17 @@ export interface Spine {
 export interface ToolIo {
   note(line: string): void;
   emit(envelope: Envelope): void;
+  /** An engine's own output, byte for byte. */
+  raw(text: string): void;
 }
 
 /** The bins' streams: notes on stderr, the envelope as JSON on stdout. */
 export const consoleIo: ToolIo = {
   note: (line) => console.error(line),
   emit: (envelope) => console.log(JSON.stringify(envelope, null, 2)),
+  raw: (text) => {
+    process.stderr.write(text);
+  },
 };
 
 export interface RunReport {
@@ -233,6 +240,7 @@ export async function runTool(
       return interruptedExit(observed ?? outcome.signal);
     if (observed !== undefined) return interruptedExit(observed);
     if (outcome.kind === "unhealthy") {
+      if (outcome.raw !== undefined) io.raw(outcome.raw);
       for (const m of outcome.messages) say({ level: "error", text: m });
       return stopped(
         plan.identities.map((i) => ({
