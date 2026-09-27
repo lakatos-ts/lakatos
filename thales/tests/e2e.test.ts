@@ -6,9 +6,8 @@ import {
   runForEnvelope,
   useRepoScratchDir,
 } from "./helpers/cli.js";
-import type { Envelope } from "@lakatos/core/envelope";
-import { square } from "../thales/tests/conformance/countersatisfiable/zero-edge.js";
-import { f } from "../thales/tests/conformance/countersatisfiable/commutes.js";
+import { square } from "./conformance/countersatisfiable/zero-edge.js";
+import { f } from "./conformance/countersatisfiable/commutes.js";
 
 // Needs the Lean toolchain and is minutes-slow, so it only runs when asked:
 // thales.yml sets the variable; unit and coverage runs stay identical
@@ -17,7 +16,7 @@ const enabled = process.env.LAKATOS_PROVE_E2E === "1";
 
 const repoRoot = process.cwd();
 
-describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
+describe.runIf(enabled)("thales end-to-end (tracer)", () => {
   // The e2e grades verdicts, not models, and a correspondence proof at the
   // real budget costs about half a minute per declaration. One heartbeat
   // makes every declaration report the budget reason in milliseconds;
@@ -34,20 +33,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
       path.join(repoRoot, "thales", "tests", "fixtures", "tracer.ts"),
       path.join(dir, "tracer.ts"),
     );
-    // The identity-parity check needs a file BOTH engines can process end
-    // to end (the tracer carries constructs the model refuses), so it
-    // reuses the corpus's add-commutes fixture.
-    fs.copyFileSync(
-      path.join(
-        repoRoot,
-        "thales",
-        "tests",
-        "conformance",
-        "theorem",
-        "add-commutes.ts",
-      ),
-      path.join(dir, "parity.ts"),
-    );
     // The witness round-trip runs the corpus's false fixtures and then
     // evaluates their functions (imported above) at the extracted witness.
     const cs = path.join(
@@ -59,10 +44,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     );
     fs.copyFileSync(path.join(cs, "zero-edge.ts"), path.join(dir, "unique.ts"));
     fs.copyFileSync(path.join(cs, "commutes.ts"), path.join(dir, "comm.ts"));
-    fs.copyFileSync(
-      path.join(cs, "boolean-witness.ts"),
-      path.join(dir, "boolwit.ts"),
-    );
     // The symbolic rungs' flagship: guarded monotonicity of the linear
     // conversion, chained from the four Float monotonicity facts.
     fs.copyFileSync(
@@ -114,40 +95,13 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
       ),
       path.join(dir, "point.ts"),
     );
-    // Engine parity on a finite domain: the prover decides it, the
-    // refuter walks it, and both say Theorem.
-    fs.copyFileSync(
-      path.join(
-        repoRoot,
-        "thales",
-        "tests",
-        "conformance",
-        "theorem",
-        "endpoints.ts",
-      ),
-      path.join(dir, "small.ts"),
-    );
-    // Engine parity over a class binder whose constructor takes a boolean:
-    // the prover proves it over the constructor's image, the refuter
-    // enumerates the two constructions, and both say Theorem.
-    fs.copyFileSync(
-      path.join(
-        repoRoot,
-        "thales",
-        "tests",
-        "conformance",
-        "theorem",
-        "boolean-classes.ts",
-      ),
-      path.join(dir, "flag.ts"),
-    );
   });
 
   it(
     "one healthy run: Theorem and Inappropriate per annotation",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const env = await runForEnvelope(["prove", "tracer.ts"]);
+      const env = await runForEnvelope(["tracer.ts"]);
 
       const by = new Map(
         env.annotations.map((a) => [`${a.function}/${a.property}`, a]),
@@ -185,7 +139,7 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
       // 0 is not a budget and is ignored, so this is the default one: the
       // correspondence proof the issue's example shows, end to end.
       vi.stubEnv("LAKATOS_PROVE_VALIDATE_HEARTBEATS", "0");
-      const env = await runForEnvelope(["prove", "tracer.ts"]);
+      const env = await runForEnvelope(["tracer.ts"]);
       const add = env.annotations.find(
         (a) => `${a.function}/${a.property}` === "add/commutes",
       );
@@ -202,7 +156,7 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     { timeout: proveTimeoutMs(2) },
     async () => {
       // Counterexamples found: the documented exit 1.
-      const env = await runForEnvelope(["prove", "unique.ts", "comm.ts"], 1);
+      const env = await runForEnvelope(["unique.ts", "comm.ts"], 1);
       const by = new Map(
         env.annotations.map((a) => [`${a.function}/${a.property}`, a]),
       );
@@ -238,7 +192,7 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     "guarded monotonicity of the conversion proves without axioms",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const env = await runForEnvelope(["prove", "conversion.ts"]);
+      const env = await runForEnvelope(["conversion.ts"]);
       expect(env.annotations).toHaveLength(1);
       expect(env.annotations[0]).toMatchObject({
         function: "applyConversionFactors",
@@ -253,7 +207,7 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     "the non-negativity chain proves without axioms",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const env = await runForEnvelope(["prove", "sq.ts"]);
+      const env = await runForEnvelope(["sq.ts"]);
       expect(env.annotations).toHaveLength(1);
       expect(env.annotations[0]).toMatchObject({
         function: "root",
@@ -268,7 +222,7 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     "bounds refute the guards' throwing arms without axioms",
     { timeout: proveTimeoutMs(2) },
     async () => {
-      const env = await runForEnvelope(["prove", "guards.ts"]);
+      const env = await runForEnvelope(["guards.ts"]);
       expect(env.annotations).toHaveLength(2);
       for (const a of env.annotations) {
         expect(a).toMatchObject({ szs: "Theorem", axioms: [] });
@@ -280,7 +234,7 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     "the class-valued Point binder proves over the constructor's image",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const env = await runForEnvelope(["prove", "point.ts"]);
+      const env = await runForEnvelope(["point.ts"]);
       expect(env.annotations).toHaveLength(1);
       expect(env.annotations[0]).toMatchObject({
         function: "Point#distance",
@@ -288,93 +242,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
         szs: "Theorem",
         axioms: [],
       });
-    },
-  );
-
-  it(
-    "prove and refute report identical identity keys for the same file",
-    { timeout: proveTimeoutMs(1) },
-    async () => {
-      const proveEnv = await runForEnvelope(["prove", "parity.ts"]);
-      expect(proveEnv.annotations[0]).toMatchObject({ szs: "Theorem" });
-
-      const refuteEnv = await runForEnvelope(["refute", "parity.ts"]);
-
-      const ids = (e: Envelope) =>
-        e.annotations.map((a) => [a.file, a.function, a.property]).sort();
-      expect(ids(proveEnv)).toEqual([["parity.ts", "add", "commutes"]]);
-      expect(ids(proveEnv)).toEqual(ids(refuteEnv));
-    },
-  );
-
-  it(
-    "a boolean binder's witness is the same assignment under both engines",
-    { timeout: proveTimeoutMs(1) },
-    async () => {
-      const proveEnv = await runForEnvelope(["prove", "boolwit.ts"], 1);
-      const refuteEnv = await runForEnvelope(["refute", "boolwit.ts"], 1);
-      const witnesses = (e: Envelope) =>
-        e.annotations
-          .map((a) => [a.property, a.counterexample] as const)
-          .sort(([p], [q]) => p.localeCompare(q));
-      expect(witnesses(proveEnv)).toEqual([
-        ["alwaysPicks", { n: 1, b: false }],
-        ["onlyOff", { b: true }],
-      ]);
-      expect(witnesses(refuteEnv)).toEqual(witnesses(proveEnv));
-    },
-  );
-
-  it(
-    "prove and refute both report Theorem on a small finite domain",
-    { timeout: proveTimeoutMs(1) },
-    async () => {
-      const proveEnv = await runForEnvelope(["prove", "small.ts"]);
-      const refuteEnv = await runForEnvelope(["refute", "small.ts"]);
-      const by = (e: Envelope) =>
-        new Map(e.annotations.map((a) => [`${a.function}/${a.property}`, a]));
-      const proved = by(proveEnv);
-      const walked = by(refuteEnv);
-      expect([...proved.keys()].sort()).toEqual([
-        "keep/positive",
-        "shift/bounded",
-      ]);
-      expect([...walked.keys()].sort()).toEqual([...proved.keys()].sort());
-      for (const key of proved.keys()) {
-        expect(proved.get(key)).toMatchObject({ szs: "Theorem", axioms: [] });
-      }
-      expect(walked.get("keep/positive")).toMatchObject({
-        szs: "Theorem",
-        kind: "enumerated",
-        cases: 8,
-      });
-      expect(walked.get("shift/bounded")).toMatchObject({
-        szs: "Theorem",
-        kind: "enumerated",
-        cases: 9,
-      });
-    },
-  );
-
-  it(
-    "prove and refute agree on a class binder over a boolean constructor parameter",
-    { timeout: proveTimeoutMs(1) },
-    async () => {
-      const proveEnv = await runForEnvelope(["prove", "flag.ts"]);
-      const refuteEnv = await runForEnvelope(["refute", "flag.ts"]);
-      const by = (e: Envelope) =>
-        new Map(e.annotations.map((a) => [`${a.function}/${a.property}`, a]));
-      const proved = by(proveEnv);
-      const walked = by(refuteEnv);
-      expect([...walked.keys()].sort()).toEqual([...proved.keys()].sort());
-      for (const key of ["Flag#level/reads", "pick/branches"]) {
-        expect(proved.get(key)).toMatchObject({ szs: "Theorem", axioms: [] });
-        expect(walked.get(key)).toMatchObject({
-          szs: "Theorem",
-          kind: "enumerated",
-          cases: 2,
-        });
-      }
     },
   );
 });

@@ -4,37 +4,34 @@ import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 
 // Behind the gate no valid program makes the frontend classify Error, so
 // the only way to exercise that exit code is to make the emitter report one.
-vi.mock("../thales/frontend/src/run.js", () => ({
+vi.mock("../frontend/src/run.js", () => ({
   runLean: vi.fn(),
   runEmission: vi.fn(),
   findEngineRoot: vi.fn(),
 }));
-vi.mock(
-  "../thales/frontend/src/emission-artifacts.js",
-  async (importOriginal) => {
-    const actual =
-      await importOriginal<
-        typeof import("../thales/frontend/src/emission-artifacts.js")
-      >();
-    return {
-      ...actual,
-      writeEmissionArtifacts: (
-        files: string[],
-        outRoot: string,
-        refused?: ReadonlySet<string>,
-      ) =>
-        actual.writeEmissionArtifacts(files, outRoot, refused).map((a) => ({
-          ...a,
-          leanFile: undefined,
-          classified: a.annotations.map((annotation) => ({
-            annotation,
-            szs: "Error" as const,
-            reason: "the typed walk broke an invariant",
-          })),
+vi.mock("../frontend/src/emission-artifacts.js", async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import("../frontend/src/emission-artifacts.js")
+    >();
+  return {
+    ...actual,
+    writeEmissionArtifacts: (
+      files: string[],
+      outRoot: string,
+      refused?: ReadonlySet<string>,
+    ) =>
+      actual.writeEmissionArtifacts(files, outRoot, refused).map((a) => ({
+        ...a,
+        leanFile: undefined,
+        classified: a.annotations.map((annotation) => ({
+          annotation,
+          szs: "Error" as const,
+          reason: "the typed walk broke an invariant",
         })),
-    };
-  },
-);
+      })),
+  };
+});
 
 describe("cli prove: a frontend Error is an engine failure", () => {
   useTempProject("lakatos-cli-classified-error-", {
@@ -44,7 +41,7 @@ describe("cli prove: a frontend Error is an engine failure", () => {
   });
 
   it("ships the verdict in `error` and exits 2", async () => {
-    const { code, stdout } = await runMain(["prove", "a.ts"]);
+    const { code, stdout } = await runMain(["a.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { schemaValidator } from "./helpers/schema-validator.js";
+import { schemaValidator } from "../../tests/helpers/schema-validator.js";
 import { type EmitDecl, emitModule } from "../src/emission.js";
 import {
   bridgeModule,

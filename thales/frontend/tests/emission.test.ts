@@ -1,6 +1,6 @@
 import { assert, describe, expect, test } from "vitest";
 import * as fs from "node:fs";
-import { schemaValidator } from "./helpers/schema-validator.js";
+import { schemaValidator } from "../../tests/helpers/schema-validator.js";
 import {
   type EmitClass,
   type EmitDecl,

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { MODEL_STATUSES, PROVE_STATUSES } from "@lakatos/core/szs";
 
 const verdictLean = readFileSync(
-  fileURLToPath(new URL("../thales/ThalesDsl/Verdict.lean", import.meta.url)),
+  fileURLToPath(new URL("../ThalesDsl/Verdict.lean", import.meta.url)),
   "utf8",
 );
 

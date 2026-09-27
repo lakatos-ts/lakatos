@@ -52,11 +52,8 @@ const EXPECTED = {
   },
 } as const;
 
-async function expectIslandRefusal(
-  command: "check",
-  file: keyof typeof EXPECTED,
-): Promise<void> {
-  const { code, stdout, stderr } = await runMain([command, file]);
+async function expectIslandRefusal(file: keyof typeof EXPECTED): Promise<void> {
+  const { code, stdout, stderr } = await runMain([file]);
   expect(code).toBe(2);
   expect(stdout).toHaveLength(1);
   const env = JSON.parse(stdout[0]!);
@@ -72,38 +69,16 @@ async function expectIslandRefusal(
   ]);
   expect(stderr).toContain(`error: ${EXPECTED[file].error}`);
   // No engine saw the annotation: the spine counts nothing to run.
-  expect(stderr.join("\n")).toMatch(/emitted 0 annotations|not implemented/);
+  expect(stderr.join("\n")).toContain("emitted 0 annotations");
 }
 
-// The gate refuses the annotation before any engine sees it, which the
-// assertion on the spine's own count is what establishes, so check needs
-// one witness rather than the whole sweep.
-describe("check refuses the same annotation the same way", () => {
-  useTempProject("lakatos-island-check-", REPROS);
+describe("a type fault inside an atom is the annotation's InputError", () => {
+  useTempProject("thales-island-", REPROS);
 
-  it("j.ts reports InputError naming the atom and exits 2", async () => {
-    await expectIslandRefusal("check", "j.ts");
-  });
-});
-
-describe("check: a sound sibling of a faulty annotation still reports", () => {
-  useTempProject("lakatos-island-sibling-check-", REPROS);
-
-  it("lists InputError beside NotTried", async () => {
-    const { code, stdout } = await runMain(["check", "sibling.ts"]);
-    expect(code).toBe(2);
-    const env = JSON.parse(stdout[0]!);
-    expectValidEnvelope(env);
-    expect(env.annotations).toEqual([
-      { file: "sibling.ts", function: "f", property: "good", szs: "NotTried" },
-      {
-        file: "sibling.ts",
-        function: "f",
-        property: "bad",
-        szs: "InputError",
-        error:
-          "sibling.ts:1: @ensures{bad}: in atom `f(x)`: TS1360: Type 'number' does not satisfy the expected type 'boolean'.",
-      },
-    ]);
-  });
+  it.each(Object.keys(EXPECTED) as Array<keyof typeof EXPECTED>)(
+    "%s reports InputError naming the atom and exits 2",
+    async (file) => {
+      await expectIslandRefusal(file);
+    },
+  );
 });

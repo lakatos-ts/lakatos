@@ -3,19 +3,19 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { announcedRunDir, runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
-import { runEmission } from "../thales/frontend/src/run.js";
+import { runEmission } from "../frontend/src/run.js";
 import { unstatedModelReason } from "@lakatos/core/envelope";
 import {
   type ProveModelLine,
   type ProveVerdict,
-} from "../thales/frontend/src/join.js";
+} from "../frontend/src/join.js";
 import type { ProveStatus } from "@lakatos/core/szs";
 import { RUN_ROOT } from "@lakatos/core/run-dir";
 
 // The emission pipeline through the CLI spine. The engine is mocked at the
 // same module seam cli-prove.test.ts uses; this file pins the containment,
 // interrupt, and health contracts, exit codes included.
-vi.mock("../thales/frontend/src/run.js", () => ({
+vi.mock("../frontend/src/run.js", () => ({
   runLean: vi.fn(),
   runEmission: vi.fn(),
   findEngineRoot: vi.fn(),
@@ -79,7 +79,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout, stderr } = await runMain(["prove", "mixed.ts"]);
+    const { code, stdout, stderr } = await runMain(["mixed.ts"]);
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -139,11 +139,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout } = await runMain([
-      "prove",
-      "consts.ts",
-      "classbinder.ts",
-    ]);
+    const { code, stdout } = await runMain(["consts.ts", "classbinder.ts"]);
     expect(runEmissionMock).toHaveBeenCalled();
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
@@ -192,11 +188,7 @@ describe("cli prove, plain pipeline", () => {
         diagnostics: [],
       };
     });
-    const { code, stdout } = await runMain([
-      "prove",
-      "annotated.ts",
-      "other.ts",
-    ]);
+    const { code, stdout } = await runMain(["annotated.ts", "other.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -234,7 +226,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout } = await runMain(["prove", "annotated.ts"]);
+    const { code, stdout } = await runMain(["annotated.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -250,11 +242,7 @@ describe("cli prove, plain pipeline", () => {
 
   it("an interrupted run reports User for everything planned, exit 2", async () => {
     runEmissionMock.mockReturnValue({ kind: "interrupted", signal: "SIGINT" });
-    const { code, stdout } = await runMain([
-      "prove",
-      "annotated.ts",
-      "mixed.ts",
-    ]);
+    const { code, stdout } = await runMain(["annotated.ts", "mixed.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -295,7 +283,7 @@ describe("cli prove, plain pipeline", () => {
       kind: "no-project",
       message: "the Lean proof engine is not part of this installation",
     });
-    const { code, stdout } = await runMain(["prove", "annotated.ts"]);
+    const { code, stdout } = await runMain(["annotated.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -323,7 +311,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout } = await runMain(["prove", "annotated.ts"]);
+    const { code, stdout } = await runMain(["annotated.ts"]);
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -346,7 +334,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout } = await runMain(["prove", "annotated.ts"]);
+    const { code, stdout } = await runMain(["annotated.ts"]);
     expect(code).toBe(1);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -359,7 +347,7 @@ describe("cli prove, plain pipeline", () => {
 
   it("an unhealthy run keeps the unsupported-range metadata", async () => {
     runEmissionMock.mockReturnValue({ kind: "failed", stdout: "", stderr: "" });
-    const { code, stdout } = await runMain(["prove", "mixed.ts"]);
+    const { code, stdout } = await runMain(["mixed.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -386,7 +374,7 @@ describe("cli prove, plain pipeline", () => {
   });
 
   it("input errors join the envelope and force exit 2", async () => {
-    const { code, stdout, stderr } = await runMain(["prove", "invalid.ts"]);
+    const { code, stdout, stderr } = await runMain(["invalid.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -405,7 +393,7 @@ describe("cli prove, plain pipeline", () => {
   });
 
   it("no annotations at all: empty envelope, no prover run, exit 0", async () => {
-    const { code, stdout } = await runMain(["prove", "plain.ts"]);
+    const { code, stdout } = await runMain(["plain.ts"]);
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -427,7 +415,7 @@ describe("cli prove, plain pipeline", () => {
         return true;
       });
     try {
-      const { code, stdout } = await runMain(["prove", "annotated.ts"]);
+      const { code, stdout } = await runMain(["annotated.ts"]);
       expect(code).toBe(2);
       const env = JSON.parse(stdout[0]!);
       expectValidEnvelope(env);
@@ -449,7 +437,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const missing = await runMain(["prove", "annotated.ts"]);
+    const missing = await runMain(["annotated.ts"]);
     expect(missing.code).toBe(2);
     expect(missing.stderr.join("\n")).toContain("no verdict for");
     const env = JSON.parse(missing.stdout[0]!);
@@ -470,7 +458,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout, stderr } = await runMain(["prove", "mixed.ts"]);
+    const { code, stdout, stderr } = await runMain(["mixed.ts"]);
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -502,7 +490,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout, stderr } = await runMain(["prove", "mixed.ts"]);
+    const { code, stdout, stderr } = await runMain(["mixed.ts"]);
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -531,7 +519,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout, stderr } = await runMain(["prove", "mixed.ts"]);
+    const { code, stdout, stderr } = await runMain(["mixed.ts"]);
     expect(code).toBe(2);
     expect(stderr.join("\n")).toContain("duplicate model line for");
     const env = JSON.parse(stdout[0]!);
@@ -553,7 +541,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: [],
     });
-    const { code, stdout } = await runMain(["prove", "mixed.ts"]);
+    const { code, stdout } = await runMain(["mixed.ts"]);
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -573,7 +561,7 @@ describe("cli prove, plain pipeline", () => {
       failures: [],
       diagnostics: ["note: some linter chatter"],
     });
-    const { code, stderr } = await runMain(["prove", "annotated.ts"]);
+    const { code, stderr } = await runMain(["annotated.ts"]);
     expect(code).toBe(0);
     expect(stderr.join("\n")).toContain("note: some linter chatter");
   });

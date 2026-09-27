@@ -38,6 +38,10 @@ const PACKAGES: { dir: string; forbidden: string[] }[] = [
     forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "tarski"],
   },
   {
+    dir: "thales/tests",
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "tarski"],
+  },
+  {
     dir: "tarski/frontend/src",
     forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
   },
@@ -202,6 +206,7 @@ describe("import layering", () => {
     const offenders = [
       ...tsFiles(path.join(root, "thales/frontend/src")),
       ...tsFiles(path.join(root, "thales/frontend/tests")),
+      ...tsFiles(path.join(root, "thales/tests")),
     ].filter((f) =>
       /["']@lakatos\/(?!core[/"']|lemma["']|tarski[/"']|thales["'])/.test(
         readFileSync(f, "utf8"),
