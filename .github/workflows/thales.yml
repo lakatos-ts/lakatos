@@ -4,13 +4,12 @@ on:
   push:
     branches: [main, thales-rewrite]
     paths:
-      - "engines/thales/**"
+      - "thales/**"
       - "tarski/**"
       - "src/**"
       - "core/**"
       - "tests/**"
       - "lemma/**"
-      - "schemas/**"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
@@ -39,7 +38,7 @@ env:
 
 defaults:
   run:
-    working-directory: engines/thales
+    working-directory: thales
 
 jobs:
   lean-tests:
@@ -114,10 +113,10 @@ jobs:
           emit: "true"
 
       - name: Prove end-to-end
-        # vitest positionals are substring filters (tests/e2e.test.ts also
-        # matches pabst/tests/e2e.test.ts); serialized because parallel
-        # forks would race lake builds in the same checkout.
-        run: npx vitest run --no-file-parallelism --exclude "engines/**" --exclude "pabst/**" tests/e2e.test.ts
+        # vitest positionals are substring filters, so each names its whole
+        # path; serialized because parallel forks would race lake builds in
+        # the same checkout.
+        run: npx vitest run --no-file-parallelism thales/tests/e2e.test.ts tests/prove-refute-parity.test.ts
         working-directory: .
         env:
           LAKATOS_PROVE_E2E: "1"
@@ -143,7 +142,7 @@ jobs:
       # build for everything it grades; the fixed cost of an invocation is
       # a second against a corpus whose marginal cost is minutes.
       - name: Verdict corpus
-        run: npx vitest run --no-file-parallelism --exclude "engines/**" tests/verdict-corpus.test.ts
+        run: npx vitest run --no-file-parallelism thales/tests/verdict-corpus.test.ts
         working-directory: .
         env:
           LAKATOS_PROVE_E2E: "1"
@@ -172,9 +171,9 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: |
-            engines/thales/.lake/build
+            thales/.lake/build
             tarski/.lake/build
-          key: lake-v2-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'engines/thales/lakefile.lean', 'engines/thales/lake-manifest.json') }}
+          key: lake-v3-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'thales/lakefile.lean', 'thales/lake-manifest.json') }}
 
   thales:
     # The required-check context. Its name must stay exactly

@@ -8,20 +8,12 @@ export const engineRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-export const repoRoot = path.resolve(engineRoot, "..", "..");
+export const repoRoot = path.resolve(engineRoot, "..");
 
-/** Import a compiled frontend module: the checks exercise the code the CLI
+/** Import a compiled frontend module: the checks exercise the code the bin
  * ships, not a copy of it, so they need the root build. */
 export async function frontend(module) {
-  const built = path.join(
-    repoRoot,
-    "dist",
-    "engines",
-    "thales",
-    "frontend",
-    "src",
-    `${module}.js`,
-  );
+  const built = path.join(engineRoot, "dist", `${module}.js`);
   try {
     return await import(built);
   } catch (e) {
