@@ -7,7 +7,7 @@ export default defineConfig({
       {
         // Suites run the workspace package from source: a change in core
         // reaches an engine's tests without a build, and coverage sees it.
-        find: /^@lakatos\/core\/(envelope|szs|interrupt|run-dir)$/,
+        find: /^@lakatos\/core\/(envelope|szs|interrupt|run-dir|runner)$/,
         replacement: fileURLToPath(
           new URL("./core/src/$1.ts", import.meta.url),
         ),
