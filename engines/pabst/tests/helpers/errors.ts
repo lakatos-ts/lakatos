@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { LemmaError } from "@lakatos-ts/lemma";
+import { LemmaError } from "@lakatos/lemma";
 
 /**
  * Assert that `fn` throws a LemmaError matching `match`. The class matters

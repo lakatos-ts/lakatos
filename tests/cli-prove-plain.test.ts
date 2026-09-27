@@ -4,13 +4,13 @@ import * as path from "node:path";
 import { announcedRunDir, runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 import { runEmission } from "../engines/thales/frontend/src/run.js";
-import { unstatedModelReason } from "@lakatos-ts/core/envelope";
+import { unstatedModelReason } from "@lakatos/core/envelope";
 import {
   type ProveModelLine,
   type ProveVerdict,
 } from "../engines/thales/frontend/src/join.js";
-import type { ProveStatus } from "@lakatos-ts/core/szs";
-import { RUN_ROOT } from "@lakatos-ts/core/run-dir";
+import type { ProveStatus } from "@lakatos/core/szs";
+import { RUN_ROOT } from "@lakatos/core/run-dir";
 
 // The emission pipeline through the CLI spine. The engine is mocked at the
 // same module seam cli-prove.test.ts uses; this file pins the containment,

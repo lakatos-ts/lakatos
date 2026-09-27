@@ -1,4 +1,4 @@
-# @lakatos-ts/core
+# @lakatos/core
 
 What every lakatos-ts tool shares at runtime, and nothing else: no
 annotation language, no engine.
@@ -14,5 +14,5 @@ annotation language, no engine.
 - `run-dir` — claiming a timestamped directory under `.lakatos/` for a
   run's artifacts.
 
-Import by subpath: `@lakatos-ts/core/envelope`, `/szs`, `/interrupt`,
+Import by subpath: `@lakatos/core/envelope`, `/szs`, `/interrupt`,
 `/run-dir`.

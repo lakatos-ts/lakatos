@@ -2,7 +2,7 @@ import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { runDirFor } from "@lakatos-ts/core/run-dir";
+import { runDirFor } from "@lakatos/core/run-dir";
 import { DEFAULT_TSCONFIG, runMain } from "./helpers/cli.js";
 
 // Run directories are named in UTC, whatever the machine is set to: two

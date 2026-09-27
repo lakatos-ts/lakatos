@@ -8,7 +8,7 @@ import {
   REPORT_EXPORT,
   RUNTIME_SPECIFIER,
 } from "../src/contract.js";
-import { QUALIFIED_NAME_PATTERN, qualifiedName } from "@lakatos-ts/lemma";
+import { QUALIFIED_NAME_PATTERN, qualifiedName } from "@lakatos/lemma";
 import * as runtime from "../src/runtime.js";
 
 describe("contract pins", () => {

@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { LemmaError } from "@lakatos-ts/lemma";
+import { LemmaError } from "@lakatos/lemma";
 
 /** A fresh 32-bit unsigned integer, suitable as a fast-check seed. */
 export function randomSeed(): number {

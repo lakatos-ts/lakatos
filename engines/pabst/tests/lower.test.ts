@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { lowerExpr, lowerTop } from "../src/lower.js";
-import type { Formula } from "@lakatos-ts/lemma";
+import type { Formula } from "@lakatos/lemma";
 
 const atom = (text: string, js = text): Formula => ({ kind: "atom", text, js });
 

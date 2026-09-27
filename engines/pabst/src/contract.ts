@@ -6,7 +6,7 @@
  * each seam import this module instead of spelling the string twice.
  */
 
-import type { IssueKind } from "@lakatos-ts/core/szs";
+import type { IssueKind } from "@lakatos/core/szs";
 
 export type { IssueKind };
 

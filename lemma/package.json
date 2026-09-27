@@ -1,5 +1,5 @@
 {
-  "name": "@lakatos-ts/lemma",
+  "name": "@lakatos/lemma",
   "version": "0.1.0",
   "description": "The Lemma annotation language: discovery of annotated files, @ensures extraction, the formula parser, binder domains, the typecheck gate, and the language's spec and conformance corpus.",
   "type": "module",

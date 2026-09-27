@@ -7,14 +7,14 @@ export default defineConfig({
       {
         // Suites run the workspace package from source: a change in core
         // reaches an engine's tests without a build, and coverage sees it.
-        find: /^@lakatos-ts\/core\/(envelope|szs|interrupt|run-dir)$/,
+        find: /^@lakatos\/core\/(envelope|szs|interrupt|run-dir)$/,
         replacement: fileURLToPath(
           new URL("./core/src/$1.ts", import.meta.url),
         ),
       },
       {
         // Same for lemma: the barrel is its only export.
-        find: /^@lakatos-ts\/lemma$/,
+        find: /^@lakatos\/lemma$/,
         replacement: fileURLToPath(
           new URL("./lemma/src/index.ts", import.meta.url),
         ),

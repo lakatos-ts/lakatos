@@ -4,8 +4,8 @@ import {
   identityOf,
   modelFor,
   type PropertyIdentity,
-} from "@lakatos-ts/core/envelope";
-import { isProveStatus } from "@lakatos-ts/core/szs";
+} from "@lakatos/core/envelope";
+import { isProveStatus } from "@lakatos/core/szs";
 import type { LeanVerdict, ModelLine } from "./run.js";
 
 /** One #thales_prove verdict line; run.ts, which parses the wire

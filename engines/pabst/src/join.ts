@@ -5,8 +5,8 @@ import {
   type AnnotationResult,
   type PlannedProperty,
   type RunMeta,
-} from "@lakatos-ts/core/envelope";
-import { szsForIssue } from "@lakatos-ts/core/szs";
+} from "@lakatos/core/envelope";
+import { szsForIssue } from "@lakatos/core/szs";
 import { parseIssue, type Issue } from "./contract.js";
 import type { VitestJson } from "./vitest-json.js";
 

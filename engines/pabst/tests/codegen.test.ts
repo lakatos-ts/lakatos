@@ -4,7 +4,7 @@ import * as path from "node:path";
 import * as os from "node:os";
 import { generate } from "../src/codegen.js";
 import { LOOP_BUDGET_MS } from "../src/enumerate.js";
-import { annotationKey, LemmaError } from "@lakatos-ts/lemma";
+import { annotationKey, LemmaError } from "@lakatos/lemma";
 
 // The out root is the caller's to choose; these tests pick an arbitrary
 // one, since what is under test is the mirroring, not the CLI's naming.

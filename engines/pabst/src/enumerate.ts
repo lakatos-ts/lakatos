@@ -8,7 +8,7 @@ import {
   isClassDomain,
   prefixCardinality,
   qualifiedName,
-} from "@lakatos-ts/lemma";
+} from "@lakatos/lemma";
 import { BUDGET_ALIAS, REPORT_ALIAS } from "./contract.js";
 import { ctorCall, ctorShape } from "./ctor.js";
 import type { PropertySpec } from "./ir.js";

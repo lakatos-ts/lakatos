@@ -5,7 +5,7 @@ import {
   type InvalidAnnotation,
   mirrorPath,
   qualifiedName,
-} from "@lakatos-ts/lemma";
+} from "@lakatos/lemma";
 import { emit } from "./emit.js";
 import { LOOP_BUDGET_MS } from "./enumerate.js";
 import { randomSeed } from "./seed.js";

@@ -7,7 +7,7 @@ import {
   loopHeaders,
 } from "../src/enumerate.js";
 import type { Binder } from "../src/ir.js";
-import type { ClassCtorDomain } from "@lakatos-ts/lemma";
+import type { ClassCtorDomain } from "@lakatos/lemma";
 
 const int = (min: string, max: string, maxOpen = false): Binder => ({
   varName: "n",

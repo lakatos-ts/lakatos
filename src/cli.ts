@@ -29,7 +29,7 @@ import {
   typecheckProject,
   typeFormulas,
   unsupportedRangeReason,
-} from "@lakatos-ts/lemma";
+} from "@lakatos/lemma";
 import { joinRefuteVerdicts } from "../engines/pabst/src/join.js";
 import { joinProveVerdicts } from "../engines/thales/frontend/src/join.js";
 import {
@@ -40,18 +40,18 @@ import {
   type Envelope,
   type PlannedProperty,
   type PropertyIdentity,
-} from "@lakatos-ts/core/envelope";
+} from "@lakatos/core/envelope";
 import { executeSource } from "./exe.js";
 import {
   withInterruptGuard,
   type InterruptSignal,
-} from "@lakatos-ts/core/interrupt";
+} from "@lakatos/core/interrupt";
 import {
   claimRunDir,
   RUN_ROOT,
   RunDirError,
   TYPECHECK_CACHE,
-} from "@lakatos-ts/core/run-dir";
+} from "@lakatos/core/run-dir";
 
 /** Envelope entries for extraction-level input errors, with their
  * diagnostics echoed to stderr. Any such entry makes the run exit 2.
