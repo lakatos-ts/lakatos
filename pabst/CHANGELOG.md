@@ -4,6 +4,21 @@ Notable changes to pabst. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [semver](https://semver.org/).
 
+## [0.1.0] - Unreleased
+
+First release as `@lakatos/pabst`, a package of its own.
+
+### Added
+
+- The `pabst` bin: `pabst [--seed <n>] [files-or-globs...]`, with the
+  envelope and exit codes `lakatos refute` had.
+- The `refute` API, which resolves to the envelope and the exit code.
+
+### Changed
+
+- **Breaking:** generated tests import the runtime from
+  `@lakatos/pabst/runtime` (was `lakatos/runtime`).
+
 ## 2026-08-17
 
 0.13.0 was the last standalone `pabst-checker` release. The engine now

@@ -1,11 +1,11 @@
 # Pabst: A blue-ribbon approach to **P**roperty-**B**ased **T**esting
 
-Pabst is lakatos's refutation engine. Annotate your functions with
+Pabst is the lakatos refutation tool. Annotate your functions with
 properties they're supposed to have, then try to invalidate them with
 [fast-check](https://fast-check.dev/).
 
 Put the properties your functions should have in a JSDoc comment, run
-`lakatos refute` (the CLI lives at the repo root), and get either "cases
+`pabst`, and get either "cases
 passed" or a counterexample that shows the property doesn't hold.
 
 _Example_ Look at this code. We're trying to assert that the value of the function is
@@ -25,7 +25,7 @@ export function foo(x: bigint, y: number): number {
 Each remainder looks like it should be 0 or 1, so the sum looks like it's at
 least 1. But JavaScript's `%` returns _negative_ remainders for negative
 operands: `foo(-1n, 0)` is `-1 + 0 + 1 === 0`. You don't have to spot that —
-`lakatos refute` falsifies the property and reports a counterexample.
+`pabst` falsifies the property and reports a counterexample.
 
 ## Philosophy
 
@@ -48,10 +48,15 @@ comfortably alongside proof-based approaches.
 
 ## Getting it
 
-Pabst is not a standalone package: it ships inside the `lakatos` npm
-package at this repository's root, which owns the CLI (`lakatos refute`),
-the dependency declarations, and the version number. (Through 0.13.0 it
-was published standalone as `pabst-checker`; that line has ended.)
+Install it as a dev dependency and run it with `npx`:
+
+```bash
+npm install --save-dev @lakatos/pabst
+npx pabst
+```
+
+(Through 0.13.0 pabst was published as `pabst-checker`; that line has
+ended.)
 
 Pabst bundles its own [vitest](https://vitest.dev/) and declares
 [fast-check](https://fast-check.dev/) as a peer dependency (npm installs
@@ -63,23 +68,23 @@ so at install time instead of your tests failing mysteriously.
 ## Usage
 
 ```bash
-lakatos refute                             # discover sources, test, print a JSON report
-lakatos refute <files-or-globs>            # same, on an explicit file list
-lakatos refute --seed <n> <files-or-globs> # reproduce a prior run's generation
+pabst                             # discover sources, test, print a JSON report
+pabst <files-or-globs>            # same, on an explicit file list
+pabst --seed <n> <files-or-globs> # reproduce a prior run's generation
 ```
 
-With no file arguments, lakatos discovers your sources: exactly the files
+With no file arguments, pabst discovers your sources: exactly the files
 `tsc` would compile for `tsconfig.json`. Without a tsconfig, or with one that
 names no files, it exits with an error asking for an explicit glob (the type
 gate refuses anything outside the tsconfig's program, so there is nowhere
 else to look). Discovery stays inside the current directory — a
 tsconfig reaching outside it (say, a monorepo `include` of `../shared`) has
-those files skipped; run lakatos in the package that owns them.
+those files skipped; run pabst in the package that owns them.
 
 Declaration files (`.d.ts`) are skipped by default — tsc copies JSDoc into
 them, so scanning both a declaration and its source would extract every
 property twice. A pattern that explicitly names declarations
-(`lakatos refute "index.d.ts"`) is honored, for packages whose hand-written
+(`pabst "index.d.ts"`) is honored, for packages whose hand-written
 types are the source.
 
 Pabst writes the test files it generates into a `.lakatos/` directory in your
@@ -94,13 +99,25 @@ it — add `.lakatos/` to your `.gitignore`:
 
 No run is ever written over another: two invocations that start in the same
 millisecond get `...943Z` and `...943Z-2`, and the progress line on stderr
-names whichever one this run took. Runs accumulate — lakatos never deletes an
+names whichever one this run took. Runs accumulate — pabst never deletes an
 earlier one, so you can still read the artifacts behind yesterday's report.
 Delete the directory when you want the space back.
 
+### From TypeScript
+
+```ts
+import { refute } from "@lakatos/pabst";
+
+const { code, envelope } = await refute(["src/**/*.ts"], { seed: 42 });
+```
+
+`refute` runs from the current directory, like the bin. It resolves to the
+envelope the bin would print and the exit code it would return; pass
+`io: { note, emit }` to take its stderr notes and the envelope yourself.
+
 ## Output
 
-`lakatos refute` prints a single JSON envelope to **stdout**; **stderr**
+`pabst` prints a single JSON envelope to **stdout**; **stderr**
 carries only progress and crashes. The envelope's shape — one entry per
 annotation, each with an SZS status — is documented in the
 [root README](../../README.md) and pinned by
@@ -235,13 +252,13 @@ name) if it fails. Generated files land in the run's own directory (see
 
 ## Development
 
-Pabst is built and tested as part of the root `lakatos` package — run
-everything from the repository root:
+Pabst is built and tested as the workspace package `@lakatos/pabst` —
+run everything from the repository root:
 
 ```bash
 npm install
-npm test          # vitest (root suite, includes engines/pabst/tests)
-npm run build     # tsc -> dist/
+npm test          # vitest (root suite, includes pabst/tests)
+npm run build     # tsc -b: core, lemma, then pabst/dist/
 ```
 
 Requires Node 24+.
