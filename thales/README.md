@@ -42,9 +42,13 @@ from this directory, which requires the JS-semantics library in
 `../tarski`. From the checkout's root, after `npm install && npm run build`:
 
 ```bash
-npx thales                          # discover sources, prove, print a JSON report
-npx thales <files-or-globs>         # same, on an explicit file list
+node thales/dist/cli.js                     # discover sources, prove, print a JSON report
+node thales/dist/cli.js <files-or-globs>    # same, on an explicit file list
 ```
+
+(npm links the `thales` bin before the build creates its target, so in a
+fresh checkout `npx thales` finds a file it cannot execute; `node` does not
+care.)
 
 With no file arguments, thales proves the files `tsconfig.json` compiles.
 Every run type checks the whole project first; a program that does not

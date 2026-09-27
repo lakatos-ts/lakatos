@@ -36,6 +36,8 @@ function corpusFixtures(): string[] {
   const fixtures: string[] = [];
   for (const dirent of fs.readdirSync(corpusRoot, { withFileTypes: true })) {
     if (!dirent.isDirectory()) continue; // the README sits beside the buckets
+    // A run from inside the corpus leaves its .lakatos/ here.
+    if (dirent.name.startsWith(".")) continue;
     const bucket = dirent.name;
     if (BUCKET_STATUS[bucket] === undefined) {
       throw new Error(`unknown corpus bucket: ${bucket}`);
