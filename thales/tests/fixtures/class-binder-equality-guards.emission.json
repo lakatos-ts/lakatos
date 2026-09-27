@@ -1,0 +1,946 @@
+{
+  "file": "thales/tests/conformance/theorem/class-binder-equality-guards.ts",
+  "declarations": [
+    {
+      "kind": "class",
+      "name": "Point",
+      "source": "export class Point {\n  public readonly x: number;\n  public readonly y: number;\n\n  constructor(x: number, y: number) {\n    if (\n      x === -Infinity ||\n      x === Infinity ||\n      y === -Infinity ||\n      y === Infinity\n    ) {\n      throw new RangeError(\"Cannot accept infinite coordinates\");\n    }\n    if (Object.is(x, NaN) || Object.is(y, NaN)) {\n      throw new RangeError(\"Coordinates cannot be NaN\");\n    }\n    if (Object.is(x, -0)) {\n      x = 0;\n    }\n    if (Object.is(y, -0)) {\n      y = 0;\n    }\n    this.x = x;\n    this.y = y;\n  }\n\n  /**\n   * @ensures{nonNegative} ∀ (p q : Point) { 0 <= p.distance(q) }\n   */\n  distance(p: Point): number {\n    const dx = p.x - this.x;\n    const dy = p.y - this.y;\n    return Math.sqrt(dx * dx + dy * dy);\n  }\n}",
+      "fields": [
+        {
+          "name": "x"
+        },
+        {
+          "name": "y"
+        }
+      ],
+      "ctor": {
+        "params": [
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          }
+        ],
+        "body": [
+          {
+            "kind": "if",
+            "cond": {
+              "kind": "binop",
+              "op": "||",
+              "left": {
+                "kind": "binop",
+                "op": "||",
+                "left": {
+                  "kind": "binop",
+                  "op": "||",
+                  "left": {
+                    "kind": "binop",
+                    "op": "===",
+                    "left": {
+                      "kind": "id",
+                      "name": "x"
+                    },
+                    "right": {
+                      "kind": "unop",
+                      "op": "-",
+                      "operand": {
+                        "kind": "num",
+                        "lit": "Infinity"
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binop",
+                    "op": "===",
+                    "left": {
+                      "kind": "id",
+                      "name": "x"
+                    },
+                    "right": {
+                      "kind": "num",
+                      "lit": "Infinity"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binop",
+                  "op": "===",
+                  "left": {
+                    "kind": "id",
+                    "name": "y"
+                  },
+                  "right": {
+                    "kind": "unop",
+                    "op": "-",
+                    "operand": {
+                      "kind": "num",
+                      "lit": "Infinity"
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "binop",
+                "op": "===",
+                "left": {
+                  "kind": "id",
+                  "name": "y"
+                },
+                "right": {
+                  "kind": "num",
+                  "lit": "Infinity"
+                }
+              }
+            },
+            "then": [
+              {
+                "kind": "throw",
+                "error": "RangeError"
+              }
+            ]
+          },
+          {
+            "kind": "if",
+            "cond": {
+              "kind": "binop",
+              "op": "||",
+              "left": {
+                "kind": "same-value",
+                "left": {
+                  "kind": "id",
+                  "name": "x"
+                },
+                "right": {
+                  "kind": "num",
+                  "lit": "NaN"
+                }
+              },
+              "right": {
+                "kind": "same-value",
+                "left": {
+                  "kind": "id",
+                  "name": "y"
+                },
+                "right": {
+                  "kind": "num",
+                  "lit": "NaN"
+                }
+              }
+            },
+            "then": [
+              {
+                "kind": "throw",
+                "error": "RangeError"
+              }
+            ]
+          },
+          {
+            "kind": "if",
+            "cond": {
+              "kind": "same-value",
+              "left": {
+                "kind": "id",
+                "name": "x"
+              },
+              "right": {
+                "kind": "num",
+                "lit": "-0"
+              }
+            },
+            "then": [
+              {
+                "kind": "assign",
+                "name": "x",
+                "expr": {
+                  "kind": "num",
+                  "lit": "0"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "if",
+            "cond": {
+              "kind": "same-value",
+              "left": {
+                "kind": "id",
+                "name": "y"
+              },
+              "right": {
+                "kind": "num",
+                "lit": "-0"
+              }
+            },
+            "then": [
+              {
+                "kind": "assign",
+                "name": "y",
+                "expr": {
+                  "kind": "num",
+                  "lit": "0"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "field-set",
+            "field": "x",
+            "expr": {
+              "kind": "id",
+              "name": "x"
+            }
+          },
+          {
+            "kind": "field-set",
+            "field": "y",
+            "expr": {
+              "kind": "id",
+              "name": "y"
+            }
+          }
+        ]
+      },
+      "getters": [],
+      "methods": [
+        {
+          "name": "distance",
+          "params": [
+            {
+              "name": "p",
+              "type": {
+                "class": "Point"
+              }
+            }
+          ],
+          "body": [
+            {
+              "kind": "const",
+              "name": "dx",
+              "init": {
+                "kind": "binop",
+                "op": "-",
+                "left": {
+                  "kind": "field-read",
+                  "className": "Point",
+                  "field": "x",
+                  "object": {
+                    "kind": "id",
+                    "name": "p"
+                  }
+                },
+                "right": {
+                  "kind": "field-read",
+                  "className": "Point",
+                  "field": "x",
+                  "object": {
+                    "kind": "self"
+                  }
+                }
+              }
+            },
+            {
+              "kind": "const",
+              "name": "dy",
+              "init": {
+                "kind": "binop",
+                "op": "-",
+                "left": {
+                  "kind": "field-read",
+                  "className": "Point",
+                  "field": "y",
+                  "object": {
+                    "kind": "id",
+                    "name": "p"
+                  }
+                },
+                "right": {
+                  "kind": "field-read",
+                  "className": "Point",
+                  "field": "y",
+                  "object": {
+                    "kind": "self"
+                  }
+                }
+              }
+            },
+            {
+              "kind": "return",
+              "expr": {
+                "kind": "builtin",
+                "object": "Math",
+                "member": "sqrt",
+                "args": [
+                  {
+                    "kind": "binop",
+                    "op": "+",
+                    "left": {
+                      "kind": "binop",
+                      "op": "*",
+                      "left": {
+                        "kind": "id",
+                        "name": "dx"
+                      },
+                      "right": {
+                        "kind": "id",
+                        "name": "dx"
+                      }
+                    },
+                    "right": {
+                      "kind": "binop",
+                      "op": "*",
+                      "left": {
+                        "kind": "id",
+                        "name": "dy"
+                      },
+                      "right": {
+                        "kind": "id",
+                        "name": "dy"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "ast": {
+        "type": "Program",
+        "sourceType": "script",
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "expression": {
+              "type": "Literal",
+              "value": "use strict",
+              "raw": "\"use strict\""
+            },
+            "directive": "use strict"
+          },
+          {
+            "type": "ClassDeclaration",
+            "id": {
+              "type": "Identifier",
+              "name": "Point"
+            },
+            "superClass": null,
+            "body": {
+              "type": "ClassBody",
+              "body": [
+                {
+                  "type": "PropertyDefinition",
+                  "key": {
+                    "type": "Identifier",
+                    "name": "x"
+                  },
+                  "value": null,
+                  "computed": false,
+                  "static": false
+                },
+                {
+                  "type": "PropertyDefinition",
+                  "key": {
+                    "type": "Identifier",
+                    "name": "y"
+                  },
+                  "value": null,
+                  "computed": false,
+                  "static": false
+                },
+                {
+                  "type": "MethodDefinition",
+                  "key": {
+                    "type": "Identifier",
+                    "name": "constructor"
+                  },
+                  "value": {
+                    "type": "FunctionExpression",
+                    "id": null,
+                    "params": [
+                      {
+                        "type": "Identifier",
+                        "name": "x"
+                      },
+                      {
+                        "type": "Identifier",
+                        "name": "y"
+                      }
+                    ],
+                    "body": {
+                      "type": "BlockStatement",
+                      "body": [
+                        {
+                          "type": "IfStatement",
+                          "test": {
+                            "type": "LogicalExpression",
+                            "operator": "||",
+                            "left": {
+                              "type": "LogicalExpression",
+                              "operator": "||",
+                              "left": {
+                                "type": "LogicalExpression",
+                                "operator": "||",
+                                "left": {
+                                  "type": "BinaryExpression",
+                                  "operator": "===",
+                                  "left": {
+                                    "type": "Identifier",
+                                    "name": "x"
+                                  },
+                                  "right": {
+                                    "type": "UnaryExpression",
+                                    "operator": "-",
+                                    "argument": {
+                                      "type": "Identifier",
+                                      "name": "Infinity"
+                                    },
+                                    "prefix": true
+                                  }
+                                },
+                                "right": {
+                                  "type": "BinaryExpression",
+                                  "operator": "===",
+                                  "left": {
+                                    "type": "Identifier",
+                                    "name": "x"
+                                  },
+                                  "right": {
+                                    "type": "Identifier",
+                                    "name": "Infinity"
+                                  }
+                                }
+                              },
+                              "right": {
+                                "type": "BinaryExpression",
+                                "operator": "===",
+                                "left": {
+                                  "type": "Identifier",
+                                  "name": "y"
+                                },
+                                "right": {
+                                  "type": "UnaryExpression",
+                                  "operator": "-",
+                                  "argument": {
+                                    "type": "Identifier",
+                                    "name": "Infinity"
+                                  },
+                                  "prefix": true
+                                }
+                              }
+                            },
+                            "right": {
+                              "type": "BinaryExpression",
+                              "operator": "===",
+                              "left": {
+                                "type": "Identifier",
+                                "name": "y"
+                              },
+                              "right": {
+                                "type": "Identifier",
+                                "name": "Infinity"
+                              }
+                            }
+                          },
+                          "consequent": {
+                            "type": "BlockStatement",
+                            "body": [
+                              {
+                                "type": "ThrowStatement",
+                                "argument": {
+                                  "type": "NewExpression",
+                                  "callee": {
+                                    "type": "Identifier",
+                                    "name": "RangeError"
+                                  },
+                                  "arguments": [
+                                    {
+                                      "type": "Literal",
+                                      "value": "Cannot accept infinite coordinates",
+                                      "raw": "\"Cannot accept infinite coordinates\""
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          "alternate": null
+                        },
+                        {
+                          "type": "IfStatement",
+                          "test": {
+                            "type": "LogicalExpression",
+                            "operator": "||",
+                            "left": {
+                              "type": "CallExpression",
+                              "callee": {
+                                "type": "MemberExpression",
+                                "object": {
+                                  "type": "Identifier",
+                                  "name": "Object"
+                                },
+                                "property": {
+                                  "type": "Identifier",
+                                  "name": "is"
+                                },
+                                "computed": false
+                              },
+                              "arguments": [
+                                {
+                                  "type": "Identifier",
+                                  "name": "x"
+                                },
+                                {
+                                  "type": "Identifier",
+                                  "name": "NaN"
+                                }
+                              ]
+                            },
+                            "right": {
+                              "type": "CallExpression",
+                              "callee": {
+                                "type": "MemberExpression",
+                                "object": {
+                                  "type": "Identifier",
+                                  "name": "Object"
+                                },
+                                "property": {
+                                  "type": "Identifier",
+                                  "name": "is"
+                                },
+                                "computed": false
+                              },
+                              "arguments": [
+                                {
+                                  "type": "Identifier",
+                                  "name": "y"
+                                },
+                                {
+                                  "type": "Identifier",
+                                  "name": "NaN"
+                                }
+                              ]
+                            }
+                          },
+                          "consequent": {
+                            "type": "BlockStatement",
+                            "body": [
+                              {
+                                "type": "ThrowStatement",
+                                "argument": {
+                                  "type": "NewExpression",
+                                  "callee": {
+                                    "type": "Identifier",
+                                    "name": "RangeError"
+                                  },
+                                  "arguments": [
+                                    {
+                                      "type": "Literal",
+                                      "value": "Coordinates cannot be NaN",
+                                      "raw": "\"Coordinates cannot be NaN\""
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          "alternate": null
+                        },
+                        {
+                          "type": "IfStatement",
+                          "test": {
+                            "type": "CallExpression",
+                            "callee": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "Identifier",
+                                "name": "Object"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "is"
+                              },
+                              "computed": false
+                            },
+                            "arguments": [
+                              {
+                                "type": "Identifier",
+                                "name": "x"
+                              },
+                              {
+                                "type": "UnaryExpression",
+                                "operator": "-",
+                                "argument": {
+                                  "type": "Literal",
+                                  "value": 0,
+                                  "raw": "0"
+                                },
+                                "prefix": true
+                              }
+                            ]
+                          },
+                          "consequent": {
+                            "type": "BlockStatement",
+                            "body": [
+                              {
+                                "type": "ExpressionStatement",
+                                "expression": {
+                                  "type": "AssignmentExpression",
+                                  "operator": "=",
+                                  "left": {
+                                    "type": "Identifier",
+                                    "name": "x"
+                                  },
+                                  "right": {
+                                    "type": "Literal",
+                                    "value": 0,
+                                    "raw": "0"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "alternate": null
+                        },
+                        {
+                          "type": "IfStatement",
+                          "test": {
+                            "type": "CallExpression",
+                            "callee": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "Identifier",
+                                "name": "Object"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "is"
+                              },
+                              "computed": false
+                            },
+                            "arguments": [
+                              {
+                                "type": "Identifier",
+                                "name": "y"
+                              },
+                              {
+                                "type": "UnaryExpression",
+                                "operator": "-",
+                                "argument": {
+                                  "type": "Literal",
+                                  "value": 0,
+                                  "raw": "0"
+                                },
+                                "prefix": true
+                              }
+                            ]
+                          },
+                          "consequent": {
+                            "type": "BlockStatement",
+                            "body": [
+                              {
+                                "type": "ExpressionStatement",
+                                "expression": {
+                                  "type": "AssignmentExpression",
+                                  "operator": "=",
+                                  "left": {
+                                    "type": "Identifier",
+                                    "name": "y"
+                                  },
+                                  "right": {
+                                    "type": "Literal",
+                                    "value": 0,
+                                    "raw": "0"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "alternate": null
+                        },
+                        {
+                          "type": "ExpressionStatement",
+                          "expression": {
+                            "type": "AssignmentExpression",
+                            "operator": "=",
+                            "left": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "ThisExpression"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "x"
+                              },
+                              "computed": false
+                            },
+                            "right": {
+                              "type": "Identifier",
+                              "name": "x"
+                            }
+                          }
+                        },
+                        {
+                          "type": "ExpressionStatement",
+                          "expression": {
+                            "type": "AssignmentExpression",
+                            "operator": "=",
+                            "left": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "ThisExpression"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "y"
+                              },
+                              "computed": false
+                            },
+                            "right": {
+                              "type": "Identifier",
+                              "name": "y"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "async": false,
+                    "generator": false
+                  },
+                  "kind": "constructor",
+                  "computed": false,
+                  "static": false
+                },
+                {
+                  "type": "MethodDefinition",
+                  "key": {
+                    "type": "Identifier",
+                    "name": "distance"
+                  },
+                  "value": {
+                    "type": "FunctionExpression",
+                    "id": null,
+                    "params": [
+                      {
+                        "type": "Identifier",
+                        "name": "p"
+                      }
+                    ],
+                    "body": {
+                      "type": "BlockStatement",
+                      "body": [
+                        {
+                          "type": "VariableDeclaration",
+                          "kind": "const",
+                          "declarations": [
+                            {
+                              "type": "VariableDeclarator",
+                              "id": {
+                                "type": "Identifier",
+                                "name": "dx"
+                              },
+                              "init": {
+                                "type": "BinaryExpression",
+                                "operator": "-",
+                                "left": {
+                                  "type": "MemberExpression",
+                                  "object": {
+                                    "type": "Identifier",
+                                    "name": "p"
+                                  },
+                                  "property": {
+                                    "type": "Identifier",
+                                    "name": "x"
+                                  },
+                                  "computed": false
+                                },
+                                "right": {
+                                  "type": "MemberExpression",
+                                  "object": {
+                                    "type": "ThisExpression"
+                                  },
+                                  "property": {
+                                    "type": "Identifier",
+                                    "name": "x"
+                                  },
+                                  "computed": false
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "VariableDeclaration",
+                          "kind": "const",
+                          "declarations": [
+                            {
+                              "type": "VariableDeclarator",
+                              "id": {
+                                "type": "Identifier",
+                                "name": "dy"
+                              },
+                              "init": {
+                                "type": "BinaryExpression",
+                                "operator": "-",
+                                "left": {
+                                  "type": "MemberExpression",
+                                  "object": {
+                                    "type": "Identifier",
+                                    "name": "p"
+                                  },
+                                  "property": {
+                                    "type": "Identifier",
+                                    "name": "y"
+                                  },
+                                  "computed": false
+                                },
+                                "right": {
+                                  "type": "MemberExpression",
+                                  "object": {
+                                    "type": "ThisExpression"
+                                  },
+                                  "property": {
+                                    "type": "Identifier",
+                                    "name": "y"
+                                  },
+                                  "computed": false
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "ReturnStatement",
+                          "argument": {
+                            "type": "CallExpression",
+                            "callee": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "Identifier",
+                                "name": "Math"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "sqrt"
+                              },
+                              "computed": false
+                            },
+                            "arguments": [
+                              {
+                                "type": "BinaryExpression",
+                                "operator": "+",
+                                "left": {
+                                  "type": "BinaryExpression",
+                                  "operator": "*",
+                                  "left": {
+                                    "type": "Identifier",
+                                    "name": "dx"
+                                  },
+                                  "right": {
+                                    "type": "Identifier",
+                                    "name": "dx"
+                                  }
+                                },
+                                "right": {
+                                  "type": "BinaryExpression",
+                                  "operator": "*",
+                                  "left": {
+                                    "type": "Identifier",
+                                    "name": "dy"
+                                  },
+                                  "right": {
+                                    "type": "Identifier",
+                                    "name": "dy"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "async": false,
+                    "generator": false
+                  },
+                  "kind": "method",
+                  "computed": false,
+                  "static": false
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "obligations": [
+    {
+      "function": "Point#distance",
+      "property": "nonNegative",
+      "formula": "∀ (p q : Point) { 0 <= p.distance(q) }",
+      "payload": {
+        "kind": "structured",
+        "binders": [
+          {
+            "name": "p",
+            "kind": "class",
+            "className": "Point",
+            "ctorParams": [
+              {
+                "name": "x",
+                "kind": "number"
+              },
+              {
+                "name": "y",
+                "kind": "number"
+              }
+            ]
+          },
+          {
+            "name": "q",
+            "kind": "class",
+            "className": "Point",
+            "ctorParams": [
+              {
+                "name": "x",
+                "kind": "number"
+              },
+              {
+                "name": "y",
+                "kind": "number"
+              }
+            ]
+          }
+        ],
+        "conclusion": {
+          "kind": "istrue",
+          "expr": {
+            "kind": "binop",
+            "op": "<=",
+            "left": {
+              "kind": "num",
+              "lit": "0"
+            },
+            "right": {
+              "kind": "method-call",
+              "className": "Point",
+              "name": "distance",
+              "object": {
+                "kind": "id",
+                "name": "p"
+              },
+              "args": [
+                {
+                  "kind": "id",
+                  "name": "q"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

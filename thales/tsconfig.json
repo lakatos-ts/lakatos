@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "rootDir": "frontend/src",
+    "outDir": "dist"
+  },
+  "include": ["frontend/src"],
+  "references": [
+    { "path": "../core" },
+    { "path": "../lemma" },
+    { "path": "../tarski" }
+  ]
+}

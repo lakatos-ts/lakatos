@@ -1,7 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { numberDoubleConstraints, parseRange } from "@lakatos/lemma";
-import { numberGuard } from "../engines/thales/frontend/src/readings.js";
+import { numberGuard } from "../thales/frontend/src/readings.js";
 
 /**
  * The invariant: the prover's binder domain must CONTAIN the refuter's,

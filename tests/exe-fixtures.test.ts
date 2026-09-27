@@ -27,8 +27,8 @@ const REPO = process.cwd();
 /** The four fixture roots. "Every `@ensures` fixture in the repo" is the
  * issue's phrase, and it is not only thales's. */
 const ROOTS = [
-  "engines/thales/tests/fixtures",
-  "engines/thales/tests/conformance",
+  "thales/tests/fixtures",
+  "thales/tests/conformance",
   "pabst/tests/fixtures",
   "lemma/spec/fixtures",
 ];
@@ -77,19 +77,19 @@ const UNSUPPORTED: Record<string, string> = {
   "pabst/tests/fixtures/e2e/bounded.ts": "BigIntLiteral",
   "pabst/tests/fixtures/e2e/readme-example.ts": "BigIntLiteral",
   "pabst/tests/fixtures/e2e/regex-guard.ts": "RegularExpressionLiteral",
-  "engines/thales/tests/conformance/inappropriate/await-remote.ts":
+  "thales/tests/conformance/inappropriate/await-remote.ts":
     "FunctionDeclaration async",
-  "engines/thales/tests/conformance/inappropriate/bare-import/main.ts":
+  "thales/tests/conformance/inappropriate/bare-import/main.ts":
     "ImportDeclaration",
-  "engines/thales/tests/conformance/inappropriate/import-cycle/main.ts":
+  "thales/tests/conformance/inappropriate/import-cycle/main.ts":
     "ImportDeclaration",
-  "engines/thales/tests/conformance/inappropriate/unmodeled-operator.ts":
+  "thales/tests/conformance/inappropriate/unmodeled-operator.ts":
     "BinaryExpression &",
-  "engines/thales/tests/conformance/theorem/imported-constants/main.ts":
+  "thales/tests/conformance/theorem/imported-constants/main.ts":
     "ImportDeclaration",
-  "engines/thales/tests/conformance/theorem/imported-scale/main.ts":
+  "thales/tests/conformance/theorem/imported-scale/main.ts":
     "ImportDeclaration",
-  "engines/thales/tests/fixtures/tracer.ts": "FunctionDeclaration async",
+  "thales/tests/fixtures/tracer.ts": "FunctionDeclaration async",
   "lemma/spec/fixtures/attach/reject/anonymous-class.ts": "ClassDeclaration",
   "lemma/spec/fixtures/attach/reject/computed-name.ts": "ComputedPropertyName",
   "lemma/spec/fixtures/attach/reject/private-getter.ts":

@@ -6,7 +6,7 @@ import {
   runForEnvelope,
   useRepoScratchDir,
 } from "./helpers/cli.js";
-import { shardOf } from "../engines/thales/scripts/shard.js";
+import { shardOf } from "../thales/scripts/shard.js";
 
 // Needs the Lean toolchain and is minutes-slow, so it only runs when asked:
 // thales.yml sets the variable; unit and coverage runs stay identical
@@ -14,13 +14,7 @@ import { shardOf } from "../engines/thales/scripts/shard.js";
 const enabled = process.env.LAKATOS_PROVE_E2E === "1";
 
 const repoRoot = process.cwd();
-const corpusRoot = path.join(
-  repoRoot,
-  "engines",
-  "thales",
-  "tests",
-  "conformance",
-);
+const corpusRoot = path.join(repoRoot, "thales", "tests", "conformance");
 
 // Bucket name → the status every annotation in that bucket must receive.
 // This table is also the complete list of known buckets, so a stray

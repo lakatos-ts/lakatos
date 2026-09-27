@@ -1,0 +1,567 @@
+{
+  "file": "thales/tests/fixtures/ctor-defaults.ts",
+  "declarations": [
+    {
+      "kind": "class",
+      "name": "P",
+      "source": "export class P {\n  readonly x: number;\n  readonly y: number;\n  constructor(x: number, y: number = 0) {\n    this.x = x;\n    this.y = y;\n  }\n\n  /** @ensures{omitted} forall (a: int ∈ [0, 4)) { Object.is(new P(a).span(), a * a) } */\n  span(): number {\n    return this.x * this.x + this.y * this.y;\n  }\n}",
+      "fields": [
+        {
+          "name": "x"
+        },
+        {
+          "name": "y"
+        }
+      ],
+      "ctor": {
+        "params": [
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": ["number", "undefined"]
+          }
+        ],
+        "body": [
+          {
+            "kind": "const",
+            "name": "y",
+            "init": {
+              "kind": "cond",
+              "cond": {
+                "kind": "jsval-eq",
+                "semantics": "strict",
+                "left": {
+                  "kind": "id",
+                  "name": "y"
+                },
+                "right": {
+                  "kind": "inject",
+                  "tag": "undefined"
+                }
+              },
+              "then": {
+                "kind": "num",
+                "lit": "0"
+              },
+              "else": {
+                "kind": "project",
+                "tag": "number",
+                "expr": {
+                  "kind": "id",
+                  "name": "y"
+                }
+              }
+            }
+          },
+          {
+            "kind": "field-set",
+            "field": "x",
+            "expr": {
+              "kind": "id",
+              "name": "x"
+            }
+          },
+          {
+            "kind": "field-set",
+            "field": "y",
+            "expr": {
+              "kind": "id",
+              "name": "y"
+            }
+          }
+        ]
+      },
+      "getters": [],
+      "methods": [
+        {
+          "name": "span",
+          "params": [],
+          "body": [
+            {
+              "kind": "return",
+              "expr": {
+                "kind": "binop",
+                "op": "+",
+                "left": {
+                  "kind": "binop",
+                  "op": "*",
+                  "left": {
+                    "kind": "field-read",
+                    "className": "P",
+                    "field": "x",
+                    "object": {
+                      "kind": "self"
+                    }
+                  },
+                  "right": {
+                    "kind": "field-read",
+                    "className": "P",
+                    "field": "x",
+                    "object": {
+                      "kind": "self"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binop",
+                  "op": "*",
+                  "left": {
+                    "kind": "field-read",
+                    "className": "P",
+                    "field": "y",
+                    "object": {
+                      "kind": "self"
+                    }
+                  },
+                  "right": {
+                    "kind": "field-read",
+                    "className": "P",
+                    "field": "y",
+                    "object": {
+                      "kind": "self"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "ast": {
+        "type": "Program",
+        "sourceType": "script",
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "expression": {
+              "type": "Literal",
+              "value": "use strict",
+              "raw": "\"use strict\""
+            },
+            "directive": "use strict"
+          },
+          {
+            "type": "ClassDeclaration",
+            "id": {
+              "type": "Identifier",
+              "name": "P"
+            },
+            "superClass": null,
+            "body": {
+              "type": "ClassBody",
+              "body": [
+                {
+                  "type": "PropertyDefinition",
+                  "key": {
+                    "type": "Identifier",
+                    "name": "x"
+                  },
+                  "value": null,
+                  "computed": false,
+                  "static": false
+                },
+                {
+                  "type": "PropertyDefinition",
+                  "key": {
+                    "type": "Identifier",
+                    "name": "y"
+                  },
+                  "value": null,
+                  "computed": false,
+                  "static": false
+                },
+                {
+                  "type": "MethodDefinition",
+                  "key": {
+                    "type": "Identifier",
+                    "name": "constructor"
+                  },
+                  "value": {
+                    "type": "FunctionExpression",
+                    "id": null,
+                    "params": [
+                      {
+                        "type": "Identifier",
+                        "name": "x"
+                      },
+                      {
+                        "type": "AssignmentPattern",
+                        "left": {
+                          "type": "Identifier",
+                          "name": "y"
+                        },
+                        "right": {
+                          "type": "Literal",
+                          "value": 0,
+                          "raw": "0"
+                        }
+                      }
+                    ],
+                    "body": {
+                      "type": "BlockStatement",
+                      "body": [
+                        {
+                          "type": "ExpressionStatement",
+                          "expression": {
+                            "type": "AssignmentExpression",
+                            "operator": "=",
+                            "left": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "ThisExpression"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "x"
+                              },
+                              "computed": false
+                            },
+                            "right": {
+                              "type": "Identifier",
+                              "name": "x"
+                            }
+                          }
+                        },
+                        {
+                          "type": "ExpressionStatement",
+                          "expression": {
+                            "type": "AssignmentExpression",
+                            "operator": "=",
+                            "left": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "ThisExpression"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "y"
+                              },
+                              "computed": false
+                            },
+                            "right": {
+                              "type": "Identifier",
+                              "name": "y"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "async": false,
+                    "generator": false
+                  },
+                  "kind": "constructor",
+                  "computed": false,
+                  "static": false
+                },
+                {
+                  "type": "MethodDefinition",
+                  "key": {
+                    "type": "Identifier",
+                    "name": "span"
+                  },
+                  "value": {
+                    "type": "FunctionExpression",
+                    "id": null,
+                    "params": [],
+                    "body": {
+                      "type": "BlockStatement",
+                      "body": [
+                        {
+                          "type": "ReturnStatement",
+                          "argument": {
+                            "type": "BinaryExpression",
+                            "operator": "+",
+                            "left": {
+                              "type": "BinaryExpression",
+                              "operator": "*",
+                              "left": {
+                                "type": "MemberExpression",
+                                "object": {
+                                  "type": "ThisExpression"
+                                },
+                                "property": {
+                                  "type": "Identifier",
+                                  "name": "x"
+                                },
+                                "computed": false
+                              },
+                              "right": {
+                                "type": "MemberExpression",
+                                "object": {
+                                  "type": "ThisExpression"
+                                },
+                                "property": {
+                                  "type": "Identifier",
+                                  "name": "x"
+                                },
+                                "computed": false
+                              }
+                            },
+                            "right": {
+                              "type": "BinaryExpression",
+                              "operator": "*",
+                              "left": {
+                                "type": "MemberExpression",
+                                "object": {
+                                  "type": "ThisExpression"
+                                },
+                                "property": {
+                                  "type": "Identifier",
+                                  "name": "y"
+                                },
+                                "computed": false
+                              },
+                              "right": {
+                                "type": "MemberExpression",
+                                "object": {
+                                  "type": "ThisExpression"
+                                },
+                                "property": {
+                                  "type": "Identifier",
+                                  "name": "y"
+                                },
+                                "computed": false
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "async": false,
+                    "generator": false
+                  },
+                  "kind": "method",
+                  "computed": false,
+                  "static": false
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "function",
+      "name": "sum",
+      "params": [
+        {
+          "name": "p",
+          "type": {
+            "class": "P"
+          }
+        }
+      ],
+      "source": "export function sum(p: P): number {\n  return p.x + p.y;\n}",
+      "body": [
+        {
+          "kind": "return",
+          "expr": {
+            "kind": "binop",
+            "op": "+",
+            "left": {
+              "kind": "field-read",
+              "className": "P",
+              "field": "x",
+              "object": {
+                "kind": "id",
+                "name": "p"
+              }
+            },
+            "right": {
+              "kind": "field-read",
+              "className": "P",
+              "field": "y",
+              "object": {
+                "kind": "id",
+                "name": "p"
+              }
+            }
+          }
+        }
+      ],
+      "ast": {
+        "type": "Program",
+        "sourceType": "script",
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "expression": {
+              "type": "Literal",
+              "value": "use strict",
+              "raw": "\"use strict\""
+            },
+            "directive": "use strict"
+          },
+          {
+            "type": "FunctionDeclaration",
+            "id": {
+              "type": "Identifier",
+              "name": "sum"
+            },
+            "params": [
+              {
+                "type": "Identifier",
+                "name": "p"
+              }
+            ],
+            "body": {
+              "type": "BlockStatement",
+              "body": [
+                {
+                  "type": "ReturnStatement",
+                  "argument": {
+                    "type": "BinaryExpression",
+                    "operator": "+",
+                    "left": {
+                      "type": "MemberExpression",
+                      "object": {
+                        "type": "Identifier",
+                        "name": "p"
+                      },
+                      "property": {
+                        "type": "Identifier",
+                        "name": "x"
+                      },
+                      "computed": false
+                    },
+                    "right": {
+                      "type": "MemberExpression",
+                      "object": {
+                        "type": "Identifier",
+                        "name": "p"
+                      },
+                      "property": {
+                        "type": "Identifier",
+                        "name": "y"
+                      },
+                      "computed": false
+                    }
+                  }
+                }
+              ]
+            },
+            "async": false,
+            "generator": false
+          }
+        ]
+      }
+    }
+  ],
+  "obligations": [
+    {
+      "function": "P#span",
+      "property": "omitted",
+      "formula": "forall (a: int ∈ [0, 4)) { Object.is(new P(a).span(), a * a) }",
+      "payload": {
+        "kind": "structured",
+        "binders": [
+          {
+            "name": "a",
+            "kind": "range",
+            "lo": "0",
+            "hi": "4"
+          }
+        ],
+        "conclusion": {
+          "kind": "eq",
+          "left": {
+            "kind": "method-call",
+            "className": "P",
+            "name": "span",
+            "object": {
+              "kind": "new",
+              "className": "P",
+              "args": [
+                {
+                  "kind": "id",
+                  "name": "a"
+                },
+                {
+                  "kind": "inject",
+                  "tag": "undefined"
+                }
+              ]
+            },
+            "args": []
+          },
+          "right": {
+            "kind": "binop",
+            "op": "*",
+            "left": {
+              "kind": "id",
+              "name": "a"
+            },
+            "right": {
+              "kind": "id",
+              "name": "a"
+            }
+          }
+        }
+      }
+    },
+    {
+      "function": "sum",
+      "property": "binder",
+      "formula": "forall (p: P) { Object.is(sum(p), p.x + p.y) }",
+      "payload": {
+        "kind": "structured",
+        "binders": [
+          {
+            "name": "p",
+            "kind": "class",
+            "className": "P",
+            "ctorParams": [
+              {
+                "name": "x",
+                "kind": "number"
+              },
+              {
+                "name": "y",
+                "kind": "number",
+                "defaulted": true
+              }
+            ]
+          }
+        ],
+        "conclusion": {
+          "kind": "eq",
+          "left": {
+            "kind": "call",
+            "callee": "sum",
+            "args": [
+              {
+                "kind": "id",
+                "name": "p"
+              }
+            ]
+          },
+          "right": {
+            "kind": "binop",
+            "op": "+",
+            "left": {
+              "kind": "field-read",
+              "className": "P",
+              "field": "x",
+              "object": {
+                "kind": "id",
+                "name": "p"
+              }
+            },
+            "right": {
+              "kind": "field-read",
+              "className": "P",
+              "field": "y",
+              "object": {
+                "kind": "id",
+                "name": "p"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

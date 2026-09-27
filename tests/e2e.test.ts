@@ -7,8 +7,8 @@ import {
   useRepoScratchDir,
 } from "./helpers/cli.js";
 import type { Envelope } from "@lakatos/core/envelope";
-import { square } from "../engines/thales/tests/conformance/countersatisfiable/zero-edge.js";
-import { f } from "../engines/thales/tests/conformance/countersatisfiable/commutes.js";
+import { square } from "../thales/tests/conformance/countersatisfiable/zero-edge.js";
+import { f } from "../thales/tests/conformance/countersatisfiable/commutes.js";
 
 // Needs the Lean toolchain and is minutes-slow, so it only runs when asked:
 // thales.yml sets the variable; unit and coverage runs stay identical
@@ -31,14 +31,7 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
 
   useRepoScratchDir(path.join(repoRoot, ".lakatos", "e2e-work"), (dir) => {
     fs.copyFileSync(
-      path.join(
-        repoRoot,
-        "engines",
-        "thales",
-        "tests",
-        "fixtures",
-        "tracer.ts",
-      ),
+      path.join(repoRoot, "thales", "tests", "fixtures", "tracer.ts"),
       path.join(dir, "tracer.ts"),
     );
     // The identity-parity check needs a file BOTH engines can process end
@@ -47,7 +40,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     fs.copyFileSync(
       path.join(
         repoRoot,
-        "engines",
         "thales",
         "tests",
         "conformance",
@@ -60,7 +52,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     // evaluates their functions (imported above) at the extracted witness.
     const cs = path.join(
       repoRoot,
-      "engines",
       "thales",
       "tests",
       "conformance",
@@ -77,7 +68,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     fs.copyFileSync(
       path.join(
         repoRoot,
-        "engines",
         "thales",
         "tests",
         "conformance",
@@ -90,7 +80,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     fs.copyFileSync(
       path.join(
         repoRoot,
-        "engines",
         "thales",
         "tests",
         "conformance",
@@ -103,7 +92,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     fs.copyFileSync(
       path.join(
         repoRoot,
-        "engines",
         "thales",
         "tests",
         "conformance",
@@ -131,7 +119,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     fs.copyFileSync(
       path.join(
         repoRoot,
-        "engines",
         "thales",
         "tests",
         "conformance",
@@ -146,7 +133,6 @@ describe.runIf(enabled)("lakatos prove end-to-end (tracer)", () => {
     fs.copyFileSync(
       path.join(
         repoRoot,
-        "engines",
         "thales",
         "tests",
         "conformance",

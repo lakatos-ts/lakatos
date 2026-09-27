@@ -8,7 +8,7 @@ import type { Envelope } from "@lakatos/core/envelope";
 import {
   BUILD_TIMEOUT_MS,
   LEAN_TIMEOUT_MS,
-} from "../../engines/thales/frontend/src/run.js";
+} from "../../thales/frontend/src/run.js";
 
 export interface MainRun {
   code: number;

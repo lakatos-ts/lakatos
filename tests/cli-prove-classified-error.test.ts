@@ -4,17 +4,17 @@ import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 
 // Behind the gate no valid program makes the frontend classify Error, so
 // the only way to exercise that exit code is to make the emitter report one.
-vi.mock("../engines/thales/frontend/src/run.js", () => ({
+vi.mock("../thales/frontend/src/run.js", () => ({
   runLean: vi.fn(),
   runEmission: vi.fn(),
   findEngineRoot: vi.fn(),
 }));
 vi.mock(
-  "../engines/thales/frontend/src/emission-artifacts.js",
+  "../thales/frontend/src/emission-artifacts.js",
   async (importOriginal) => {
     const actual =
       await importOriginal<
-        typeof import("../engines/thales/frontend/src/emission-artifacts.js")
+        typeof import("../thales/frontend/src/emission-artifacts.js")
       >();
     return {
       ...actual,

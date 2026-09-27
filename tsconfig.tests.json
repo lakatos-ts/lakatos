@@ -12,13 +12,14 @@
     "core/src",
     "lemma/src",
     "pabst/src",
-    "engines/thales/frontend/src",
+    "thales/frontend/src",
     "tarski/frontend/src",
     "tests",
     "core/tests",
     "lemma/tests",
     "pabst/tests",
-    "engines/thales/frontend/tests",
+    "thales/frontend/tests",
+    "thales/tests",
     "tarski/frontend/tests"
   ]
 }

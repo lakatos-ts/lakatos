@@ -3,7 +3,7 @@ import { parseArgs } from "node:util";
 import { readFileSync, realpathSync } from "node:fs";
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
-import { prove } from "../engines/thales/frontend/src/index.js";
+import { prove } from "@lakatos/thales";
 import { parseSeed, refute } from "@lakatos/pabst";
 import {
   admit,

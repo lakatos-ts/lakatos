@@ -39,6 +39,12 @@ export default defineConfig({
           new URL("./tarski/frontend/src/index.ts", import.meta.url),
         ),
       },
+      {
+        find: /^@lakatos\/thales$/,
+        replacement: fileURLToPath(
+          new URL("./thales/frontend/src/index.ts", import.meta.url),
+        ),
+      },
     ],
   },
   test: {
@@ -47,7 +53,8 @@ export default defineConfig({
       "core/tests/**/*.test.ts",
       "lemma/tests/**/*.test.ts",
       "pabst/tests/**/*.test.ts",
-      "engines/thales/frontend/tests/**/*.test.ts",
+      "thales/frontend/tests/**/*.test.ts",
+      "thales/tests/**/*.test.ts",
       "tarski/frontend/tests/**/*.test.ts",
     ],
     // Absolute so the path is the same whatever cwd a run starts from.
@@ -64,7 +71,7 @@ export default defineConfig({
         "core/src/**/*.ts",
         "lemma/src/**/*.ts",
         "pabst/src/**/*.ts",
-        "engines/thales/frontend/src/**/*.ts",
+        "thales/frontend/src/**/*.ts",
         "tarski/frontend/src/**/*.ts",
       ],
       exclude: ["**/*.test.ts", "**/*.d.ts"],
