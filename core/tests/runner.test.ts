@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import type { Envelope } from "../src/envelope.js";
-import { RUN_ROOT } from "../src/run-dir.js";
+import { RUN_ROOT, runDirFor } from "../src/run-dir.js";
 import {
   packageVersion,
   runTool,
@@ -299,6 +299,78 @@ describe("runTool", () => {
       },
     );
     expect(listening).toBeGreaterThan(0);
+  });
+});
+
+// Run directories are named in UTC, stepped past when taken, and claimed
+// before the engine writes: a report and its artifacts match by eye, and no
+// run lands on another's.
+describe("runTool's run directory", () => {
+  let prev: string;
+  let dir: string;
+  beforeEach(() => {
+    prev = process.cwd();
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "core-run-dir-"));
+    process.chdir(dir);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+    process.chdir(prev);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  const empty = () => spine(plan({ outFiles: [] }));
+
+  it("stamps the instant in UTC under a machine that is not", async () => {
+    vi.stubEnv("TZ", "Asia/Kolkata");
+    const { envelope } = await runTool(
+      TOOL,
+      () => admitted(),
+      empty(),
+      capture(),
+    );
+    const startedAt = envelope.startedAt as string;
+    expect(startedAt).toBe(new Date(startedAt).toISOString());
+    expect(fs.existsSync(runDirFor(startedAt))).toBe(true);
+    expect(runDirFor(startedAt)).toMatch(/Z$/);
+  });
+
+  it("takes the next free name, leaving the occupant untouched", async () => {
+    vi.useFakeTimers({
+      now: new Date("2026-08-25T06:35:35.943Z"),
+      toFake: ["Date"],
+    });
+    const taken = runDirFor(new Date().toISOString());
+    fs.mkdirSync(taken, { recursive: true });
+    fs.writeFileSync(path.join(taken, "keep.txt"), "earlier run\n");
+
+    const io = capture();
+    await runTool(TOOL, () => admitted(), empty(), io);
+    expect(fs.existsSync(`${taken}-2`)).toBe(true);
+    expect(fs.readFileSync(path.join(taken, "keep.txt"), "utf8")).toBe(
+      "earlier run\n",
+    );
+    expect(io.lines.join("\n")).not.toContain("error:");
+
+    await runTool(TOOL, () => admitted(), empty(), capture());
+    expect(fs.existsSync(`${taken}-3`)).toBe(true);
+  });
+
+  it("creates the directory before the spine plans", async () => {
+    const seen: boolean[] = [];
+    await runTool(
+      TOOL,
+      () => admitted(),
+      {
+        plan: (_files, runDir) => {
+          seen.push(fs.existsSync(runDir));
+          return plan({ outFiles: [] });
+        },
+      },
+      capture(),
+    );
+    expect(seen).toEqual([true]);
   });
 });
 
