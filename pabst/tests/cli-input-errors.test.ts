@@ -7,12 +7,13 @@ import { clearRunDirs, seedRefuteProject } from "./helpers/refute-project.js";
 
 const repoRoot = process.cwd();
 
-// Where refute finds an @ensures: in every stacked JSDoc block, and on a
-// getter, reported under Class#getter. The generated tests import
-// "@lakatos/pabst/runtime" via the workspace link, so these must run
-// inside the repo tree, in a scratch directory of this file's own.
-describe("cli refute annotation discovery", () => {
-  const workDir = path.join(repoRoot, ".lakatos", "clitest-discovery");
+// What an InputError does to the rest of a run: the sound annotations
+// beside it still run, and its exit code outranks a refutation's. The
+// generated tests import "@lakatos/pabst/runtime" via the workspace link,
+// so these must run inside the repo tree, in a scratch directory of this
+// file's own.
+describe("cli refute input errors", () => {
+  const workDir = path.join(repoRoot, ".lakatos", "clitest-inputerr");
 
   beforeAll(() => {
     seedRefuteProject(workDir);
@@ -27,47 +28,42 @@ describe("cli refute annotation discovery", () => {
   beforeEach(() => clearRunDirs(workDir));
 
   it(
-    "refute runs an @ensures from every stacked JSDoc block",
+    "refute still evaluates sound annotations beside InputError entries",
     { timeout: 60000 },
     async () => {
-      const { code, stdout } = await runMain(["refute", "stacked/keep.ts"]);
-      expect(code).toBe(1);
+      const { code, stdout } = await runMain(["inputerr/mixed.ts"]);
+      expect(code).toBe(2);
       const env = JSON.parse(stdout[0]!);
       expectValidEnvelope(env);
-      expect(env).toMatchObject({ generated: 2, passed: 1, failed: 1 });
       const byProperty = Object.fromEntries(
         env.annotations.map((a: { property: string; szs: string }) => [
           a.property,
           a.szs,
         ]),
       );
-      expect(byProperty).toEqual({
-        tooBig: "CounterSatisfiable",
-        atLeastOne: "Theorem",
-      });
+      expect(byProperty).toEqual({ p: "InputError", q: "Theorem" });
+      expect(env.generated).toBe(1);
     },
   );
 
   it(
-    "refute runs an @ensures attached to a getter under Class#getter",
+    "refute lets an input error take exit-code precedence over a refutation",
     { timeout: 60000 },
     async () => {
-      const { code, stdout } = await runMain(["refute", "klass/box.ts"]);
-      expect(code).toBe(0);
+      const { code, stdout } = await runMain(["inputerr/mixed.ts", "bad.ts"]);
+      expect(code).toBe(2);
       const env = JSON.parse(stdout[0]!);
       expectValidEnvelope(env);
-      expect(env).toMatchObject({
-        generated: 1,
-        passed: 1,
-        failed: 0,
-        annotations: [
-          {
-            file: "klass/box.ts",
-            function: "Box#v",
-            property: "roundTrip",
-            szs: "GaveUp",
-          },
-        ],
+      expect(env.failed).toBe(1);
+      const byProperty = Object.fromEntries(
+        env.annotations.map((a: { property: string; szs: string }) => [
+          a.property,
+          a.szs,
+        ]),
+      );
+      expect(byProperty).toMatchObject({
+        p: "InputError",
+        negative: "CounterSatisfiable",
       });
     },
   );

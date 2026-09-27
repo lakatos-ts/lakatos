@@ -29,12 +29,7 @@ describe("cli refute seeds", () => {
     "refute --seed echoes the given seed in the envelope",
     { timeout: 60000 },
     async () => {
-      const { code, stdout } = await runMain([
-        "refute",
-        "--seed",
-        "123",
-        "good.ts",
-      ]);
+      const { code, stdout } = await runMain(["--seed", "123", "good.ts"]);
       expect(code).toBe(0);
       expect(JSON.parse(stdout[0]!).seed).toBe(123);
     },
@@ -44,9 +39,7 @@ describe("cli refute seeds", () => {
     "passing a prior run's seed back reproduces that run",
     { timeout: 120000 },
     async () => {
-      const first = JSON.parse(
-        (await runMain(["refute", "bad.ts"])).stdout[0]!,
-      );
+      const first = JSON.parse((await runMain(["bad.ts"])).stdout[0]!);
       // Two degenerate runs would agree; pin that the baseline refuted before
       // comparing, so a degenerate baseline names itself instead of reading
       // like a seed bug.
@@ -55,8 +48,7 @@ describe("cli refute seeds", () => {
       ]);
       clearRunDirs(workDir);
       const second = JSON.parse(
-        (await runMain(["refute", "--seed", String(first.seed), "bad.ts"]))
-          .stdout[0]!,
+        (await runMain(["--seed", String(first.seed), "bad.ts"])).stdout[0]!,
       );
       expect(second.seed).toBe(first.seed);
       expect(second.annotations).toEqual(first.annotations);

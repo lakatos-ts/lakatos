@@ -24,7 +24,7 @@ describe("lakatos refute walks a small domain in full", () => {
     "reports Theorem with the case count and exits 0",
     { timeout: 60000 },
     async () => {
-      const env = await runForEnvelope(["refute", "small.ts"]);
+      const env = await runForEnvelope(["small.ts"]);
       expect(env).toMatchObject({ generated: 1, passed: 1, failed: 0 });
       expect(env.annotations).toEqual([
         {

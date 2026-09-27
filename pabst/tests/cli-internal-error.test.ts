@@ -5,7 +5,7 @@ import { runMain, useTempProject } from "./helpers/cli.js";
 // that is not a LemmaError) must keep crashing loudly rather than being
 // dressed up as a usage error. A real internal bug can't be triggered on
 // purpose, so simulate one by making the generator throw a TypeError.
-vi.mock("../pabst/src/codegen.js", () => ({
+vi.mock("../src/codegen.js", () => ({
   generate: () => {
     throw new TypeError("internal invariant violated");
   },
@@ -17,6 +17,6 @@ describe("cli internal errors", () => {
   });
 
   it("a non-LemmaError from compilation escapes main() instead of exiting 2", async () => {
-    await expect(runMain(["refute", "fine.ts"])).rejects.toThrow(TypeError);
+    await expect(runMain(["fine.ts"])).rejects.toThrow(TypeError);
   });
 });

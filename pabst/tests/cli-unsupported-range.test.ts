@@ -2,13 +2,13 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import * as fs from "node:fs";
 import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
-import { runTests, type RunResult } from "../pabst/src/run.js";
+import { runTests, type RunResult } from "../src/run.js";
 import { RUN_ROOT } from "@lakatos/core/run-dir";
 
 // A domain that only fits after the safe-integer clamp is refused, not
 // silently narrowed — the same NotTried + unsupported-range the prover
 // emits. vitest is mocked at the module seam, as cli-unhealthy does.
-vi.mock("../pabst/src/run.js", () => ({ runTests: vi.fn() }));
+vi.mock("../src/run.js", () => ({ runTests: vi.fn() }));
 const runTestsMock = vi.mocked(runTests);
 
 const HUGE = "1000000000000000000000000000000";
@@ -45,7 +45,7 @@ describe("cli refute on unrepresentable domains", () => {
 
   it("ships NotTried with kind and reason; the rest still run", async () => {
     runTestsMock.mockReturnValue(allPassed(1));
-    const { code, stdout, stderr } = await runMain(["refute", "mixed.ts"]);
+    const { code, stdout, stderr } = await runMain(["mixed.ts"]);
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -75,7 +75,7 @@ describe("cli refute on unrepresentable domains", () => {
   });
 
   it("never runs vitest when every annotation is refused", async () => {
-    const { code, stdout } = await runMain(["refute", "allhuge.ts"]);
+    const { code, stdout } = await runMain(["allhuge.ts"]);
     expect(code).toBe(0);
     expect(runTestsMock).not.toHaveBeenCalled();
     const env = JSON.parse(stdout[0]!);
@@ -95,7 +95,7 @@ describe("cli refute on unrepresentable domains", () => {
   });
 
   it("refuses a clamp-emptied interval instead of aborting the run", async () => {
-    const { code, stdout } = await runMain(["refute", "emptied.ts"]);
+    const { code, stdout } = await runMain(["emptied.ts"]);
     expect(code).toBe(0);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -119,7 +119,7 @@ describe("cli refute on unrepresentable domains", () => {
       status: 1,
       messages: ["the suite failed to load"],
     });
-    const { code, stdout } = await runMain(["refute", "mixed.ts"]);
+    const { code, stdout } = await runMain(["mixed.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);

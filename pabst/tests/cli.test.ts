@@ -33,7 +33,6 @@ describe("cli refute envelopes", () => {
     { timeout: 60000 },
     async () => {
       const { code, stdout } = await runMain([
-        "refute",
         "--seed",
         "2",
         "guarded/conv.ts",
@@ -54,13 +53,13 @@ describe("cli refute envelopes", () => {
     "refute on a clean file prints one JSON envelope to stdout and exits 0",
     { timeout: 60000 },
     async () => {
-      const { code, stdout } = await runMain(["refute", "good.ts"]);
+      const { code, stdout } = await runMain(["good.ts"]);
       expect(code).toBe(0);
       expect(stdout).toHaveLength(1);
       const env = JSON.parse(stdout[0]!);
       expectValidEnvelope(env);
       const pkg = JSON.parse(
-        fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"),
+        fs.readFileSync(path.join(repoRoot, "pabst", "package.json"), "utf8"),
       );
       expect(env).toMatchObject({
         version: pkg.version,
@@ -91,7 +90,7 @@ describe("cli refute envelopes", () => {
     "refute on a failing file exits 1 with a flagged annotation in the envelope",
     { timeout: 60000 },
     async () => {
-      const { code, stdout } = await runMain(["refute", "bad.ts"]);
+      const { code, stdout } = await runMain(["bad.ts"]);
       expect(code).toBe(1);
       const env = JSON.parse(stdout[0]!);
       expectValidEnvelope(env);

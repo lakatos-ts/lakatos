@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
-import { runTests } from "../pabst/src/run.js";
+import { runTests } from "../src/run.js";
 
 // The output contract holds even when the underlying vitest run is
 // unhealthy: one schema-valid envelope on stdout (every annotation
 // NotTried — generated but never evaluated), diagnostics on stderr, and
 // exit 2. Both unhealthy RunResult kinds are pinned by mocking runTests.
-vi.mock("../pabst/src/run.js", () => ({ runTests: vi.fn() }));
+vi.mock("../src/run.js", () => ({ runTests: vi.fn() }));
 const runTestsMock = vi.mocked(runTests);
 
 describe("cli refute on unhealthy runs", () => {
@@ -35,7 +35,7 @@ describe("cli refute on unhealthy runs", () => {
         return true;
       });
     try {
-      const { code, stdout } = await runMain(["refute", "annotated.ts"]);
+      const { code, stdout } = await runMain(["annotated.ts"]);
       expect(code).toBe(2);
       expect(stdout).toHaveLength(1);
       const env = JSON.parse(stdout[0]!);
@@ -63,7 +63,7 @@ describe("cli refute on unhealthy runs", () => {
       status: 1,
       messages: ["Cannot find module '@lakatos/pabst/runtime'"],
     });
-    const { code, stdout, stderr } = await runMain(["refute", "annotated.ts"]);
+    const { code, stdout, stderr } = await runMain(["annotated.ts"]);
     expect(code).toBe(2);
     expect(stdout).toHaveLength(1);
     const env = JSON.parse(stdout[0]!);
@@ -88,7 +88,7 @@ describe("cli refute on unhealthy runs", () => {
       status: 1,
       messages: ["Cannot find module '@lakatos/pabst/runtime'"],
     });
-    const { code, stdout } = await runMain(["refute", "bounded.ts"]);
+    const { code, stdout } = await runMain(["bounded.ts"]);
     expect(code).toBe(2);
     const env = JSON.parse(stdout[0]!);
     expectValidEnvelope(env);
@@ -123,7 +123,7 @@ describe("cli refute on unhealthy runs", () => {
         ],
       },
     });
-    const { code, stdout, stderr } = await runMain(["refute", "annotated.ts"]);
+    const { code, stdout, stderr } = await runMain(["annotated.ts"]);
     expect(code).toBe(2);
     expect(stdout).toHaveLength(1);
     const env = JSON.parse(stdout[0]!);

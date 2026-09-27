@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import * as fs from "node:fs";
-import * as path from "node:path";
-import {
-  runForEnvelope,
-  runMain,
-  useRepoScratchDir,
-  useTempProject,
-} from "./helpers/cli.js";
+import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 
 const SCALE =
@@ -60,7 +53,7 @@ const EXPECTED = {
 } as const;
 
 async function expectIslandRefusal(
-  command: "prove" | "refute" | "check",
+  command: "prove" | "check",
   file: keyof typeof EXPECTED,
 ): Promise<void> {
   const { code, stdout, stderr } = await runMain([command, file]);
@@ -79,9 +72,7 @@ async function expectIslandRefusal(
   ]);
   expect(stderr).toContain(`error: ${EXPECTED[file].error}`);
   // No engine saw the annotation: the spine counts nothing to run.
-  expect(stderr.join("\n")).toMatch(
-    /emitted 0 annotations|generated 0 properties|not implemented/,
-  );
+  expect(stderr.join("\n")).toMatch(/emitted 0 annotations|not implemented/);
 }
 
 describe("prove: a type fault inside an atom is the annotation's InputError", () => {
@@ -96,18 +87,15 @@ describe("prove: a type fault inside an atom is the annotation's InputError", ()
 });
 
 // The gate refuses the annotation before any engine sees it, which the
-// assertion on the spine's own count is what establishes, so the other two
-// commands need one witness each rather than the whole sweep.
-describe.each(["refute", "check"] as const)(
-  "%s refuses the same annotation the same way",
-  (command) => {
-    useTempProject(`lakatos-island-${command}-`, REPROS);
+// assertion on the spine's own count is what establishes, so check needs
+// one witness rather than the whole sweep.
+describe("check refuses the same annotation the same way", () => {
+  useTempProject("lakatos-island-check-", REPROS);
 
-    it("j.ts reports InputError naming the atom and exits 2", async () => {
-      await expectIslandRefusal(command, "j.ts");
-    });
-  },
-);
+  it("j.ts reports InputError naming the atom and exits 2", async () => {
+    await expectIslandRefusal("check", "j.ts");
+  });
+});
 
 describe("check: a sound sibling of a faulty annotation still reports", () => {
   useTempProject("lakatos-island-sibling-check-", REPROS);
@@ -129,45 +117,4 @@ describe("check: a sound sibling of a faulty annotation still reports", () => {
       },
     ]);
   });
-});
-
-describe("refute: a sound sibling of a faulty annotation still runs", () => {
-  const repoRoot = process.cwd();
-  useRepoScratchDir(
-    path.join(repoRoot, ".lakatos", "island-sibling"),
-    (dir) => {
-      fs.writeFileSync(
-        path.join(dir, "sibling.ts"),
-        REPROS["sibling.ts"],
-        "utf8",
-      );
-    },
-  );
-
-  it(
-    "gets its verdict beside the InputError, exit 2",
-    { timeout: 60000 },
-    async () => {
-      const env = await runForEnvelope(["refute", "sibling.ts"], 2);
-      expect(env).toMatchObject({ generated: 1, passed: 1, failed: 0 });
-      expect(env.annotations).toEqual([
-        {
-          file: "sibling.ts",
-          function: "f",
-          property: "good",
-          szs: "Theorem",
-          kind: "enumerated",
-          cases: 5,
-        },
-        {
-          file: "sibling.ts",
-          function: "f",
-          property: "bad",
-          szs: "InputError",
-          error:
-            "sibling.ts:1: @ensures{bad}: in atom `f(x)`: TS1360: Type 'number' does not satisfy the expected type 'boolean'.",
-        },
-      ]);
-    },
-  );
 });

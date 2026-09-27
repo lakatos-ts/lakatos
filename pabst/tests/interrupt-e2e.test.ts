@@ -10,7 +10,7 @@ import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 // it spawned alike.
 // The build behind dist/ is the suite-wide globalSetup's.
 const repoRoot = process.cwd();
-const cliJs = path.join(repoRoot, "dist", "src", "cli.js");
+const cliJs = path.join(repoRoot, "pabst", "dist", "cli.js");
 // Inside the repo tree: the generated tests resolve "@lakatos/pabst/runtime" by
 // workspace link and "vitest" by walking up node_modules, neither
 // of which works from os.tmpdir().
@@ -48,7 +48,7 @@ async function waitFor(
   }
 }
 
-describe("lakatos refute interrupted by a real SIGINT", () => {
+describe("pabst interrupted by a real SIGINT", () => {
   beforeAll(() => {
     fs.rmSync(workDir, { recursive: true, force: true });
     fs.mkdirSync(workDir, { recursive: true });
@@ -80,7 +80,7 @@ describe("lakatos refute interrupted by a real SIGINT", () => {
   });
 
   it("prints a User envelope on stdout and exits 2", async () => {
-    const child = spawn(process.execPath, [cliJs, "refute", "slow.ts"], {
+    const child = spawn(process.execPath, [cliJs, "slow.ts"], {
       cwd: workDir,
       detached: true,
     });

@@ -33,7 +33,7 @@ describe("cli refute run directories", () => {
     "refute's generated tests land under the run directory the envelope names",
     { timeout: 120000 },
     async () => {
-      const { code, stderr } = await runMain(["refute", "good.ts"]);
+      const { code, stderr } = await runMain(["good.ts"]);
       expect(code).toBe(0);
       const runDir = announcedRunDir(stderr);
       expect(
@@ -52,9 +52,9 @@ describe("cli refute run directories", () => {
     "back-to-back invocations do not leak issues from earlier runs",
     { timeout: 120000 },
     async () => {
-      expect((await runMain(["refute", "bad.ts"])).code).toBe(1);
+      expect((await runMain(["bad.ts"])).code).toBe(1);
       // No wipe in between: bad.ts's own run directory is still there.
-      const { code, stdout } = await runMain(["refute", "good.ts"]);
+      const { code, stdout } = await runMain(["good.ts"]);
       expect(code).toBe(0);
       const env = JSON.parse(stdout[0]!);
       expect(env).toMatchObject({
@@ -70,8 +70,8 @@ describe("cli refute run directories", () => {
     "a run that generates nothing reports a zero envelope, never stale mirrors",
     { timeout: 120000 },
     async () => {
-      expect((await runMain(["refute", "bad.ts"])).code).toBe(1);
-      const { code, stdout } = await runMain(["refute", "plain.ts"]);
+      expect((await runMain(["bad.ts"])).code).toBe(1);
+      const { code, stdout } = await runMain(["plain.ts"]);
       expect(code).toBe(0);
       const env = JSON.parse(stdout[0]!);
       expectValidEnvelope(env);
@@ -98,10 +98,7 @@ describe("cli refute run directories", () => {
         "utf8",
       );
       try {
-        const { code, stdout, stderr } = await runMain([
-          "refute",
-          "explosive.ts",
-        ]);
+        const { code, stdout, stderr } = await runMain(["explosive.ts"]);
         expect(code).toBe(2);
         expect(stdout).toHaveLength(1);
         const env = JSON.parse(stdout[0]!);
@@ -126,7 +123,7 @@ describe("cli refute run directories", () => {
     "refute accepts globs and reports across all matched files",
     { timeout: 60000 },
     async () => {
-      const { code, stdout } = await runMain(["refute", "*.ts"]);
+      const { code, stdout } = await runMain(["*.ts"]);
       expect(code).toBe(1);
       const env = JSON.parse(stdout[0]!);
       expectValidEnvelope(env);
