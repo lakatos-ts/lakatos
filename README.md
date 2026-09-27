@@ -165,7 +165,8 @@ Everything is one repository, an npm workspace:
   language — its [spec](lemma/spec/) (grammar, prose semantics, and
   conformance fixtures) and the implementation both engines share
   (discovery, `@ensures` extraction, parsing, the typecheck gate).
-- [`engines/thales/`](engines/thales/) — the proof engine: an emitter
+- [`thales/`](thales/) — `@lakatos/thales`, the proof tool and its
+  `thales` bin: an emitter
   that renders annotated TypeScript as plain Lean 4, with a graded
   automatic discharge ladder (exhaustive checking on bounded domains,
   then symbolic tactics, then an honest "unable to prove").
@@ -188,7 +189,7 @@ Lakatos is a thin frontend over two engines, one per side of the dialectic:
                 /        \
         refute /          \ prove
               v            v
-        pabst           engines/thales
+        pabst           thales
         (TypeScript;    (Lean 4; today: elan/lake
          fast-check)     on PATH — see Status)
 ```

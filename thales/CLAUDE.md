@@ -1,11 +1,11 @@
 # CLAUDE.md
 
-Thales is lakatos's proof engine. It backs `lakatos prove`: annotated TypeScript is emitted as plain Lean 4, Lean attempts to prove each `@ensures` property against a model of each function, and one SZS verdict per annotation comes back to the CLI as a JSON line.
+Thales is lakatos's proof tool, the workspace package `@lakatos/thales`: the `thales` bin and the `prove` API, which `lakatos prove` also calls. Annotated TypeScript is emitted as plain Lean 4, Lean attempts to prove each `@ensures` property against a model of each function, and one SZS verdict per annotation comes back to the tool as a JSON line.
 
 Two halves in two languages:
 
-- **`frontend/` (TypeScript)** — the emitter. Root-package code: compiled by the root `tsconfig.json`, tested by the root vitest suite. Start at `frontend/src/emission.ts` (tsc AST → per-declaration JSON, and the classification of what it cannot map) and `frontend/src/run.ts` (lake/lean orchestration, verdict-line parsing).
-- **`ThalesDsl/` (Lean 4)** — the prover: the `ThalesDsl` and `ThalesEmit` lake libraries plus the `thales-emit` executable, built on the JS-semantics library in the shared `tarski/` package at the repo root (`require tarski from "../../tarski"`; read `tarski/CLAUDE.md` before touching it); artifacts are run with `lake env lean`. `ThalesEmit/` is the renderer behind `thales-emit`. Start at `ThalesDsl/Prove.lean` (the tactic ladder) and `tarski/Js/Runtime.lean` (the semantic domain). Toolchain pinned in `tarski/lean-toolchain`, symlinked here as `lean-toolchain`.
+- **`frontend/` (TypeScript)** — the emitter and the tool. `tsconfig.json` here builds `frontend/src` to `dist/` (the bin is `dist/cli.js`); it is built, typechecked, and tested from the repo root. Start at `frontend/src/emission.ts` (tsc AST → per-declaration JSON, and the classification of what it cannot map) and `frontend/src/run.ts` (lake/lean orchestration, verdict-line parsing).
+- **`ThalesDsl/` (Lean 4)** — the prover: the `ThalesDsl` and `ThalesEmit` lake libraries plus the `thales-emit` executable, built on the JS-semantics library in the shared `tarski/` package at the repo root (`require tarski from "../tarski"`; read `tarski/CLAUDE.md` before touching it); artifacts are run with `lake env lean`. `ThalesEmit/` is the renderer behind `thales-emit`. Start at `ThalesDsl/Prove.lean` (the tactic ladder) and `tarski/Js/Runtime.lean` (the semantic domain). Toolchain pinned in `tarski/lean-toolchain`, symlinked here as `lean-toolchain`.
 
 Annotation parsing is not here: discovery, extraction, and prefix/formula parsing live in `lemma/`; the Lean side never sees Lemma syntax.
 
@@ -13,7 +13,7 @@ Docs under `docs/adr/`, `docs/specs/`, `docs/beyond-typescript.md`, and `CHANGEL
 
 ## Common commands
 
-From `engines/thales/`:
+From `thales/`:
 
 ```bash
 lake build                       # ThalesDsl (the default target), tarski's Js first
@@ -27,22 +27,22 @@ npm run check:envelopes          # emission envelopes against stored expectation
 UPDATE_ENVELOPES=1 LAKATOS_PROVE_E2E=1 npm run check:envelopes   # regenerate the store
 ```
 
-From the repo root (the frontend is root-package code):
+From the repo root (the TypeScript builds and tests there):
 
 ```bash
 npm run build                      # build (the check scripts need this first)
-npx vitest run engines/thales/frontend/tests  # frontend unit tests
+npx vitest run thales/frontend/tests thales/tests  # unit and bin tests
 npm run format:check                          # prettier, whole repo, one config
-LAKATOS_PROVE_E2E=1 npx vitest run tests/e2e.test.ts   # full prove e2e (needs Lean)
+LAKATOS_PROVE_E2E=1 npx vitest run thales/tests/e2e.test.ts   # full prove e2e (needs Lean)
 ```
 
 Always wrap `lake env lean` invocations in a timeout when running them by hand; a bad artifact can grind indefinitely. The check scripts load the _built_ frontend (`scripts/harness.js`), so the sentinel, the parse, and the lake invocation are production's, never a copy.
 
 ## The prove pipeline
 
-`lakatos prove` (root `src/cli.ts`) runs one spine:
+`prove` (`frontend/src/prove.ts`, behind the bin in `frontend/src/cli.ts`) runs one spine over lemma's `admit` and core's `runTool`:
 
-1. **Discover + extract** — lemma finds `@ensures` annotations; malformed ones become `InputError` entries, and the CLI's island typing refuses type faults and unexported references per annotation before the emitter sees them.
+1. **Discover + extract** — lemma finds `@ensures` annotations; malformed ones become `InputError` entries, and lemma's island typing refuses type faults and unexported references per annotation before the emitter sees them.
 2. **Emit** — `frontend/src/emission.ts` + `emission-artifacts.ts` write per-declaration JSON per annotated file into the run directory's `thales/` mirror; a file whose annotations are all classified gets no artifact. Per module the walk also runs tarski's parser bridge on the stripped source and attaches each declaration's dependency closure as ESTree (`emission-ast.ts`).
 3. **Render + run** — `frontend/src/run.ts`: `findEngineRoot()` walks up to the lakefile, then `lake build`, `lake build thales-emit`, `thales-emit` per artifact, `lake env lean` per file (timeouts `BUILD_TIMEOUT_MS` 600 s, `EMIT_TIMEOUT_MS` 120 s, `LEAN_TIMEOUT_MS` 300 s plus `VALIDATE_TIMEOUT_MS` 120 s per `#thales_validate` the artifact carries; `spawn` is injectable for tests). Each artifact also carries one `#thales_validate` per entry-module function and constant, whose `thales-model:` line `run.ts` parses beside the verdicts. A failing artifact is a per-file `FileFailure`; the run completes and healthy verdicts still ship.
 4. **Join** — `frontend/src/join.ts` matches verdict lines to annotation identities; missing, duplicate, surplus, or unrepresentable statuses make the run unhealthy (NotTried envelope, stderr diagnostics, exit 2). The same join puts each `thales-model:` line onto every annotation of its declaration as the envelope's `model` field: a proven annotation always carries one, a declaration the artifact stated no obligation for is `unvalidated` with that as its reason, and a duplicate line is unhealthy like a duplicate verdict.
@@ -96,13 +96,14 @@ The status set lives in exactly two places: the `Szs` inductive here and `SZS_ST
 
 - `Test/ThalesDsl/`, `Test/ThalesEmit/` — Lean unit tests, one directory per library; `AstTest.lean` is one guard per AST constructor plus the round trip that makes the rendered term the decoder's output and not a second reading of the JSON; there is a `ValidateTest.lean` in each, the closer's behaviour in the first and the emitter's choice of command in the second, while the model lines themselves are pinned by `tests/fixtures/validate.lean` through `check:verdict-channel`; the library's own tests are `tarski/Test/Js/`, built by `lake build TarskiTest` from `tarski/`. Location follows ownership: a `ThalesDsl` import under `tarski/Test/Js/` is a boundary violation by inspection.
 - `frontend/tests/` — vitest, from the repo root; `run.test.ts` uses the injectable spawn, no real Lean needed.
-- `tests/conformance/` — `.ts` fixtures bucketed by the SZS status every annotation in them must receive, run end to end by root `tests/verdict-corpus.test.ts` (gated like the prove e2e). Its README has the bucket conventions.
+- `tests/*.test.ts` — the bin's suites, driving `main` from `frontend/src/cli.ts` with the engine mocked at `frontend/src/run.js`, plus the gated e2e and corpus. The prove-and-refute parity checks live at the repo root (`tests/prove-refute-parity.test.ts`), since thales never depends on pabst.
+- `tests/conformance/` — `.ts` fixtures bucketed by the SZS status every annotation in them must receive, run end to end by `tests/verdict-corpus.test.ts` (gated like the prove e2e). Its README has the bucket conventions.
 - CI: `.github/workflows/thales.yml` runs lake build, the Lean tests, both check scripts (envelopes over the full manifest), and the gated e2e + corpus.
 
 ## Conventions
 
 - **`autoImplicit` is off** in both lake packages (`lakefile.lean` here and in `tarski/`); bind implicit and universe variables explicitly.
 - **Failure containment over abortion.** A construct the engine can't handle degrades that declaration, that annotation, or that artifact — never the run. New frontend features must preserve this.
-- **One verdict line per `#thales_prove`, always**, even for failures the elaborator can see. Annotations the frontend classifies never enter the channel; the CLI joins them from the emission's `classified` list.
+- **One verdict line per `#thales_prove`, always**, even for failures the elaborator can see. Annotations the frontend classifies never enter the channel; `prove` joins them from the emission's `classified` list.
 - **Boundary rule:** nothing under `tarski/` may mention `ThalesDsl` or any emission concern (stated in `tarski/CLAUDE.md`); the `require` runs one way.
-- **Lean builds here; the frontend builds at the root.** This directory's `package.json` (`thales-dev`) exists only for the check scripts and has no dependencies. Formatting is root-only: one prettier pin, one config.
+- **Lean builds here; the TypeScript builds from the repo root** into `dist/`. The package's scripts are the two checks. Formatting is root-only: one prettier pin, one config.

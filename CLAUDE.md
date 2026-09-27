@@ -2,25 +2,25 @@
 
 Monorepo for lakatos: proofs and refutations for TypeScript. `README.md` (Layout, Architecture) is the tour; each engine's own `CLAUDE.md` loads when you work under it.
 
-Start from `src/cli.ts` (the `prove|refute|check` dispatch; `lakatos refute` delegates to pabst's `refute`, `check` is still a NotTried stub) and `core/src/envelope.ts` + `core/src/szs.ts` (the per-annotation output contract, schema in `core/schemas/`).
+Start from `src/cli.ts` (the `prove|refute|check` dispatch; `lakatos prove` and `lakatos refute` delegate to thales's `prove` and pabst's `refute`, `check` is still a NotTried stub) and `core/src/envelope.ts` + `core/src/szs.ts` (the per-annotation output contract, schema in `core/schemas/`).
 
 ## Layering
 
-`engines/thales/` (proofs, Lean) and `pabst/` (`@lakatos/pabst`: refutations, fast-check; its own `pabst` bin) never depend on each other. Both may depend on `core/` (`@lakatos/core`: the shared runtime — envelope, SZS statuses, interrupt handling, run directories; depends on nothing in the repo), `lemma/` (`@lakatos/lemma`: the Lemma annotation language — discovery, `@ensures` extraction, parsing, the typecheck gate; its spec and conformance corpus in `lemma/spec/`) and `tarski/` (`@lakatos/tarski`: the shared JS semantics — the Lean package thales proves against, and the TypeScript bridge, evaluator runner, and `tarski-test262` bin over it; see its `CLAUDE.md`), which depend on no engine. `src/` may depend on all of them. The root is a private npm workspace root; `core/`, `lemma/`, `pabst/`, and `tarski/` are its workspace packages, and `engines/thales/package.json` is private dev tooling for its check scripts, not a package.
+`thales/` (`@lakatos/thales`: proofs, Lean; its own `thales` bin) and `pabst/` (`@lakatos/pabst`: refutations, fast-check; its own `pabst` bin) never depend on each other. Both may depend on `core/` (`@lakatos/core`: the shared runtime — envelope, SZS statuses, interrupt handling, run directories; depends on nothing in the repo), `lemma/` (`@lakatos/lemma`: the Lemma annotation language — discovery, `@ensures` extraction, parsing, the typecheck gate; its spec and conformance corpus in `lemma/spec/`) and `tarski/` (`@lakatos/tarski`: the shared JS semantics — the Lean package thales proves against, and the TypeScript bridge, evaluator runner, and `tarski-test262` bin over it; see its `CLAUDE.md`), which depend on no engine. `src/` may depend on all of them. The root is a private npm workspace root; `core/`, `lemma/`, `pabst/`, `tarski/`, and `thales/` are its workspace packages.
 
 ## Building and testing
 
-Every TypeScript part — `src/`, `core/`, `lemma/`, `pabst/`, `tarski/frontend/`, thales's `frontend/` — builds, typechecks, tests, and formats from the repo root (`tsc -b` builds `core/` first; vitest runs core from source through an alias, the built CLI resolves it through the workspace link). Lean lives in two lake packages: `tarski/` (the semantics library, toolchain pin, tracked manifest) and `engines/thales/` (the prover, which requires `tarski` by path). Run `lake` from the package you are building; building thales builds tarski. `lakatos prove` needs a lakatos checkout with the Lean toolchain; the prove e2e and verdict corpus run only under `LAKATOS_PROVE_E2E=1` (CI: `thales.yml`; `tarski.yml` builds the semantics package and runs its Lean tests; `lakatos.yml` covers the TypeScript suites, typecheck, format, and a coverage gate).
+Every TypeScript part — `src/`, `core/`, `lemma/`, `pabst/`, `tarski/frontend/`, `thales/frontend/` — builds, typechecks, tests, and formats from the repo root (`tsc -b` builds `core/` first; vitest runs core from source through an alias, the built CLI resolves it through the workspace link). Lean lives in two lake packages: `tarski/` (the semantics library, toolchain pin, tracked manifest) and `thales/` (the prover, which requires `tarski` by path). Run `lake` from the package you are building; building thales builds tarski. `lakatos prove` needs a lakatos checkout with the Lean toolchain; the prove e2e and verdict corpus run only under `LAKATOS_PROVE_E2E=1` (CI: `thales.yml`; `tarski.yml` builds the semantics package and runs its Lean tests; `lakatos.yml` covers the TypeScript suites, typecheck, format, and a coverage gate).
 
 ## Issue tracker
 
-GitHub Issues on `lakatos-ts/lakatos` is the tracker: bugs, features, triage, and everything a PR or design record refers to by number. Conventions: `engines/thales/docs/agents/issue-tracker.md`; triage labels: `engines/thales/docs/agents/triage-labels.md`.
+GitHub Issues on `lakatos-ts/lakatos` is the tracker: bugs, features, triage, and everything a PR or design record refers to by number. Conventions: `thales/docs/agents/issue-tracker.md`; triage labels: `thales/docs/agents/triage-labels.md`.
 
 Beads (`bd`, below) is agent-local task tracking within a session, not a second issue tracker: a bead is a step toward an issue, never a substitute for filing one.
 
 ## Docs
 
-Design records spanning more than one component go in `docs/design/`; a single engine's notes stay under that engine (`engines/thales/docs/`). Records are dated and are not updated to track the code.
+Design records spanning more than one component go in `docs/design/`; a single engine's notes stay under that engine (`thales/docs/`). Records are dated and are not updated to track the code.
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
 

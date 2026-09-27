@@ -7,6 +7,12 @@ release-to-release deltas. The format follows
 
 ## Unreleased
 
+Thales moved from `engines/thales/` to `thales/` and is the workspace
+package `@lakatos/thales`: a `thales [files-or-globs...]` bin and a
+`prove` API, both emitting the shared lakatos envelope. `lakatos prove`
+calls the same API. Its stderr notes now say `thales:`. It still runs
+only from a lakatos checkout with the Lean toolchain.
+
 After 0.7, the next headline candidate is **provably-safe array
 indexing**, re-deferred from 0.7 (see ADR-0002). Two contexts:
 literal-index into a literal/known-length array (`[10, 20, 30][1]`) and

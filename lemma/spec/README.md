@@ -51,7 +51,7 @@ build on it, one from each side of the proofs-and-refutations dialectic:
   engine**: compiles properties to
   [fast-check](https://fast-check.dev/) runs and hunts for
   counterexamples.
-- [`engines/thales/`](../../engines/thales/) (Lean 4) — the **proof
+- [`thales/`](../../thales/) (Lean 4) — the **proof
   engine**: compiles the annotated code to Lean and attempts to prove each
   property for all inputs.
 

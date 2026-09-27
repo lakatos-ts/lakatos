@@ -24,7 +24,7 @@ lakatos forces its required strict options on top, and the harness copies
 the config into the scratch project so the gate runs there exactly as it
 does for a user. Check the corpus standalone with
 
-    npx tsc -p engines/thales/tests/conformance --noEmit --strict
+    npx tsc -p thales/tests/conformance --noEmit --strict
 
 A program tsc refuses is not a fixture: the gate answers for it, so it has
 no bucket here.
