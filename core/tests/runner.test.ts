@@ -265,4 +265,15 @@ describe("packageVersion", () => {
     ) as { version: string };
     expect(packageVersion(import.meta.url)).toBe(pkg.version);
   });
+
+  it("fails loudly when no package.json lies above the module", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "core-noversion-"));
+    try {
+      expect(() =>
+        packageVersion(new URL(`file://${dir}/mod.js`).href),
+      ).toThrow("package.json not found");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

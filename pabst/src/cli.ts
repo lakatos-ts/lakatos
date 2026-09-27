@@ -55,6 +55,7 @@ export async function main(
       console.error(USAGE);
       return 2;
     }
+    /* v8 ignore next -- parseArgs throws only its ERR_PARSE_ARGS_ errors */
     throw e;
   }
   if (values.help) {
@@ -78,9 +79,11 @@ export async function main(
 
 // npm installs the bin as a symlink; Node resolves the main module to its
 // realpath but argv[1] keeps the link, so compare realpaths.
+/* v8 ignore start -- runs only in the spawned bin, which cli-bin.test.ts drives */
 if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href
 ) {
   process.exit(await main());
 }
+/* v8 ignore stop */
