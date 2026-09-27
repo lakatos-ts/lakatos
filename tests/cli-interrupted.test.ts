@@ -74,7 +74,7 @@ describe("cli on an interrupted run", () => {
       },
     ]);
     expect(stderr).toContain(
-      "lakatos: interrupted by SIGINT; reporting 2 annotations as User",
+      "pabst: interrupted by SIGINT; reporting 2 annotations as User",
     );
   });
 
@@ -82,7 +82,7 @@ describe("cli on an interrupted run", () => {
     runTestsMock.mockReturnValue({ kind: "interrupted", signal: "SIGINT" });
     const { stderr } = await runMain(["refute", "lone.ts"]);
     expect(stderr).toContain(
-      "lakatos: interrupted by SIGINT; reporting 1 annotation as User",
+      "pabst: interrupted by SIGINT; reporting 1 annotation as User",
     );
   });
 
@@ -159,7 +159,7 @@ describe("cli on an interrupted run", () => {
       ["User", "the run was interrupted (SIGINT)"],
     ]);
     expect(stderr).toContain(
-      "lakatos: interrupted by SIGINT; reporting 2 annotations as User",
+      "pabst: interrupted by SIGINT; reporting 2 annotations as User",
     );
     expect(stderr.join("\n")).not.toContain("error:");
   });
@@ -172,7 +172,7 @@ describe("cli on an interrupted run", () => {
     const { code, stderr } = await runMain(["refute", "lone.ts"]);
     expect(code).toBe(2);
     expect(stderr).toContain(
-      "lakatos: interrupted by SIGINT; reporting 1 annotation as User",
+      "pabst: interrupted by SIGINT; reporting 1 annotation as User",
     );
   });
 

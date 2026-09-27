@@ -24,7 +24,7 @@ describe("refute refuses an ill-typed program", () => {
       "error: src/abs.ts:3: TS2322: Type 'string' is not assignable to type 'number'.",
     );
     expect(joined).toContain(
-      "lakatos: the program does not type check under lakatos's required options; reporting 1 annotation as InputError",
+      "pabst: the program does not type check under lakatos's required options; reporting 1 annotation as InputError",
     );
     // The gate runs before codegen: nothing was generated, no run dir named.
     expect(joined).not.toContain("generated");
@@ -101,7 +101,7 @@ describe("several diagnostics over several annotations", () => {
     expect(run.code).toBe(2);
     const joined = run.stderr.join("\n");
     expect(joined).toContain(
-      "lakatos: the program does not type check under lakatos's required options; reporting 2 annotations as InputError",
+      "pabst: the program does not type check under lakatos's required options; reporting 2 annotations as InputError",
     );
     const env = JSON.parse(run.stdout[0]!);
     expect(env.annotations).toHaveLength(2);
