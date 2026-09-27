@@ -8,7 +8,7 @@
 
 let main;
 try {
-  ({ main } = await import("../../dist/tarski/frontend/src/test262/cli.js"));
+  ({ main } = await import("../dist/test262/cli.js"));
 } catch {
   console.error(
     "tarski: no dist/ — run `npm run build` from the repo root first",
