@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -174,6 +175,20 @@ describe("import layering", () => {
     expect(
       existsSync(path.join(root, "schemas/tarski-estree.schema.json")),
     ).toBe(false);
+  });
+
+  // `dist/test262/` needs a recursive glob, which must not sweep in the
+  // build info tsc -b writes beside the output.
+  it("tarski's tarball ships no build info", () => {
+    const [packed] = JSON.parse(
+      execFileSync("npm", ["pack", "--dry-run", "--json", "-w", "tarski"], {
+        cwd: root,
+        encoding: "utf8",
+      }),
+    ) as { files: { path: string }[] }[];
+    const paths = packed!.files.map((f) => f.path);
+    expect(paths).toContain("dist/test262/cli.js");
+    expect(paths.filter((p) => p.endsWith(".tsbuildinfo"))).toEqual([]);
   });
 
   for (const { pkg: pkgDir, src } of [

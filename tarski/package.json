@@ -8,7 +8,8 @@
     "tarski-test262": "dist/test262/cli.js"
   },
   "files": [
-    "dist",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
     "schemas"
   ],
   "engines": {

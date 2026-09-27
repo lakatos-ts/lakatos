@@ -13,8 +13,9 @@ The evaluator binary is built by `lake` from this directory, so the
 package needs a lakatos checkout with the Lean toolchain:
 
 ```bash
-lake build tarski                   # the evaluator, from tarski/
 npm install && npm run build        # the TypeScript, from the repo root
+cd tarski
+lake build tarski                   # the evaluator
 node dist/test262/cli.js --slice-file test262/slice.txt
 ```
 
