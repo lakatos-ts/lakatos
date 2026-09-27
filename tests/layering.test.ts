@@ -10,33 +10,44 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PACKAGES: { dir: string; forbidden: string[] }[] = [
   {
     dir: "core/src",
-    forbidden: ["src", "lemma", "pabst", "engines", "tarski"],
+    forbidden: ["src", "lemma", "pabst", "engines", "tarski", "thales"],
   },
-  { dir: "lemma/src", forbidden: ["src", "pabst", "engines", "tarski"] },
+  {
+    dir: "lemma/src",
+    forbidden: ["src", "pabst", "engines", "tarski", "thales"],
+  },
   {
     dir: "lemma/tests",
-    forbidden: ["src", "tests", "core", "pabst", "engines", "tarski"],
+    forbidden: ["src", "tests", "core", "pabst", "engines", "tarski", "thales"],
   },
   {
     dir: "pabst/src",
-    forbidden: ["src", "tests", "core", "lemma", "engines", "tarski"],
+    forbidden: ["src", "tests", "core", "lemma", "engines", "tarski", "thales"],
   },
   {
     dir: "pabst/tests",
-    forbidden: ["src", "tests", "core", "lemma", "engines", "tarski"],
+    forbidden: ["src", "tests", "core", "lemma", "engines", "tarski", "thales"],
   },
   { dir: "src", forbidden: ["core", "lemma", "pabst"] },
   {
-    dir: "engines/thales/frontend/src",
-    forbidden: ["src", "lemma", "pabst"],
+    dir: "thales/frontend/src",
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "tarski"],
+  },
+  {
+    dir: "thales/frontend/tests",
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "tarski"],
+  },
+  {
+    dir: "thales/tests",
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "tarski"],
   },
   {
     dir: "tarski/frontend/src",
-    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines"],
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
   },
   {
     dir: "tarski/frontend/tests",
-    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines"],
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
   },
 ];
 
@@ -191,10 +202,62 @@ describe("import layering", () => {
     expect(paths.filter((p) => p.endsWith(".tsbuildinfo"))).toEqual([]);
   });
 
+  it("thales names no workspace package but core, lemma, tarski, and itself", () => {
+    const offenders = [
+      ...tsFiles(path.join(root, "thales/frontend/src")),
+      ...tsFiles(path.join(root, "thales/frontend/tests")),
+      ...tsFiles(path.join(root, "thales/tests")),
+    ].filter((f) =>
+      /["']@lakatos\/(?!core[/"']|lemma["']|tarski[/"']|thales["'])/.test(
+        readFileSync(f, "utf8"),
+      ),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it("thales is a workspace package with its bin, and engines/ is gone", () => {
+    const pkg = JSON.parse(
+      readFileSync(path.join(root, "thales/package.json"), "utf8"),
+    ) as {
+      name: string;
+      bin: Record<string, string>;
+      exports: Record<string, unknown>;
+      scripts: Record<string, string>;
+    };
+    expect(pkg.name).toBe("@lakatos/thales");
+    expect(pkg.bin).toEqual({ thales: "dist/cli.js" });
+    expect(Object.keys(pkg.exports)).toEqual(["."]);
+    expect(Object.keys(pkg.scripts).sort()).toEqual([
+      "check:envelopes",
+      "check:verdict-channel",
+    ]);
+    const rootTsconfig = JSON.parse(
+      readFileSync(path.join(root, "tsconfig.json"), "utf8"),
+    ) as { references: { path: string }[]; include: string[] };
+    expect(rootTsconfig.references.map((r) => r.path)).toContain("./thales");
+    expect(rootTsconfig.include).toEqual(["src"]);
+    expect(existsSync(path.join(root, "engines"))).toBe(false);
+    expect(existsSync(path.join(root, "schemas"))).toBe(false);
+  });
+
+  it("thales's tarball ships no build info", () => {
+    const [packed] = JSON.parse(
+      execFileSync("npm", ["pack", "--dry-run", "--json", "-w", "thales"], {
+        cwd: root,
+        encoding: "utf8",
+      }),
+    ) as { files: { path: string }[] }[];
+    const paths = packed!.files.map((f) => f.path);
+    expect(paths).toContain("dist/cli.js");
+    expect(paths).toContain("schemas/thales-emission.schema.json");
+    expect(paths.filter((p) => p.endsWith(".tsbuildinfo"))).toEqual([]);
+  });
+
   for (const { pkg: pkgDir, src } of [
     { pkg: "lemma", src: "lemma/src" },
     { pkg: "pabst", src: "pabst/src" },
     { pkg: "tarski", src: "tarski/frontend/src" },
+    { pkg: "thales", src: "thales/frontend/src" },
   ]) {
     it(`${pkgDir} declares every package its sources import at runtime`, () => {
       const pkg = JSON.parse(

@@ -11,8 +11,8 @@ const TREES = [
   "tests",
   "pabst/src",
   "pabst/tests",
-  "engines/thales/frontend/src",
-  "engines/thales/frontend/tests",
+  "thales/frontend/src",
+  "thales/frontend/tests",
 ];
 
 /** Anchored on `from`, so prose and `vi.mock` targets are not hits. Mocking a

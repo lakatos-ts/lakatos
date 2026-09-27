@@ -10,7 +10,7 @@ export default {
     "pabst/src/**/*.ts",
     "!**/*.d.ts",
   ],
-  ignorePatterns: [".lakatos", "coverage", "reports", "engines/thales"],
+  ignorePatterns: [".lakatos", "coverage", "reports", "thales"],
   concurrency: 8,
   timeoutFactor: 3,
   timeoutMS: 60000,

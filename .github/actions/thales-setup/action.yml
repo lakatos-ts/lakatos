@@ -12,7 +12,7 @@ runs:
     - name: Install Lean toolchain
       uses: leanprover/lean-action@v1
       with:
-        lake-package-directory: engines/thales
+        lake-package-directory: thales
         # We run our own lake commands below; tell the action not to build/test/lint.
         auto-config: false
         build: false
@@ -44,20 +44,20 @@ runs:
       uses: actions/cache/restore@v6
       with:
         path: |
-          engines/thales/.lake/build
+          thales/.lake/build
           tarski/.lake/build
-        key: lake-v2-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'engines/thales/lakefile.lean', 'engines/thales/lake-manifest.json') }}
+        key: lake-v3-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'thales/lakefile.lean', 'thales/lake-manifest.json') }}
         restore-keys: |
-          lake-v2-${{ runner.os }}-
+          lake-v3-${{ runner.os }}-
 
     - name: Build
       run: lake build
       shell: bash
-      working-directory: engines/thales
+      working-directory: thales
 
     - name: Build thales-emit
       # A lean_exe is not a default target; the checks that run it ask for it.
       if: inputs.emit == 'true'
       run: lake build thales-emit
       shell: bash
-      working-directory: engines/thales
+      working-directory: thales

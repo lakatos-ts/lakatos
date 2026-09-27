@@ -1,18 +1,17 @@
 # npm owns this file's formatting
 package-lock.json
-engines/thales/package-lock.json
 
 # local Claude Code artifacts (globally gitignored, so absent in CI)
 .claude/
 
 # the two Lean packages' build trees and lake-managed manifests
-engines/thales/.lake/
-engines/thales/lake-manifest.json
+thales/.lake/
+thales/lake-manifest.json
 tarski/.lake/
 tarski/lake-manifest.json
 
 # hand-curated release notes
-engines/thales/CHANGELOG.md
+thales/CHANGELOG.md
 
 # the Lemma spec's fixtures are conformance inputs, not repo prose
 lemma/spec/

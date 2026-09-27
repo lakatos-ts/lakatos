@@ -1,0 +1,227 @@
+import Test.ThalesEmit.Support
+
+/-! The printed artifact: five goldens a person inspected and accepted,
+one per artifact shape, and the pins that are about text rather than
+trees. Paths are relative to thales/, where every lake invocation
+runs. -/
+
+open Lean ThalesEmit
+
+def nums (names : Array String) : Array Param :=
+  names.map fun n => { name := n, ty := .number }
+
+-- #eval runs CoreM inside this module's own environment, which imports
+-- ThalesDsl transitively, so the printer has its syntax tables.
+def goldenCheck (emissionPath expectedPath : String) : CoreM Unit := do
+  let text ← IO.FS.readFile emissionPath
+  let json ← IO.ofExcept (Json.parse text)
+  let e ← IO.ofExcept (decodeEmission json)
+  let rendered ← renderEmission e
+  let expected ← IO.FS.readFile expectedPath
+  unless rendered == expected do
+    throwError "rendered artifact drifted from the golden file:\n{rendered}"
+
+/-- A fixture whose rules are pinned as syntax guards: it must still
+render, and (once the emitter checks it) round-trip, but its text is not a
+golden. -/
+def rendersOk (emissionPath : String) : CoreM Unit := do
+  let text ← IO.FS.readFile emissionPath
+  let json ← IO.ofExcept (Json.parse text)
+  let e ← IO.ofExcept (decodeEmission json)
+  let _ ← renderEmission e
+
+#eval goldenCheck "tests/fixtures/tracer.emission.json"
+  "tests/fixtures/tracer.emitted.lean.expected"
+
+#eval goldenCheck "tests/fixtures/statements.emission.json"
+  "tests/fixtures/statements.emitted.lean.expected"
+
+#eval goldenCheck "tests/fixtures/classes.emission.json"
+  "tests/fixtures/classes.emitted.lean.expected"
+
+#eval goldenCheck "tests/fixtures/unions.emission.json"
+  "tests/fixtures/unions.emitted.lean.expected"
+
+#eval goldenCheck "tests/fixtures/optionals.emission.json"
+  "tests/fixtures/optionals.emitted.lean.expected"
+
+#eval rendersOk "tests/fixtures/operators.emission.json"
+#eval rendersOk "tests/fixtures/binders.emission.json"
+#eval rendersOk "tests/fixtures/degradations.emission.json"
+#eval rendersOk "tests/fixtures/class-params.emission.json"
+#eval rendersOk "tests/fixtures/class-binder-equality-guards.emission.json"
+#eval rendersOk "tests/fixtures/nested-class-binder.emission.json"
+#eval rendersOk "tests/fixtures/module-consts.emission.json"
+#eval rendersOk "tests/fixtures/defaults.emission.json"
+#eval rendersOk "tests/fixtures/ctor-defaults.emission.json"
+#eval rendersOk "tests/fixtures/instance-defaults.emission.json"
+#eval rendersOk "tests/fixtures/object-is-tagged.emission.json"
+#eval rendersOk "tests/fixtures/fields.emission.json"
+
+-- A dependency's constant sits one component deeper, like its functions.
+#eval show CoreM Unit from do
+  let e : Emission := {
+    file := "t.ts"
+    declarations := #[
+      .const { name := "cap", module := some "constants.mts",
+               init := .num "-0.5", source := "export const cap = -0.5;" }]
+    obligations := #[] }
+  let rendered ← renderEmission e
+  unless (rendered.splitOn "def TsModel.«constants.mts».cap : JsNumber :=").length == 2 do
+    throwError "the dependency constant is not module-qualified:\n{rendered}"
+  -- Once in the source echo, once as the def's value.
+  unless (rendered.splitOn "-0.5").length == 3 do
+    throwError "the negated literal did not render:\n{rendered}"
+
+-- A member's site is typed over the receiver, so its opaque must come
+-- after the structure that names it and before the member applying it.
+#eval show CoreM Unit from do
+  let e : Emission := {
+    file := "t.ts"
+    declarations := #[
+      .residual { owner := "Pow#square", site := 1,
+                  construct := "'**' is not supported",
+                  params := #[{ name := "self", ty := .cls "Pow" none }],
+                  ty := .number },
+      .cls { name := "Pow", source := "class Pow {}",
+             fields := #[{ name := "#v", ty := .number }],
+             ctorParams := nums #["v"],
+             ctorBody := #[.fieldSet "#v" (.id "v")],
+             getters := #[],
+             methods := #[{ name := "square", tainted := true,
+                            params := #[],
+                            body := #[.ret (.residual "Pow#square" none 1 #[.selfRef])] }] }]
+    obligations := #[] }
+  let rendered ← renderEmission e
+  unless (rendered.splitOn "structure TsModel.Pow").length == 2 do
+    throwError "the structure did not render:\n{rendered}"
+  let beforeOpaque := (rendered.splitOn "noncomputable opaque TsModel.Pow.square.residual_1")[0]!
+  unless (beforeOpaque.splitOn "structure TsModel.Pow").length == 2 do
+    throwError "the site's opaque precedes its own structure:\n{rendered}"
+  let afterOpaque := (rendered.splitOn "noncomputable opaque TsModel.Pow.square.residual_1")[1]!
+  unless (afterOpaque.splitOn "def TsModel.Pow.square").length == 2 do
+    throwError "the site's opaque does not precede the member applying it:\n{rendered}"
+  -- Printed once, by its class, and not again at top level.
+  unless (rendered.splitOn "opaque TsModel.Pow.square.residual_1").length == 2 do
+    throwError "the site's opaque is repeated:\n{rendered}"
+
+-- A dependency's block is introduced once, ahead of its def; the entry's
+-- declarations get no separator of their own.
+#eval show CoreM Unit from do
+  let e : Emission := {
+    file := "main.mts"
+    declarations := #[
+      .fn { name := "double", module := some "helper.mts", params := nums #["x"],
+            source := "double", body := #[.ret (.binop "*" (.id "x") (.num "2"))] },
+      .fn { name := "twice", params := nums #["x"], source := "twice",
+            body := #[.ret (.call "double" (some "helper.mts") #[.id "x"])] }]
+    obligations := #[] }
+  let rendered ← renderEmission e
+  unless (rendered.splitOn "-- module helper.mts\n").length == 2 do
+    throwError "the module separator is missing or repeated:\n{rendered}"
+  let afterSep := (rendered.splitOn "-- module helper.mts\n")[1]!
+  unless (afterSep.splitOn "def TsModel.«helper.mts».double").length == 2 do
+    throwError "the module separator does not precede its def:\n{rendered}"
+  unless (rendered.splitOn "-- module ").length == 2 do
+    throwError "the entry's declarations got a separator:\n{rendered}"
+
+-- The wide conclusion pins the join: `return` never ends a line, which
+-- would read back as a bare return.
+#eval show CoreM Unit from do
+  let call (x : String) : JsExpr :=
+    .call "applyConversionFactors" none #[.id x, .id x, .id x, .id x, .id x]
+  let e : Emission := {
+    file := "t.ts"
+    declarations := #[.fn { name := "applyConversionFactors",
+                            params := nums #["v", "sf", "so", "tf", "to"],
+                            source := "applyConversionFactors",
+                            body := #[.ret (.id "v")] }]
+    obligations := #[{ function := "applyConversionFactors", property := "p",
+                       formula := "f",
+                       payload := .structured
+                         #[.number "x" (some (.lt, "0")) (some (.lt, "Infinity")),
+                           .number "y" (some (.le, "-Infinity")) none]
+                         #[] (.istrue (.binop "<=" (call "x") (call "y"))) }] }
+  let rendered ← renderEmission e
+  unless (rendered.splitOn "return\n").length == 1 do
+    throwError "a return was split from its argument:\n{rendered}"
+  -- The positive half of the same pin: the conclusion is wide enough that
+  -- the printer breaks it, so this is the rejoined line, not an unbroken one.
+  unless (rendered.splitOn "return Float.le").length == 2 do
+    throwError "the return and its argument are not on one line:\n{rendered}"
+
+-- The printer alone keeps `return` and its argument on one line: no text
+-- repair runs between the formatter and the artifact.
+#eval show CoreM Unit from do
+  let call (x : String) : JsExpr :=
+    .call "applyConversionFactors" none #[.id x, .id x, .id x, .id x, .id x]
+  let o : Obligation :=
+    { function := "applyConversionFactors", property := "p", formula := "",
+      payload := .structured #[.number "x" none none, .number "y" none none] #[]
+        (.istrue (.binop "<=" (call "x") (call "y"))) }
+  let cmd ← match RenderM.run
+      (obligationCommand { file := "t.ts", declarations := #[], obligations := #[] } o) with
+    | .error msg => throwError msg
+    | .ok c => pure c
+  let raw := (← PrettyPrinter.ppCommand ⟨unscope cmd.raw⟩).pretty 100
+  unless (raw.splitOn "return\n").length == 1 do
+    throwError "the raw print broke after return:\n{raw}"
+  unless (raw.splitOn "return Float.le").length == 2 do
+    throwError "the raw print does not carry the argument on the return line:\n{raw}"
+  -- Wide enough to break: the second operand sits on a later line, so
+  -- this is a print the formatter held together, not one that just fit.
+  let some returnLine := (raw.splitOn "\n").find? fun l => (l.splitOn "return Float.le").length == 2
+    | throwError "the conclusion carries no return line:\n{raw}"
+  unless (returnLine.splitOn "applyConversionFactors y").length == 1 do
+    throwError "the conclusion did not break at all, so the pin proves nothing:\n{raw}"
+
+-- A closure the decoder refused renders no def at all: the construct it
+-- named is one comment line, in the decoder's own message shape, which is
+-- what the model line reports as the reason a declaration has no run.
+#eval show CoreM Unit from do
+  let e : Emission := {
+    file := "t.ts"
+    declarations := #[
+      .fn { name := "f", params := #[], source := "async function f() { }",
+            body := #[.ret (.num "1")],
+            ast := some (.unsupported "FunctionDeclaration async") }]
+    obligations := #[] }
+  let rendered ← renderEmission e
+  unless (rendered.splitOn
+      "-- TsModel.f.ast: unsupported: FunctionDeclaration async").length == 2 do
+    throwError "the refused construct was not recorded:\n{rendered}"
+  unless (rendered.splitOn "TsModel.f.ast :").length == 1 do
+    throwError "a refused closure still rendered an ast def:\n{rendered}"
+
+-- A tainted function gets the bare `#thales_validate`, never the `:=`
+-- form: there is no run to compare a model against, and the reason is the
+-- construct its own residual refused.
+#eval show CoreM Unit from do
+  let e : Emission := {
+    file := "t.ts"
+    declarations := #[
+      .residual { owner := "f", site := 1, construct := "'**' is not supported",
+                  params := nums #["x"], ty := .number },
+      .fn { name := "f", params := nums #["x"], source := "function f(x) { return x ** 2; }",
+            tainted := true,
+            body := #[.ret (.residual "f" none 1 #[.id "x"])] }]
+    obligations := #[] }
+  let rendered ← renderEmission e
+  unless (rendered.splitOn
+      "#thales_validate \"t.ts\" \"f\" unvalidated \"'**' is not supported\"").length == 2 do
+    throwError "the tainted function did not get the bare form:\n{rendered}"
+  unless (rendered.splitOn "#thales_validate \"t.ts\" \"f\" :=").length == 1 do
+    throwError "a tainted function was given an obligation:\n{rendered}"
+
+-- A dependency's declaration gets no command at all: its own artifact
+-- validates it, and the entry's obligation runs the whole closure anyway.
+#eval show CoreM Unit from do
+  let e : Emission := {
+    file := "main.mts"
+    declarations := #[
+      .fn { name := "double", module := some "helper.mts", params := nums #["x"],
+            source := "double", body := #[.ret (.binop "*" (.id "x") (.num "2"))] }]
+    obligations := #[] }
+  let rendered ← renderEmission e
+  unless (rendered.splitOn "#thales_validate").length == 1 do
+    throwError "a dependency's declaration got a correspondence command:\n{rendered}"

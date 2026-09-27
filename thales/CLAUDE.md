@@ -1,0 +1,109 @@
+# CLAUDE.md
+
+Thales is lakatos's proof tool, the workspace package `@lakatos/thales`: the `thales` bin and the `prove` API, which `lakatos prove` also calls. Annotated TypeScript is emitted as plain Lean 4, Lean attempts to prove each `@ensures` property against a model of each function, and one SZS verdict per annotation comes back to the tool as a JSON line.
+
+Two halves in two languages:
+
+- **`frontend/` (TypeScript)** — the emitter and the tool. `tsconfig.json` here builds `frontend/src` to `dist/` (the bin is `dist/cli.js`); it is built, typechecked, and tested from the repo root. Start at `frontend/src/emission.ts` (tsc AST → per-declaration JSON, and the classification of what it cannot map) and `frontend/src/run.ts` (lake/lean orchestration, verdict-line parsing).
+- **`ThalesDsl/` (Lean 4)** — the prover: the `ThalesDsl` and `ThalesEmit` lake libraries plus the `thales-emit` executable, built on the JS-semantics library in the shared `tarski/` package at the repo root (`require tarski from "../tarski"`; read `tarski/CLAUDE.md` before touching it); artifacts are run with `lake env lean`. `ThalesEmit/` is the renderer behind `thales-emit`. Start at `ThalesDsl/Prove.lean` (the tactic ladder) and `tarski/Js/Runtime.lean` (the semantic domain). Toolchain pinned in `tarski/lean-toolchain`, symlinked here as `lean-toolchain`.
+
+Annotation parsing is not here: discovery, extraction, and prefix/formula parsing live in `lemma/`; the Lean side never sees Lemma syntax.
+
+Docs under `docs/adr/`, `docs/specs/`, `docs/beyond-typescript.md`, and `CHANGELOG.md` predate the plain-Lean rewrite and still describe the removed whole-file compiler (its `Thales/` library, `thales` executable, TH-code diagnostics). Trust the code, not those. `CONTEXT.md` holds the engine's vocabulary.
+
+## Common commands
+
+From `thales/`:
+
+```bash
+lake build                       # ThalesDsl (the default target), tarski's Js first
+lake build ThalesDslTest         # Lean tests under Test/
+lake env lean Test/ThalesDsl/BindersTest.lean # one Lean test file in isolation
+lake build thales-emit           # the emission executable (not a default target)
+lake build ThalesEmit            # the renderer's library; prove needs its .olean too
+npm run check:verdict-channel    # verdict-line contract over tests/fixtures/*.lean
+npm run check:envelopes          # emission envelopes against stored expectations
+                                 # (LAKATOS_PROVE_E2E=1 adds the corpus manifest)
+UPDATE_ENVELOPES=1 LAKATOS_PROVE_E2E=1 npm run check:envelopes   # regenerate the store
+```
+
+From the repo root (the TypeScript builds and tests there):
+
+```bash
+npm run build                      # build (the check scripts need this first)
+npx vitest run thales/frontend/tests thales/tests  # unit and bin tests
+npm run format:check                          # prettier, whole repo, one config
+LAKATOS_PROVE_E2E=1 npx vitest run thales/tests/e2e.test.ts   # full prove e2e (needs Lean)
+```
+
+Always wrap `lake env lean` invocations in a timeout when running them by hand; a bad artifact can grind indefinitely. The check scripts load the _built_ frontend (`scripts/harness.js`), so the sentinel, the parse, and the lake invocation are production's, never a copy.
+
+## The prove pipeline
+
+`prove` (`frontend/src/prove.ts`, behind the bin in `frontend/src/cli.ts`) runs one spine over lemma's `admit` and core's `runTool`:
+
+1. **Discover + extract** — lemma finds `@ensures` annotations; malformed ones become `InputError` entries, and lemma's island typing refuses type faults and unexported references per annotation before the emitter sees them.
+2. **Emit** — `frontend/src/emission.ts` + `emission-artifacts.ts` write per-declaration JSON per annotated file into the run directory's `thales/` mirror; a file whose annotations are all classified gets no artifact. Per module the walk also runs tarski's parser bridge on the stripped source and attaches each declaration's dependency closure as ESTree (`emission-ast.ts`).
+3. **Render + run** — `frontend/src/run.ts`: `findEngineRoot()` walks up to the lakefile, then `lake build`, `lake build thales-emit`, `thales-emit` per artifact, `lake env lean` per file (timeouts `BUILD_TIMEOUT_MS` 600 s, `EMIT_TIMEOUT_MS` 120 s, `LEAN_TIMEOUT_MS` 300 s plus `VALIDATE_TIMEOUT_MS` 120 s per `#thales_validate` the artifact carries; `spawn` is injectable for tests). Each artifact also carries one `#thales_validate` per entry-module function and constant, whose `thales-model:` line `run.ts` parses beside the verdicts. A failing artifact is a per-file `FileFailure`; the run completes and healthy verdicts still ship.
+4. **Join** — `frontend/src/join.ts` matches verdict lines to annotation identities; missing, duplicate, surplus, or unrepresentable statuses make the run unhealthy (NotTried envelope, stderr diagnostics, exit 2). The same join puts each `thales-model:` line onto every annotation of its declaration as the envelope's `model` field: a proven annotation always carries one, a declaration the artifact stated no obligation for is `unvalidated` with that as its reason, and a duplicate line is unhealthy like a duplicate verdict.
+
+### Emitter invariants the code will not teach you
+
+- Everything an annotation's fate can be settled by is settled frontend-side, before Lean. An unmappable construct or an operator outside the model (`**`, the bitwise family) in a signature, a statement, or a formula classifies `Inappropriate`, naming the construct; the engine's own gaps classify `Error`; a safe-integer-clamped range classifies `NotTried` / `unsupported-range`. Classified annotations never reach Lean.
+- **Classification travels.** Every declaration the walk cannot model registers as a failed declaration, and a use of it — call, read, binder type, formula atom — reports that declaration's own reason, never "engine broken". Registries are keyed by module and name together.
+- **A body degrades on one thing only**: the first statement outside the slice. A refusal at an _expression_ inside a body becomes a residual site instead — a `noncomputable opaque` over the modeled scope, valued in `JsM`, carrying the refusal text as its docstring — and every callable reaching one is tainted `noncomputable` so the evaluation rung cannot prove through it. A `throw` of anything but the seven builtin error kinds (`Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `EvalError`, `URIError`) is a residual site too — in a constructor a discarded one, since a constructor cannot `return`. Writes (`=`, `++`, `delete`) never residualize: a site would hide the mutation. Formulas never residualize.
+- **Rendering is quotations only.** `thales-emit` builds every line via `TSyntax` quotation and Lean's pretty-printer, never string concatenation (the one override, `ThalesEmit/Format.lean`, keeps `return` on its argument's line). Each printed obligation is parsed back and its spine compared to the IR (`ThalesEmit/RoundTrip.lean`), so renderer drift fails the emission by name instead of degrading a verdict.
+- **Names never collide by construction.** Models live under `TsModel` with call sites qualified; a dependency's models take its entry-relative path as one guillemet component; a binder spelled like the artifact's own vocabulary (`pure`, `ballIco`, `Float`, `self`) is primed; a source binding of `NaN`, `Infinity`, `undefined`, `null`, `Math`, or `Number` shadows the builtin — those are fallbacks, never keywords.
+- **Truthiness has no model.** Conditions, `!`/`&&`/`||` operands, and `Object.is` arguments must be boolean-shaped; a number is refused there. Unions and optionals ride the wire as one `JsVal` binder; reads at a number position are the throwing projection `JsVal.toNumber` — the model refusing coercion, not a claim JS throws.
+- **The emitter never writes an AST node.** The `ast` field is the bridge's output, statements selected whole from the closure's modules; `thales-emit` decodes it with `Tarski.Decode` and renders the decoder's `Program`, so the artifact's `TsModel.f.ast` is what the evaluator would run, not the emitter's reading of `f`. A closure that will not close — a binding renamed on import, one name declared by two of the closure's modules — carries no field at all rather than a node the emitter authored.
+- Emitted artifacts pin `set_option autoImplicit false`: they run under lean's defaults, not the lakefile's options.
+- `scripts/check-envelopes.js` compares projected envelope entries to `tests/fixtures/envelopes.expected.json`; `UPDATE_ENVELOPES=1` insists on the full manifest so the store never goes partial. Rendering rules are pinned as syntax guards in `Test/ThalesEmit/RenderTest.lean`; the goldens under `tests/fixtures/*.emitted.lean.expected` are readability pins only. **A new emission shape adds a guard, not a golden.**
+
+## The Lean side (`ThalesDsl/`)
+
+The semantic domain (`Js.JsM`), binders, the `js_norm` simp set, and the binary64 theory live in `tarski/Js/`; see `tarski/CLAUDE.md`.
+
+| Module                     | Role                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ThalesDsl/Prove.lean`     | Options `thales.heartbeats` and `thales.maxEvaluatedElements`, and `attemptLadder`: kernel decide, compiled evaluation (bounded domains only, capped by element count since it cannot be interrupted), then simp/omega and grind on the residual. Each rung gets its own heartbeat window so a blowout falls through instead of consuming the annotation. Every proof is kernel-checked via `addDecl`; the evaluation tier admits an axiom, which is why reasons read trust off the theorem's axioms.                                                                                                                                                                                                                                                                                                   |
+| `ThalesDsl/ProveTerm.lean` | `#thales_prove`: recovers binder structure from the payload's spine (`ballIco` heads, `∀ (b : Bool)`, guard hypotheses) and synthesizes the witness search with guards threaded in. The bare form reports the `NotTried` stub, so the envelope never changes shape on degradation.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `ThalesDsl/Validate.lean`  | `#thales_validate`: the correspondence obligation, under its own budget `thales.validateHeartbeats` (ten times the prove budget — a correspondence proof partially evaluates the declaration's whole realm). The recipe is `simp` with the evaluator's `tarski_eval` set, `js_norm`, and the artifact's own `ast` and model defs unfolded; then a case split on the first `Bool` comparison the goal still holds, recursively, bounded by a fuel the whole tree shares; then, on an arm with nothing left to split, one plain `simp` for the arithmetic identity a fully reduced branch ends in. Never an error: an unelaborable obligation, a stuck goal, and an exhausted budget are each a model line with a reason, and the residual goes to the diagnostics stream.                                |
+| `ThalesDsl/Verdict.lean`   | `Identity` (the `[file, function, property]` triple shared with pabst), the closed `Szs` set, and the sentinel-framed JSON emitter; `ModelLine` and its own sentinel are here too.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `ThalesEmit/`              | `Json.lean` (strict IR decoding: an unknown kind or missing field fails the run by name; `DeclAst` is a declaration's closure through `Tarski.decodeProgram`, the program or the construct the decoder refused), `Render.lean` (IR → `TSyntax` under `Unhygienic`), `Ast.lean` (`Tarski.Program` → a term, one arm per constructor, numbers through `Number::toString`), `Validate.lean` (which declarations get a correspondence obligation and what it says — a dependency's gets no command at all, and a tainted, closure-less, decoder-refused, or unquantifiable-parameter declaration gets the bare form carrying its reason), `Artifact.lean` (syntax → text with echo comments), `RoundTrip.lean`, `Format.lean`, `Main.lean` (JSON in, artifact out, any failure one stderr line and exit 1). |
+
+## The verdict channel
+
+Each `#thales_prove` prints exactly one line: `thales-verdict:` + compact JSON `{identity, szs, reason, axioms?, counterexample?}`. Stdout is also Lean's diagnostic stream; only sentinel-framed lines are contract. An empty `reason` is a contract violation, contained like any other malformed line.
+
+- `Theorem` — a rung succeeded. `axioms` names the non-standard axioms the proof rests on (empty for kernel-checked; `native_decide`'s per-proof axiom is reported under the stable spelling `Lean.ofReduceBool`).
+- `CounterSatisfiable` — false on the bounded domain with a concrete witness (`counterexample`: binder → value). Falsity established where the elaborator cannot evaluate a `Float` from a large integer ships without a witness as `GaveUp` instead: established falsity is never given back for the cost of illustrating it.
+- `GaveUp` — the ladder exhausted; the reason carries the residual goal. A rung that blows `maxRecDepth` has failed, the annotation has not: the ladder falls through.
+- `Inappropriate` — outside the model, not beyond the engine: an unmapped construct, a refused operator, or a path through a residual site (the reason lists the sites' constructs). `Error` stays reserved for the engine breaking, and names the phase that failed.
+- `NotTried` — no structured property (the bare-payload degradation path).
+- `Timeout` — the per-annotation heartbeat budget (`thales.heartbeats`, overridable via `LAKATOS_PROVE_HEARTBEATS`; 0 is not a budget and is ignored). Later annotations still run with fresh budgets.
+
+### The model channel
+
+Beside the verdicts, each `#thales_validate` prints exactly one line: `thales-model:` + compact JSON `{file, function, status, reason?}`. Two statuses, `validated` and `unvalidated`, and the reason is present exactly when the model is unvalidated — an empty one is a contract violation, contained like any other malformed line. The reasons are the construct a tainted or decoder-refused declaration has no run for, a parameter this slice cannot quantify, the goal that did not reduce, and the budget.
+
+- `thales.validateHeartbeats` is the per-declaration budget, overridable via `LAKATOS_PROVE_VALIDATE_HEARTBEATS` under the prove budget's rule (0 is ignored). `check:envelopes` sets it per fixture: the two quick fixtures run at the real budget, so the store carries one validated model, and the corpus slices at 1, where every declaration reports the budget reason in milliseconds instead of the hours the full manifest would cost. The two gated e2e suites shrink it to 1 for the same reason, with one real-budget test on the tracer; `check:verdict-channel`'s `validate.lean` is where the closer's own behaviour at the real budget is pinned.
+- An artifact's lean timeout grows by `VALIDATE_TIMEOUT_MS` per `#thales_validate` it carries, so a file with many validated declarations is not killed for being large.
+- **An unvalidated model never moves a verdict.** The command's `simp` can get stuck but cannot refute, so a model line reports what was established about the correspondence and nothing about the properties. The envelope's `model` field joins these lines onto annotations: required on a `Theorem`, carried on the prover's `GaveUp`, `Timeout`, `CounterSatisfiable`, and `Inappropriate`, and on no other status and no refuter entry.
+
+The status set lives in exactly two places: the `Szs` inductive here and `SZS_STATUSES` in `core/src/szs.ts` (minus the CLI-only `InputError` and `User`). `tests/verdict-contract.test.ts` pins them against each other; everything else derives from the TypeScript side, so a new status is one edit per language.
+
+## Tests
+
+- `Test/ThalesDsl/`, `Test/ThalesEmit/` — Lean unit tests, one directory per library; `AstTest.lean` is one guard per AST constructor plus the round trip that makes the rendered term the decoder's output and not a second reading of the JSON; there is a `ValidateTest.lean` in each, the closer's behaviour in the first and the emitter's choice of command in the second, while the model lines themselves are pinned by `tests/fixtures/validate.lean` through `check:verdict-channel`; the library's own tests are `tarski/Test/Js/`, built by `lake build TarskiTest` from `tarski/`. Location follows ownership: a `ThalesDsl` import under `tarski/Test/Js/` is a boundary violation by inspection.
+- `frontend/tests/` — vitest, from the repo root; `run.test.ts` uses the injectable spawn, no real Lean needed.
+- `tests/*.test.ts` — the bin's suites, driving `main` from `frontend/src/cli.ts` with the engine mocked at `frontend/src/run.js`, plus the gated e2e and corpus. The prove-and-refute parity checks live at the repo root (`tests/prove-refute-parity.test.ts`), since thales never depends on pabst.
+- `tests/conformance/` — `.ts` fixtures bucketed by the SZS status every annotation in them must receive, run end to end by `tests/verdict-corpus.test.ts` (gated like the prove e2e). Its README has the bucket conventions.
+- CI: `.github/workflows/thales.yml` runs lake build, the Lean tests, both check scripts (envelopes over the full manifest), and the gated e2e + corpus.
+
+## Conventions
+
+- **`autoImplicit` is off** in both lake packages (`lakefile.lean` here and in `tarski/`); bind implicit and universe variables explicitly.
+- **Failure containment over abortion.** A construct the engine can't handle degrades that declaration, that annotation, or that artifact — never the run. New frontend features must preserve this.
+- **One verdict line per `#thales_prove`, always**, even for failures the elaborator can see. Annotations the frontend classifies never enter the channel; `prove` joins them from the emission's `classified` list.
+- **Boundary rule:** nothing under `tarski/` may mention `ThalesDsl` or any emission concern (stated in `tarski/CLAUDE.md`); the `require` runs one way.
+- **Lean builds here; the TypeScript builds from the repo root** into `dist/`. The package's scripts are the two checks. Formatting is root-only: one prettier pin, one config.

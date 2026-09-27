@@ -39,6 +39,12 @@ export default defineConfig({
           new URL("./tarski/frontend/src/index.ts", import.meta.url),
         ),
       },
+      {
+        find: /^@lakatos\/thales$/,
+        replacement: fileURLToPath(
+          new URL("./thales/frontend/src/index.ts", import.meta.url),
+        ),
+      },
     ],
   },
   test: {
@@ -47,7 +53,8 @@ export default defineConfig({
       "core/tests/**/*.test.ts",
       "lemma/tests/**/*.test.ts",
       "pabst/tests/**/*.test.ts",
-      "engines/thales/frontend/tests/**/*.test.ts",
+      "thales/frontend/tests/**/*.test.ts",
+      "thales/tests/**/*.test.ts",
       "tarski/frontend/tests/**/*.test.ts",
     ],
     // Absolute so the path is the same whatever cwd a run starts from.
@@ -64,7 +71,7 @@ export default defineConfig({
         "core/src/**/*.ts",
         "lemma/src/**/*.ts",
         "pabst/src/**/*.ts",
-        "engines/thales/frontend/src/**/*.ts",
+        "thales/frontend/src/**/*.ts",
         "tarski/frontend/src/**/*.ts",
       ],
       exclude: ["**/*.test.ts", "**/*.d.ts"],
@@ -155,6 +162,8 @@ export default defineConfig({
         // Ratcheted 2026-09-27: the CLI's pipeline moved into core's runner
         // and lemma's admission, each with its own unit tests; pabst's bin
         // guard runs only when spawned and carries its own ignore.
+        // Ratcheted again 2026-09-27: the prove spine moved from the CLI into
+        // thales's own package, where the bin's two rethrows each got a test.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
@@ -164,7 +173,7 @@ export default defineConfig({
         statements: 99.69,
         branches: 98.99,
         functions: 100,
-        lines: 99.74,
+        lines: 99.75,
       },
     },
   },

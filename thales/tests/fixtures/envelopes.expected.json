@@ -1,0 +1,3143 @@
+{
+  "thales/tests/fixtures/tracer.ts": [
+    {
+      "function": "add",
+      "property": "commutes",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_8669272703349689742",
+      "axioms": [],
+      "model": {
+        "status": "validated"
+      }
+    },
+    {
+      "function": "fetchTotal",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "'fetchTotal' could not be modeled: unmapped TypeScript construct 'AsyncKeyword' at 9:8"
+    },
+    {
+      "function": "Counter#bump",
+      "property": "bumps",
+      "szs": "Inappropriate",
+      "reason": "'Counter#bump' could not be modeled: class 'Counter' has no constructor implementation to model"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/class-binder.ts": [
+    {
+      "function": "scale",
+      "property": "scaled",
+      "szs": "Inappropriate",
+      "reason": "class-valued binder 'Box' names a class outside the model: unmapped TypeScript construct 'ReadonlyKeyword' at 2:15"
+    }
+  ],
+  "thales/tests/fixtures/operators.ts": [
+    {
+      "function": "rem7",
+      "property": "belowSeven",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6082419757081029810",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "neg",
+      "property": "nonPositive",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_12086036446430970270",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "plus",
+      "property": "same",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_3757181708806411723",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "bump",
+      "property": "grows",
+      "szs": "GaveUp",
+      "reason": "unsolved goal: ∀ (n : Int), 0 ≤ n → (Float.ofInt n).lt (Float.ofInt n + 1) = true",
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "bump",
+      "property": "hits",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6362444635223319469",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "bump",
+      "property": "misses",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16727685799784687474",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "chain",
+      "property": "shifts",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14354565488980369446",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "magnitude",
+      "property": "nonNeg",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_5083133673100315364",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "halveSafe",
+      "property": "finite",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_9916686581673163898",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "zeroOverZero",
+      "property": "nan",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11972695678811319354",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/add-commutes.ts": [
+    {
+      "function": "add",
+      "property": "commutes",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_1667909116861455304",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/bounded-double.ts": [
+    {
+      "function": "dbl",
+      "property": "doubling",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, admitted as TsProof.thm_4093250893427029346_2; the result is trusted from evaluation rather than checked by the kernel",
+      "axioms": ["Lean.ofReduceBool"],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/endpoints.ts": [
+    {
+      "function": "keep",
+      "property": "positive",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14235194957778272640",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "shift",
+      "property": "bounded",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_5842305118281565705",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/halve-double.ts": [
+    {
+      "function": "halve",
+      "property": "halving",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, admitted as TsProof.thm_9616240672117534591_2; the result is trusted from evaluation rather than checked by the kernel",
+      "axioms": ["Lean.ofReduceBool"],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/mul-associates.ts": [
+    {
+      "function": "mul",
+      "property": "associates",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_18012777346168348561",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/nat-double.ts": [
+    {
+      "function": "double",
+      "property": "growsOrEqual",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_12466304460528781933",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/nat-open-below.ts": [
+    {
+      "function": "triple",
+      "property": "grows",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_1753982566127303808",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/negate-involution.ts": [
+    {
+      "function": "negate",
+      "property": "involutive",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14552309075182175271",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "negate",
+      "property": "involutiveEverywhere",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_6179648406508013558",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/remainder.ts": [
+    {
+      "function": "rem",
+      "property": "belowDivisor",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_3286426820235840174",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "rem",
+      "property": "dividendSign",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_2432087325276833864",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/succ-monotone.ts": [
+    {
+      "function": "succ",
+      "property": "monotone",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6258527321489782266",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/twice-parity.ts": [
+    {
+      "function": "twice",
+      "property": "hits",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16221993073792379482",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "shadow",
+      "property": "misses",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_2544195292262527368",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/unbounded-mul-commutes.ts": [
+    {
+      "function": "mul",
+      "property": "commutes",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_15043424880561141824",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/commutes.ts": [
+    {
+      "function": "f",
+      "property": "commutes",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "a": 0,
+        "b": 1
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/off-by-one.ts": [
+    {
+      "function": "bump",
+      "property": "unchanged",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/zero-edge.ts": [
+    {
+      "function": "square",
+      "property": "positive",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/gaveup/float-assoc.ts": [
+    {
+      "function": "assoc3",
+      "property": "assoc",
+      "szs": "GaveUp",
+      "reason": "the property is false on its bounded domain",
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/gaveup/nonneg-int-range.ts": [
+    {
+      "function": "scale",
+      "property": "grows",
+      "szs": "GaveUp",
+      "reason": "unsolved goal: ∀ (x : Int), 0 ≤ x → (Float.ofInt x).le (Float.ofInt x * 2) = true",
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/gaveup/unbounded-double.ts": [
+    {
+      "function": "dbl",
+      "property": "doubles",
+      "szs": "GaveUp",
+      "reason": "unsolved goal: ∀ (x : Int), Float.ofInt x * 2 = Float.ofInt x + Float.ofInt x",
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/gaveup/unbounded-false.ts": [
+    {
+      "function": "bump",
+      "property": "unchanged",
+      "szs": "GaveUp",
+      "reason": "unsolved goal: ∀ (x : Int), Float.ofInt x + 1 = Float.ofInt x",
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/gaveup/unbounded-nat.ts": [
+    {
+      "function": "dbl",
+      "property": "grows",
+      "szs": "GaveUp",
+      "reason": "unsolved goal: ∀ (x : Int), 0 ≤ x → (Float.ofInt x).le (Float.ofInt x * 2) = true",
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/await-remote.ts": [
+    {
+      "function": "fetchTotal",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "'fetchTotal' could not be modeled: unmapped TypeScript construct 'AsyncKeyword' at 4:8"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/class-method.ts": [
+    {
+      "function": "Counter#bump",
+      "property": "bumps",
+      "szs": "Inappropriate",
+      "reason": "'Counter#bump' could not be modeled: class 'Counter' has no constructor implementation to model"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/exponentiation.ts": [
+    {
+      "function": "square",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: '**' is not supported",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'**' is not supported"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/unmodeled-operator.ts": [
+    {
+      "function": "masked",
+      "property": "stuck",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: '&' is not supported",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'&' is not supported"
+      }
+    }
+  ],
+  "thales/tests/conformance/timeout/big-domain.ts": [
+    {
+      "function": "sq",
+      "property": "nonneg",
+      "szs": "Timeout",
+      "reason": "the attempt exceeded the per-annotation heartbeat budget (thales.heartbeats = 1)",
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/finite-guard.ts": [
+    {
+      "function": "scale",
+      "property": "nonNeg",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_4677124538071074606",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/abs-shrinks.ts": [
+    {
+      "function": "mag",
+      "property": "grows",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "n": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/fixtures/statements.ts": [
+    {
+      "function": "floorAtOne",
+      "property": "floorsAtOne",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_633450544646146447",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "grade",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14009745794416000743",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "clampUp",
+      "property": "atLeastOne",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_18134220156615810322",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/branch-joined-let.ts": [
+    {
+      "function": "floorAtOne",
+      "property": "atLeastOne",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_173246683748963924",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "bucket",
+      "property": "inRange",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_680012437431283264",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/boolean-local.ts": [
+    {
+      "function": "clip",
+      "property": "named",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14676148426218271025",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "flagged",
+      "property": "flag",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16985962611252709187",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "gated",
+      "property": "annotated",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11812179793051625437",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "strictly",
+      "property": "strict",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11864955021897558495",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "sameValued",
+      "property": "sameValue",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_3512022613104552473",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "combined",
+      "property": "logical",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_10698597118943654096",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "slotted",
+      "property": "slot",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6162611759145385188",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/truthiness-local.ts": [
+    {
+      "function": "f",
+      "property": "p",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: unmapped TypeScript construct 'Identifier' at 7:7",
+      "model": {
+        "status": "unvalidated",
+        "reason": "unmapped TypeScript construct 'Identifier' at 7:7"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/const-chain.ts": [
+    {
+      "function": "affine",
+      "property": "affine",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_13207874606968911650",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/let-binding.ts": [
+    {
+      "function": "shifted",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_8138732515760589811",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/branch-throw.ts": [
+    {
+      "function": "reciprocal",
+      "property": "positive",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/branch-loop.ts": [
+    {
+      "function": "countDown",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "'countDown' could not be modeled: unmapped TypeScript construct 'WhileStatement' at 5:5"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/for-loop.ts": [
+    {
+      "function": "sumTo",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "'sumTo' could not be modeled: unmapped TypeScript construct 'ForStatement' at 4:3"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/shadowed-const.ts": [
+    {
+      "function": "rebound",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "'rebound' could not be modeled: unmapped TypeScript construct 'VariableStatement' at 5:5"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/uninitialized-let.ts": [
+    {
+      "function": "assigned",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "'assigned' could not be modeled: unmapped TypeScript construct 'VariableStatement' at 3:3"
+    }
+  ],
+  "thales/tests/fixtures/binders.ts": [
+    {
+      "function": "keep",
+      "property": "chained",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15587710488498429831",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "keep",
+      "property": "guardedWitness",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 5
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "twice",
+      "property": "negativeFloor",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": -3
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "scale",
+      "property": "scaled",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_10096062362142535775",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/guarded-witness.ts": [
+    {
+      "function": "floorAtOne",
+      "property": "aboveThreshold",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 4
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/reserved-binder.ts": [
+    {
+      "function": "double",
+      "property": "reachesOne",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "pure": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/guarded-floor.ts": [
+    {
+      "function": "keep",
+      "property": "guardedFloor",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15597696721077388766",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/branch-guarded-throw.ts": [
+    {
+      "function": "reciprocal",
+      "property": "positive",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_5884839865251441480",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/number-binder.ts": [
+    {
+      "function": "echo",
+      "property": "identity",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_5046216277680359082",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/branch-clamp.ts": [
+    {
+      "function": "clamp",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_14549602703475531435",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/finite-bounds.ts": [
+    {
+      "function": "scaleBounded",
+      "property": "monotone",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_10738350881236880147",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "shiftBounded",
+      "property": "monotone",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_11632583090091762142",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/left-factor.ts": [
+    {
+      "function": "scale",
+      "property": "monotone",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_10756853438347749798",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "shift",
+      "property": "monotone",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_13489720264582918355",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/literal-factor.ts": [
+    {
+      "function": "cmToInch",
+      "property": "monotone",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_8642680224257412058",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "triple",
+      "property": "monotone",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_3791170541932306763",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/guarded-monotone-conversion.ts": [
+    {
+      "function": "applyConversionFactors",
+      "property": "monotone",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_3968479414087833267",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/gaveup/scale-identity.ts": [
+    {
+      "function": "scale",
+      "property": "fixed",
+      "szs": "GaveUp",
+      "reason": "unsolved goal: ∀ (x : JsNumber), 0 < x → x < floatInf → x * 2 = x",
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/guarded-power.ts": [
+    {
+      "function": "keep",
+      "property": "guardedPower",
+      "szs": "Inappropriate",
+      "reason": "'**' is not supported"
+    }
+  ],
+  "thales/tests/conformance/theorem/or-guard.ts": [
+    {
+      "function": "double",
+      "property": "small",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_9277626935519108641",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "reciprocal",
+      "property": "leftSettles",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14211917139252230448",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "doubleAgain",
+      "property": "guardSettles",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_1398112906790799654",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/or-guard-witness.ts": [
+    {
+      "function": "bit",
+      "property": "picksOne",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 1
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/connective-conclusions.ts": [
+    {
+      "function": "bump",
+      "property": "notBig",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15913625188501133064",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "bump",
+      "property": "both",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_17807102811547527341",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "bump",
+      "property": "nested",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_7139669413022607393",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/boolean-witness.ts": [
+    {
+      "function": "pick",
+      "property": "alwaysPicks",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "b": false,
+        "n": 1
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "flip",
+      "property": "onlyOff",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "b": true
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/fixtures/classes.ts": [
+    {
+      "function": "Box#v",
+      "property": "roundTrip",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_18118040267380454740",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Box#v'"
+      }
+    },
+    {
+      "function": "Gate#lo",
+      "property": "keepsValue",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_14740187823673297611",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Gate#lo'"
+      }
+    },
+    {
+      "function": "Doubler#double",
+      "property": "doubled",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_4064309669783289594",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Doubler#double'"
+      }
+    },
+    {
+      "function": "Doubler#twice",
+      "property": "chained",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_12913999782389482286",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Doubler#twice'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-box-roundtrip.ts": [
+    {
+      "function": "Box#v",
+      "property": "roundTrip",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_8145636137517814207",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Box#v'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-getter-on-this.ts": [
+    {
+      "function": "Box#direct",
+      "property": "viaThis",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_1760470476682799697",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Box#direct'"
+      }
+    },
+    {
+      "function": "Box#chained",
+      "property": "viaEarlierGetter",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_155767627208270668",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Box#chained'"
+      }
+    },
+    {
+      "function": "fresh",
+      "property": "viaFresh",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_6796039131404410729",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "fromVar",
+      "property": "viaVar",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_12988971721627431310",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'b' of 'fromVar' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-binder-distance.ts": [
+    {
+      "function": "Point#distance",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_2967045686688033207",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Point#distance'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-binder-equality-guards.ts": [
+    {
+      "function": "Point#distance",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_13470951896370352338",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Point#distance'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-binder-nested.ts": [
+    {
+      "function": "Span#length",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_2513111647644520815",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Span#length'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-binder-wide.ts": [
+    {
+      "function": "Wide#distance",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_430504335001155532",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Wide#distance'"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/ctor-assigns-twice.ts": [
+    {
+      "function": "Pair#a",
+      "property": "stored",
+      "szs": "Inappropriate",
+      "reason": "'Pair#a' could not be modeled: the constructor of 'Pair' assigns field '#a' more than once on a path; the class model requires every field assigned exactly once on every path"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/ctor-partial-assign.ts": [
+    {
+      "function": "Clamp#v",
+      "property": "floored",
+      "szs": "Inappropriate",
+      "reason": "'Clamp#v' could not be modeled: the constructor of 'Clamp' assigns field '#v' on only some paths; the class model requires every field assigned exactly once on every path"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/class-extends.ts": [
+    {
+      "function": "Tagged#v",
+      "property": "keeps",
+      "szs": "Inappropriate",
+      "reason": "'Tagged#v' could not be modeled: unmapped TypeScript construct 'HeritageClause' at 3:21"
+    }
+  ],
+  "thales/tests/conformance/theorem/ctor-default-omitted.ts": [
+    {
+      "function": "P#span",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16722860959260666659",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'P#span'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/ctor-default-undefined.ts": [
+    {
+      "function": "g",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_61296898398506787",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-binder-ctor-default.ts": [
+    {
+      "function": "sum",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_7339509649866916627",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'p' of 'sum' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/fn-default-instance.ts": [
+    {
+      "function": "shift",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_9528935622626573128",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'p' of 'shift' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/ctor-default-instance.ts": [
+    {
+      "function": "Seg#len",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11592311910498336073",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Seg#len'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/method-default-instance.ts": [
+    {
+      "function": "Pt#plus",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_10252766318659613612",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Pt#plus'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-local.ts": [
+    {
+      "function": "viaLocal",
+      "property": "copies",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_7207272341652068986",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'q' of 'viaLocal' is not a number or boolean"
+      }
+    },
+    {
+      "function": "held",
+      "property": "doubles",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11880749441465566452",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "rebound",
+      "property": "rebinds",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_17691228817811195607",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/local-inferred.ts": [
+    {
+      "function": "viaLocal",
+      "property": "copies",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_7630249999306909234",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'q' of 'viaLocal' is not a number or boolean"
+      }
+    },
+    {
+      "function": "hold",
+      "property": "one",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16148044959414244252",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "chained",
+      "property": "chains",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_595055528099568240",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "unboxed",
+      "property": "unboxes",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14894426854123833229",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'b' of 'unboxed' is not a number or boolean"
+      }
+    },
+    {
+      "function": "rebound",
+      "property": "rebinds",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15879321009254518047",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "carry",
+      "property": "numId",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_5815790605682903418",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'carry' is not a number or boolean"
+      }
+    },
+    {
+      "function": "summed",
+      "property": "sums",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15660205319907003640",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/ctor-default-this.ts": [
+    {
+      "function": "Q#z",
+      "property": "p",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: parameter 'y' has a default the model cannot evaluate: unmapped TypeScript construct 'PropertyAccessExpression' at 4:38",
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Q#z'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/method-default-omitted.ts": [
+    {
+      "function": "C#plus",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16151561730126494029",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'C#plus'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/method-default-this.ts": [
+    {
+      "function": "Counter#twice",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_9460995812447459153",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Counter#twice'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/fn-default-omitted.ts": [
+    {
+      "function": "g",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_51105405822072947",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/fn-default-explicit-undefined.ts": [
+    {
+      "function": "g",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_7894164106763897951",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/fn-default-leading.ts": [
+    {
+      "function": "g",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_4767224702006146799",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/fn-default-calls.ts": [
+    {
+      "function": "g",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15757367349936714198",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/fn-default-outside-slice.ts": [
+    {
+      "function": "g",
+      "property": "p",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11394981216968299733",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'y' has a default the model cannot evaluate: '**' is not supported"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/field-union-undefined.ts": [
+    {
+      "function": "Reading#get",
+      "property": "readsBack",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_6133890780797944879",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Reading#get'"
+      }
+    },
+    {
+      "function": "peek",
+      "property": "selfSame",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_12812921593841671045",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'r' of 'peek' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/field-class-nested.ts": [
+    {
+      "function": "Outer#twice",
+      "property": "delegates",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_8975953205763328096",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Outer#twice'"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/field-later-class.ts": [
+    {
+      "function": "Holder#peek",
+      "property": "peeks",
+      "szs": "Inappropriate",
+      "reason": "'Holder#peek' could not be modeled: unmapped TypeScript construct 'TypeReference' at 4:18"
+    }
+  ],
+  "thales/tests/conformance/theorem/method-double.ts": [
+    {
+      "function": "Box#double",
+      "property": "doubled",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_18247021457465085158",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Box#double'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/method-chain.ts": [
+    {
+      "function": "Acc#twice",
+      "property": "chained",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_14228460382897641481",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Acc#twice'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/method-guarded-throw.ts": [
+    {
+      "function": "Gate#level",
+      "property": "kept",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_11347185963607972141",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Gate#level'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/method-on-shadowing-class.ts": [
+    {
+      "function": "Math#abs",
+      "property": "own",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_4966696202490867302",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Math#abs'"
+      }
+    },
+    {
+      "function": "Number#value",
+      "property": "kept",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_7095727376507427385",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Number#value'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/method-sibling-degrades.ts": [
+    {
+      "function": "Pair#value",
+      "property": "kept",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_3562523355436035225",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Pair#value'"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/method-power.ts": [
+    {
+      "function": "Pow#square",
+      "property": "grows",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: '**' is not supported",
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Pow#square'"
+      }
+    }
+  ],
+  "thales/tests/fixtures/class-params.ts": [
+    {
+      "function": "Point#gap",
+      "property": "selfGap",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_12541780995786960556",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Point#gap'"
+      }
+    },
+    {
+      "function": "Point#twice",
+      "property": "doubleGap",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_17911768113909654157",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Point#twice'"
+      }
+    },
+    {
+      "function": "Wrap#v",
+      "property": "unwraps",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_2752139031544753657",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Wrap#v'"
+      }
+    },
+    {
+      "function": "readX",
+      "property": "reads",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11819281665303138161",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'p' of 'readX' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/class-param-gap.ts": [
+    {
+      "function": "Point#gap",
+      "property": "selfGap",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_13249394877045634466",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Point#gap'"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/class-param-interface.ts": [
+    {
+      "function": "Point#near",
+      "property": "p",
+      "szs": "Inappropriate",
+      "reason": "'Point#near' could not be modeled: 'Named' could not be modeled: unmapped TypeScript construct 'InterfaceDeclaration' at 1:18"
+    }
+  ],
+  "thales/tests/conformance/theorem/boolean-param.ts": [
+    {
+      "function": "isSmall",
+      "property": "small",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15393313379908164674",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "isSmall",
+      "property": "equalsTrue",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_12424194577663472953",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "pick",
+      "property": "picks",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_10064913197783016440",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "clamp",
+      "property": "viaHelper",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_9099418400582035167",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "flip",
+      "property": "flips",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_10537029570053872086",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "pickOr",
+      "property": "defaulted",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16657095727672204683",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'b' of 'pickOr' is not a number or boolean"
+      }
+    },
+    {
+      "function": "Gate#pass",
+      "property": "gated",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16022624237688876371",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Gate#pass'"
+      }
+    },
+    {
+      "function": "passes",
+      "property": "opens",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_10252585371580855387",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "passes",
+      "property": "above",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16266674895850631206",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/boolean-classes.ts": [
+    {
+      "function": "Flag#level",
+      "property": "reads",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_1591163741753057438",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Flag#level'"
+      }
+    },
+    {
+      "function": "pick",
+      "property": "branches",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_7667245134670211019",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'f' of 'pick' is not a number or boolean"
+      }
+    },
+    {
+      "function": "read",
+      "property": "literal",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_3951800538951368155",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'f' of 'read' is not a number or boolean"
+      }
+    },
+    {
+      "function": "Switch#level",
+      "property": "defaulted",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_3277920154159768142",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Switch#level'"
+      }
+    }
+  ],
+  "thales/tests/fixtures/degradations.ts": [
+    {
+      "function": "twice",
+      "property": "doubles",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16254050434257818527",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "applyDouble",
+      "property": "viaConst",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'double' could not be modeled: unmapped TypeScript construct 'VariableStatement' at 6:14",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'double' could not be modeled: unmapped TypeScript construct 'VariableStatement' at 6:14"
+      }
+    },
+    {
+      "function": "keep",
+      "property": "viaFormula",
+      "szs": "Inappropriate",
+      "reason": "'double' could not be modeled: unmapped TypeScript construct 'VariableStatement' at 6:14"
+    },
+    {
+      "function": "lone",
+      "property": "huge",
+      "szs": "NotTried",
+      "reason": "endpoint 1000000000000000000000000000000 exceeds the safe integer range (±9007199254740991)",
+      "kind": "unsupported-range"
+    }
+  ],
+  "thales/tests/conformance/nottried/empty-after-clamp.ts": [
+    {
+      "function": "vac",
+      "property": "vacuous",
+      "szs": "NotTried",
+      "reason": "endpoints 1000000000000000000000000000000 and 10000000000000000000000000000000 exceed the safe integer range (±9007199254740991)",
+      "kind": "unsupported-range"
+    }
+  ],
+  "thales/tests/conformance/nottried/half-bounded-int.ts": [
+    {
+      "function": "cap",
+      "property": "nonpos",
+      "szs": "NotTried",
+      "reason": "stub: no structured property provided"
+    }
+  ],
+  "thales/tests/conformance/nottried/huge-range.ts": [
+    {
+      "function": "keep",
+      "property": "nonneg",
+      "szs": "NotTried",
+      "reason": "endpoint 1000000000000000000000000000000 exceeds the safe integer range (±9007199254740991)",
+      "kind": "unsupported-range"
+    }
+  ],
+  "thales/tests/conformance/theorem/residual-untaken-branch.ts": [
+    {
+      "function": "width",
+      "property": "one",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_3492524740839287256",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "'digits' could not be modeled: unmapped TypeScript construct 'ForStatement' at 5:3"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/residual-dropped-value.ts": [
+    {
+      "function": "traced",
+      "property": "kept",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'log' could not be modeled: unmapped TypeScript construct 'DeclareKeyword' at 3:1",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'log' could not be modeled: unmapped TypeScript construct 'DeclareKeyword' at 3:1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/residual-sites-distinct.ts": [
+    {
+      "function": "twice",
+      "property": "agree",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'probe' could not be modeled: unmapped TypeScript construct 'DeclareKeyword' at 3:1; 'probe' could not be modeled: unmapped TypeScript construct 'DeclareKeyword' at 3:1",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'probe' could not be modeled: unmapped TypeScript construct 'DeclareKeyword' at 3:1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/custom-throw-unreached.ts": [
+    {
+      "function": "guard",
+      "property": "positive",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_4951085130909489347",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "'Foo' is not an error class"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/custom-throw-reached.ts": [
+    {
+      "function": "guard",
+      "property": "positive",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'Foo' is not an error class",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'Foo' is not an error class"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/imported-scale/main.ts": [
+    {
+      "function": "twice",
+      "property": "quadruples",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6211104841725748718",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/bare-import/main.ts": [
+    {
+      "function": "grow",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'scale' could not be modeled: unmapped TypeScript construct 'ImportDeclaration' at 1:10",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'scale' could not be modeled: unmapped TypeScript construct 'ImportDeclaration' at 1:10"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/import-cycle/main.ts": [
+    {
+      "function": "total",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'cycle.ts::base' could not be modeled: unmapped TypeScript construct 'ImportDeclaration' at 1:10",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'cycle.ts::base' could not be modeled: unmapped TypeScript construct 'ImportDeclaration' at 1:10"
+      }
+    }
+  ],
+  "thales/tests/fixtures/module-consts.ts": [
+    {
+      "function": "secondsToMilliseconds",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14941769175415066711",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "magnitude",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15185427780717452115",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "keepBelowSecond",
+      "property": "bounded",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_2786948122763716107",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "hoursToMilliseconds",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14076848993447255322",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "diagonal",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_18097799365762593244",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "shrink",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15498505215023546907",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "nudge",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_328270678859931182",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/module-const-scale.ts": [
+    {
+      "function": "secondsToMilliseconds",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_2269358446682599244",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "keepBelowSecond",
+      "property": "bounded",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11156397639547779030",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/module-const-ladder.ts": [
+    {
+      "function": "toMinutes",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16909836406170214286",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/builtin-alias-magnitude.ts": [
+    {
+      "function": "magnitude",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_5993717259519950767",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/imported-constants/main.ts": [
+    {
+      "function": "daysToWeeks",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_1080871265590979911",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/initializers.ts": [
+    {
+      "function": "diagonal",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_7081202450152165333",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "shrink",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6141921110764206739",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/const-epsilon-read.ts": [
+    {
+      "function": "nudge",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_13967151422391236825",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/module-let-read.ts": [
+    {
+      "function": "scale",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'factor' could not be modeled: unmapped TypeScript construct 'VariableStatement' at 1:5",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'factor' could not be modeled: unmapped TypeScript construct 'VariableStatement' at 1:5"
+      }
+    }
+  ],
+  "thales/tests/fixtures/unions.ts": [
+    {
+      "function": "toNum",
+      "property": "numId",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_15133497597655506513",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'toNum' is not a number or boolean"
+      }
+    },
+    {
+      "function": "nullFlag",
+      "property": "nullNeverHits",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_837604541920300258",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'nullFlag' is not a number or boolean"
+      }
+    },
+    {
+      "function": "relay",
+      "property": "passthrough",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6695660080606381153",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'relay' is not a number or boolean"
+      }
+    },
+    {
+      "function": "viaLocal",
+      "property": "localCarries",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_14502991956321187979",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'viaLocal' is not a number or boolean"
+      }
+    },
+    {
+      "function": "settle",
+      "property": "settles",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_4607099579818786906",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/union-typeof-dispatch.ts": [
+    {
+      "function": "toNum",
+      "property": "numId",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_15339016308811358796",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'toNum' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/union-null-flag.ts": [
+    {
+      "function": "nullFlag",
+      "property": "neverNull",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_14062562308115874286",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'nullFlag' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/union-local.ts": [
+    {
+      "function": "carry",
+      "property": "numId",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_5406771157281862653",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'carry' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/boolean-union-place.ts": [
+    {
+      "function": "Maybe#level",
+      "property": "narrowed",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_17670034588526897718",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Maybe#level'"
+      }
+    },
+    {
+      "function": "Maybe#plain",
+      "property": "bare",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_17915817842544401511",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Maybe#plain'"
+      }
+    },
+    {
+      "function": "held",
+      "property": "local",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_4511021866464384985",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/union-misread.ts": [
+    {
+      "function": "toNum",
+      "property": "misreads",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'toNum' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/union-return.ts": [
+    {
+      "function": "echo",
+      "property": "p",
+      "szs": "Inappropriate",
+      "reason": "'echo' could not be modeled: unmapped TypeScript construct 'UnionType' at 2:43"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/union-string-argument.ts": [
+    {
+      "function": "toNum",
+      "property": "p",
+      "szs": "Inappropriate",
+      "reason": "unmapped TypeScript construct 'StringLiteral' at 1:18"
+    }
+  ],
+  "thales/tests/conformance/inappropriate/union-widened-argument.ts": [
+    {
+      "function": "narrow",
+      "property": "p",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'v' is a 'number | string' value, not a 'number | string | boolean' value; unions flow only between identical spellings",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'v' is a 'number | string' value, not a 'number | string | boolean' value; unions flow only between identical spellings"
+      }
+    }
+  ],
+  "thales/tests/fixtures/optionals.ts": [
+    {
+      "function": "pick",
+      "property": "absentIsZero",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_15389275948188922131",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'y' of 'pick' is not a number or boolean"
+      }
+    },
+    {
+      "function": "pick",
+      "property": "presentIsArgument",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_12111586738097125861",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'y' of 'pick' is not a number or boolean"
+      }
+    },
+    {
+      "function": "step",
+      "property": "defaultStep",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_5619041877870924833",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'by' of 'step' is not a number or boolean"
+      }
+    },
+    {
+      "function": "Counter#bump",
+      "property": "bumpDefaults",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_12999865319908179145",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "no correspondence obligation was stated for 'Counter#bump'"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/optional-arity.ts": [
+    {
+      "function": "pick",
+      "property": "absentIsZero",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_10537938786395816765",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'y' of 'pick' is not a number or boolean"
+      }
+    },
+    {
+      "function": "pick",
+      "property": "presentIsArgument",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_9448576925843713036",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'y' of 'pick' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/optional-misread.ts": [
+    {
+      "function": "pick",
+      "property": "absentIsArgument",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 1
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'y' of 'pick' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/fixtures/object-is-tagged.ts": [
+    {
+      "function": "skipMixed",
+      "property": "mixedTagSkipped",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_13049878738076391140",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "definedOnly",
+      "property": "undefinedNeverHits",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_6910992627141759028",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "probe",
+      "property": "boolReflexive",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_1460636542994903577",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "claimMixed",
+      "property": "mixedTagClaimed",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "n": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "ident",
+      "property": "vacuousMixedGuard",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6404268568326629074",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "classify",
+      "property": "unionNeverBool",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_7385142995215499551",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "parameter 'v' of 'classify' is not a number or boolean"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/object-is-boolean-reflexive.ts": [
+    {
+      "function": "probe",
+      "property": "same",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_3604609780132744372",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/object-is-mixed-branch.ts": [
+    {
+      "function": "pick",
+      "property": "alwaysOne",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_11330216334641370780",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/object-is-undefined-atom.ts": [
+    {
+      "function": "definedOnly",
+      "property": "neverUndefined",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_9214133286659453909",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/object-is-mixed-tag.ts": [
+    {
+      "function": "probe",
+      "property": "mixed",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "n": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/object-is-string.ts": [
+    {
+      "function": "pick",
+      "property": "mixed",
+      "szs": "Inappropriate",
+      "reason": "'pick' could not be modeled: 'Object.is' admits numbers, booleans, union values, 'undefined', and 'null'; argument 2 is not one (StringLiteral at 3:20)"
+    }
+  ],
+  "thales/tests/conformance/theorem/days-to-weeks.ts": [
+    {
+      "function": "daysToWeeks",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_8817586058424796160",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/halve-integers.ts": [
+    {
+      "function": "halvePosInteger",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_4507731685406781079",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "halveNegInteger",
+      "property": "nonPositive",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14451024144195811178",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/ceil-keeps-sign.ts": [
+    {
+      "function": "dampen",
+      "property": "negativeZero",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_7258388386783329766",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/round-half-up.ts": [
+    {
+      "function": "roundHalf",
+      "property": "tieRoundsUp",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_10133639032168968987",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/sign-unit.ts": [
+    {
+      "function": "signOf",
+      "property": "atMostOne",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_18047811945287037604",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "signOf",
+      "property": "atLeastMinusOne",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_17013792779490355706",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/fround-narrows.ts": [
+    {
+      "function": "narrow",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_1271048168530030446",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "narrow",
+      "property": "exactOnSmallIntegers",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_6194886305999265149",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/fround-ties-to-even.ts": [
+    {
+      "function": "narrow",
+      "property": "exactPastTwo24",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "n": 16777217
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/clamp-to-range.ts": [
+    {
+      "function": "clamp",
+      "property": "atMost",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_12472414701684842088",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "clamp",
+      "property": "atLeast",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_9924032905466546852",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/min-of-three.ts": [
+    {
+      "function": "middle",
+      "property": "smallestArgument",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_16946545804586610920",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/integral-scale.ts": [
+    {
+      "function": "triple",
+      "property": "integral",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_2660484448763321743",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "triple",
+      "property": "safe",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_9124843902059271633",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/beyond-safe-integer.ts": [
+    {
+      "function": "beyond",
+      "property": "integral",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_13128601163609235076",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "beyond",
+      "property": "notSafe",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_511301635566635373",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/epsilon-scale.ts": [
+    {
+      "function": "tiny",
+      "property": "nonNegative",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11721719522905067969",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/safe-integer-bound.ts": [
+    {
+      "function": "keep",
+      "property": "bounded",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_17341209752371055881",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/infinity-spelled.ts": [
+    {
+      "function": "shrink",
+      "property": "vanishes",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_1283379820036115831",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/unbounded-clamp.ts": [
+    {
+      "function": "clamp",
+      "property": "atMost",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_1331458169102764916",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "clamp",
+      "property": "atLeast",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_10837014327853066084",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "capAt1",
+      "property": "noBigger",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_15801258067936012413",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/unbounded-rounding.ts": [
+    {
+      "function": "down",
+      "property": "noBigger",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_17962613560433449150",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "up",
+      "property": "noSmaller",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_18015550797551155037",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "chop",
+      "property": "shrinks",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_4713464109385823371",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "floorCap",
+      "property": "floorCap",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_10636856394704094599",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/unbounded-round-sign.ts": [
+    {
+      "function": "unit",
+      "property": "atMostOne",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_4872128479485326999",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "unit",
+      "property": "atLeastMinusOne",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_15701123194056329349",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "nearest",
+      "property": "atMostCeil",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_8151434978030388760",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "nearest",
+      "property": "atLeastFloor",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_10846770520890623402",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/unbounded-fround.ts": [
+    {
+      "function": "narrow",
+      "property": "keepsSign",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_3945237863051688116",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "capped",
+      "property": "staysUnderCap",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_17974670434738585880",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/theorem/clamp-identity.ts": [
+    {
+      "function": "capAt5",
+      "property": "identityBelow",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_10233760031134375160",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "floorAt0",
+      "property": "identityAbove",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_13880649640118758115",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    },
+    {
+      "function": "clamp",
+      "property": "identityOnRange",
+      "szs": "Theorem",
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_7606028058736082859",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/math-log.ts": [
+    {
+      "function": "integerLog",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'Math.log' is not supported",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'Math.log' is not supported"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/number-length.ts": [
+    {
+      "function": "arity",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'Number.length' is not supported",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'Number.length' is not supported"
+      }
+    }
+  ],
+  "thales/tests/conformance/inappropriate/math-sqrt-local-alias.ts": [
+    {
+      "function": "root",
+      "property": "nonNegative",
+      "szs": "Inappropriate",
+      "reason": "the property reaches code outside the model: 'Math.sqrt' is modeled only as a callee; 'sqrt' is a bound value, not a callable the model follows (unmapped TypeScript construct 'CallExpression' at 4:10)",
+      "model": {
+        "status": "unvalidated",
+        "reason": "'Math.sqrt' is modeled only as a callee; 'sqrt' is a bound value, not a callable the model follows (unmapped TypeScript construct 'CallExpression' at 4:10)"
+      }
+    }
+  ]
+}

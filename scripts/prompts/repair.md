@@ -11,7 +11,7 @@ Goal: an implement worker stopped on a red gate. Make the gates green on its bra
    - a plan problem: the plan assumes something false (a lemma, a toolchain feature, a file, a CI behavior). Do not improvise a different design. Write the diagnosis with `bd comment {{BEAD}} "<what the plan assumes, what is actually true, what a corrected plan would need>"` and stop without closing.
    - an environment problem: a missing tool, a stale cache, a dependency the machine lacks. Fix it if it is local to the worktree (a rebuild, a clean `lake build`, `npm ci`); otherwise comment and stop as above.
 4. When fixing: smallest change that makes the gate green while keeping every acceptance item met. Do not delete or weaken a test to pass it. Do not widen scope. Record what you changed and why with `bd comment {{BEAD}}`.
-5. Gates, all green before you close: from the worktree root `npm run build && npm run typecheck && npm test && npm run format:check`; from `tarski/` `lake build && lake build TarskiTest && lake build tarski`; from `engines/thales/` `lake build`; plus any gate the issue or the plan names. Wrap `lake env lean` invocations in a timeout.
+5. Gates, all green before you close: from the worktree root `npm run build && npm run typecheck && npm test && npm run format:check`; from `tarski/` `lake build && lake build TarskiTest && lake build tarski`; from `thales/` `lake build`; plus any gate the issue or the plan names. Wrap `lake env lean` invocations in a timeout.
 6. Commit the fixes on tarski-N with a declarative-sentence title. Then `bd close {{BEAD}} --reason "<gate> green again: <one-line cause>"`.
 
 If you cannot make the gates green, write the diagnosis with `bd comment {{BEAD}}` and stop without closing; the loop escalates to the maintainer.

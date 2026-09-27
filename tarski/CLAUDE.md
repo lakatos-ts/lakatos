@@ -2,11 +2,11 @@
 
 ## What this package is
 
-Tarski is lakatos's JS-semantics library: the Lean definitions that give TypeScript's values and operations their meaning. `lakatos prove` (thales) proves `@ensures` properties against models built from these definitions. The package is shared: thales requires it by path (`require tarski from "../../tarski"` in `engines/thales/lakefile.lean`); no engine may be required by it. The boundary rule: nothing here mentions `ThalesDsl` or any emission concern — lakatos owns syntax and search, this library owns meaning.
+Tarski is lakatos's JS-semantics library: the Lean definitions that give TypeScript's values and operations their meaning. `lakatos prove` (thales) proves `@ensures` properties against models built from these definitions. The package is shared: thales requires it by path (`require tarski from "../tarski"` in `thales/lakefile.lean`); no engine may be required by it. The boundary rule: nothing here mentions `ThalesDsl` or any emission concern — lakatos owns syntax and search, this library owns meaning.
 
 It holds two things over one set of definitions. `Js/` is the semantics library. `Tarski/` is an evaluator for a fragment of JavaScript — a definitional interpreter whose every primitive operation _is_ one of the library's, so a `Theorem` and a run appeal to the same meaning. The evaluator's parser is not in Lean: `frontend/` is a TypeScript bridge over tsc that emits ESTree JSON, and `schemas/tarski-estree.schema.json` is the seam. Growing the evaluator is GitHub epic #376.
 
-The Lean toolchain pin is `lean-toolchain` here; `engines/thales/lean-toolchain` is a symlink to it. `lake-manifest.json` is tracked.
+The Lean toolchain pin is `lean-toolchain` here; `thales/lean-toolchain` is a symlink to it. `lake-manifest.json` is tracked.
 
 ## Common commands
 

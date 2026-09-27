@@ -1,0 +1,86 @@
+# Verdict-fixture corpus
+
+End-to-end fixtures for `lakatos prove`. Each `.ts` file is one fixture, and
+its bucket is its entire test specification: every `@ensures` annotation in
+the file must receive the bucket's SZS status. There are no sidecar files
+and no inline expectation directives.
+
+A fixture that needs more than one module is a directory inside a bucket
+whose `main.ts` is the entry: the harness runs `main.ts` alone and the rest
+of the directory is the closure it imports (relative specifiers only, `.js`
+as nodeNext writes them). Only the entry's annotations are graded, and the
+bucket's status applies to them; the dependencies are never run as entries,
+so annotations in them would go unchecked and do not belong there.
+
+The harness is the root `tests/verdict-corpus.test.ts`, gated on
+`LAKATOS_PROVE_E2E=1` like the prove e2e (it needs the Lean toolchain and is
+minutes-slow). It copies the corpus into a scratch project, runs
+`lakatos prove` once over every fixture, and diffs each annotation's status
+against its bucket. Only the SZS status is bucket-checked; reason text is
+the business of the e2e and unit suites.
+
+Every fixture must type check: the corpus carries its own `tsconfig.json`,
+lakatos forces its required strict options on top, and the harness copies
+the config into the scratch project so the gate runs there exactly as it
+does for a user. Check the corpus standalone with
+
+    npx tsc -p thales/tests/conformance --noEmit --strict
+
+A program tsc refuses is not a fixture: the gate answers for it, so it has
+no bucket here.
+
+## Buckets
+
+- `theorem/` — every annotation proves (`Theorem`). A residual site in a
+  branch the property never takes does not stop a proof: the model reaches
+  the site only on paths the domain or a guard rules out.
+- `countersatisfiable/` — a false bounded claim: decide establishes falsity
+  and the prover extracts a concrete witness (`CounterSatisfiable`).
+- `gaveup/` — the proof ladder exhausts (`GaveUp`): an unbounded claim, for
+  which there is no finite domain to evaluate and no arithmetic theory to
+  reason with, so falsity on an unbounded domain has no counterexample to
+  ship either. Also a bounded claim shown false whose witness the prover
+  could not read back, which ships the falsity without the illustration.
+- `nottried/` — the pipeline degrades the property (`NotTried`): it has
+  no structured reading (a half-bounded range the DSL has no binder shape
+  for, a connective the reading has no text for: `↔`, or a `→` nested
+  under another connective), or a range endpoint exceeds the safe integer
+  range.
+- `inappropriate/` — the annotation is outside the model (`Inappropriate`),
+  by either of two routes. The frontend classifies it when the
+  declaration's signature or one of its statements uses a construct the
+  pipeline cannot map, when a class fault carries no construct, or when the
+  property itself mentions such a declaration or a refused operator. The
+  prover reports it when the property's path reaches an unmodelable
+  _expression_ — an unlisted standard-library member (a call like
+  `Math.log`, a read like `Number.length`, a whitelisted call member read
+  as a value), an operator the model does not cover (`&`, `??`, ...) or
+  refuses on the merits (`**`), a call to a declaration outside the model,
+  or a condition with no boolean reading — which the artifact carries as a
+  residual site the prover cannot see through, and the reason names the
+  site's construct.
+- `timeout/` — every annotation must report `Timeout` under the reduced
+  heartbeat budget the harness sets via `LAKATOS_PROVE_HEARTBEATS`; the
+  bucket runs as its own prove invocation so the rest of the corpus keeps
+  the default budget.
+
+There is no `error/` bucket. `Error` is reserved for the engine failing —
+a Lean run that dies before reporting, or the emitter's own invariants
+breaking — and neither is a fixture.
+
+Buckets are named after SZS statuses, lowercase. Buckets for statuses the
+prover cannot yet reach arrive with the issues that add those capabilities,
+so a capability upgrade shows up in the diff as a `git mv` between buckets
+(the refuting prover moved false-claim fixtures from `gaveup/` to
+`countersatisfiable/` exactly this way).
+
+## Adding a fixture
+
+Author a `.ts` file with at least one `@ensures` annotation, run the harness
+locally, and place the file by its observed-and-intended verdict:
+
+    LAKATOS_PROVE_E2E=1 npx vitest run tests/verdict-corpus.test.ts
+
+A surprising verdict at authoring time is a finding to resolve, not an
+expectation to adjust silently. If a file's annotations would earn different
+verdicts, split it into one file per bucket.

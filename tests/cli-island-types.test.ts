@@ -53,7 +53,7 @@ const EXPECTED = {
 } as const;
 
 async function expectIslandRefusal(
-  command: "prove" | "check",
+  command: "check",
   file: keyof typeof EXPECTED,
 ): Promise<void> {
   const { code, stdout, stderr } = await runMain([command, file]);
@@ -74,17 +74,6 @@ async function expectIslandRefusal(
   // No engine saw the annotation: the spine counts nothing to run.
   expect(stderr.join("\n")).toMatch(/emitted 0 annotations|not implemented/);
 }
-
-describe("prove: a type fault inside an atom is the annotation's InputError", () => {
-  useTempProject("lakatos-island-prove-", REPROS);
-
-  it.each(Object.keys(EXPECTED) as Array<keyof typeof EXPECTED>)(
-    "%s reports InputError naming the atom and exits 2",
-    async (file) => {
-      await expectIslandRefusal("prove", file);
-    },
-  );
-});
 
 // The gate refuses the annotation before any engine sees it, which the
 // assertion on the spine's own count is what establishes, so check needs

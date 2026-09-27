@@ -7,7 +7,7 @@
 // that calls the constructor without the argument.
 let ok = true;
 
-// engines/thales/tests/fixtures/classes.ts
+// thales/tests/fixtures/classes.ts
 class Box {
   #v;
   constructor(v) {
@@ -52,7 +52,7 @@ ok =
   Object.is(new Doubler(4).double(), 8) &&
   Object.is(new Doubler(4).twice(), 8);
 
-// engines/thales/tests/fixtures/class-params.ts
+// thales/tests/fixtures/class-params.ts
 class Point {
   x;
   constructor(x = 0) {
@@ -85,7 +85,7 @@ ok =
   Object.is(readX(new Point(7)), 7) &&
   Object.is(new Point().x, 0);
 
-// engines/thales/tests/fixtures/nested-class-binder.ts. Its `Point` is a
+// thales/tests/fixtures/nested-class-binder.ts. Its `Point` is a
 // different class from the one above, which is why each block is its own.
 {
   class Point {
@@ -112,7 +112,7 @@ ok =
       new Span(new Point(1), new Point(3)).width();
 }
 
-// engines/thales/tests/conformance/theorem/boolean-classes.ts
+// thales/tests/conformance/theorem/boolean-classes.ts
 class Flag {
   on;
   constructor(on) {

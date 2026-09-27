@@ -1,0 +1,46 @@
+{
+  "name": "@lakatos/thales",
+  "version": "0.1.0",
+  "description": "Proof for TypeScript: @ensures annotations become Lean theorems, discharged automatically and reported in the lakatos result envelope. Runs from a lakatos checkout with the Lean toolchain.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "thales": "dist/cli.js"
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts",
+    "schemas"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakatos-ts/lakatos.git",
+    "directory": "thales"
+  },
+  "homepage": "https://github.com/lakatos-ts/lakatos#readme",
+  "bugs": {
+    "url": "https://github.com/lakatos-ts/lakatos/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "check:envelopes": "node scripts/check-envelopes.js",
+    "check:verdict-channel": "node scripts/check-verdict-channel.js"
+  },
+  "dependencies": {
+    "@lakatos/core": "^0.1.0",
+    "@lakatos/lemma": "^0.1.0",
+    "@lakatos/tarski": "^0.1.0",
+    "typescript": "^6.0.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
