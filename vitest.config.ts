@@ -146,14 +146,17 @@ export default defineConfig({
         // two verdict joins into their engines, so the denominator is the
         // same code under new paths; the schema helper in core/tests/helpers
         // and the layering test joined it fully covered.
+        // Ratcheted 2026-09-27: the CLI's pipeline moved into core's runner
+        // and lemma's admission, each with its own unit tests; pabst's bin
+        // guard runs only when spawned and carries its own ignore.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
         // worktree under .claude/ silently reports every loaded file instead
         // — different denominator, different numbers.
         autoUpdate: true,
-        statements: 99.67,
-        branches: 98.98,
+        statements: 99.69,
+        branches: 98.99,
         functions: 100,
         lines: 99.74,
       },
