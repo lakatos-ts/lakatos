@@ -137,8 +137,8 @@ export function proveTimeoutMs(fileCount: number): number {
 
 /**
  * Like useTempProject, but the directory lives inside the repo tree:
- * refute's generated tests import "lakatos/runtime" via the package
- * self-reference, so suites that run refute cannot work under os.tmpdir().
+ * refute's generated tests import "@lakatos/pabst/runtime" via the workspace
+ * link, so suites that run refute cannot work under os.tmpdir().
  * `populate` writes the project's files before the chdir.
  */
 export function useRepoScratchDir(

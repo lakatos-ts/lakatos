@@ -7,7 +7,7 @@ export default defineConfig({
       {
         // Suites run the workspace package from source: a change in core
         // reaches an engine's tests without a build, and coverage sees it.
-        find: /^@lakatos\/core\/(envelope|szs|interrupt|run-dir)$/,
+        find: /^@lakatos\/core\/(envelope|szs|interrupt|run-dir|runner)$/,
         replacement: fileURLToPath(
           new URL("./core/src/$1.ts", import.meta.url),
         ),
@@ -19,6 +19,20 @@ export default defineConfig({
           new URL("./lemma/src/index.ts", import.meta.url),
         ),
       },
+      {
+        find: /^@lakatos\/pabst\/runtime$/,
+        replacement: fileURLToPath(
+          new URL("./pabst/src/runtime.ts", import.meta.url),
+        ),
+      },
+      {
+        // Pabst from source; a vitest child, which runs generated tests
+        // with no aliases, resolves pabst/dist through the workspace link.
+        find: /^@lakatos\/pabst$/,
+        replacement: fileURLToPath(
+          new URL("./pabst/src/index.ts", import.meta.url),
+        ),
+      },
     ],
   },
   test: {
@@ -26,7 +40,7 @@ export default defineConfig({
       "tests/**/*.test.ts",
       "core/tests/**/*.test.ts",
       "lemma/tests/**/*.test.ts",
-      "engines/pabst/tests/**/*.test.ts",
+      "pabst/tests/**/*.test.ts",
       "engines/thales/frontend/tests/**/*.test.ts",
       "tarski/frontend/tests/**/*.test.ts",
     ],
@@ -43,7 +57,7 @@ export default defineConfig({
         "src/**/*.ts",
         "core/src/**/*.ts",
         "lemma/src/**/*.ts",
-        "engines/pabst/src/**/*.ts",
+        "pabst/src/**/*.ts",
         "engines/thales/frontend/src/**/*.ts",
         "tarski/frontend/src/**/*.ts",
       ],
@@ -132,14 +146,17 @@ export default defineConfig({
         // two verdict joins into their engines, so the denominator is the
         // same code under new paths; the schema helper in core/tests/helpers
         // and the layering test joined it fully covered.
+        // Ratcheted 2026-09-27: the CLI's pipeline moved into core's runner
+        // and lemma's admission, each with its own unit tests; pabst's bin
+        // guard runs only when spawned and carries its own ignore.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
         // worktree under .claude/ silently reports every loaded file instead
         // — different denominator, different numbers.
         autoUpdate: true,
-        statements: 99.67,
-        branches: 98.98,
+        statements: 99.69,
+        branches: 98.99,
         functions: 100,
         lines: 99.74,
       },

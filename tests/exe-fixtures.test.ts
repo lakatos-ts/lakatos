@@ -30,7 +30,7 @@ const REPO = process.cwd();
 const ROOTS = [
   "engines/thales/tests/fixtures",
   "engines/thales/tests/conformance",
-  "engines/pabst/tests/fixtures",
+  "pabst/tests/fixtures",
   "lemma/spec/fixtures",
 ];
 
@@ -75,9 +75,9 @@ function corpus(): string[] {
  * left it when #394 did.
  */
 const UNSUPPORTED: Record<string, string> = {
-  "engines/pabst/tests/fixtures/e2e/bounded.ts": "BigIntLiteral",
-  "engines/pabst/tests/fixtures/e2e/readme-example.ts": "BigIntLiteral",
-  "engines/pabst/tests/fixtures/e2e/regex-guard.ts": "RegularExpressionLiteral",
+  "pabst/tests/fixtures/e2e/bounded.ts": "BigIntLiteral",
+  "pabst/tests/fixtures/e2e/readme-example.ts": "BigIntLiteral",
+  "pabst/tests/fixtures/e2e/regex-guard.ts": "RegularExpressionLiteral",
   "engines/thales/tests/conformance/inappropriate/await-remote.ts":
     "FunctionDeclaration async",
   "engines/thales/tests/conformance/inappropriate/bare-import/main.ts":

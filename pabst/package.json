@@ -1,0 +1,49 @@
+{
+  "name": "@lakatos/pabst",
+  "version": "0.1.0",
+  "description": "Refutation for TypeScript: @ensures annotations become fast-check property tests, run with vitest and reported in the lakatos result envelope.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "pabst": "dist/cli.js"
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts",
+    "schemas"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakatos-ts/lakatos.git",
+    "directory": "pabst"
+  },
+  "homepage": "https://github.com/lakatos-ts/lakatos#readme",
+  "bugs": {
+    "url": "https://github.com/lakatos-ts/lakatos/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "default": "./dist/runtime.js"
+    }
+  },
+  "dependencies": {
+    "@lakatos/core": "^0.1.0",
+    "@lakatos/lemma": "^0.1.0",
+    "vitest": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@fast-check/vitest": "^0.5.0",
+    "fast-check": "^4.8.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

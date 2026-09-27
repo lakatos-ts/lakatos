@@ -7,13 +7,13 @@ export default {
   mutate: [
     "src/**/*.ts",
     "core/src/**/*.ts",
-    "engines/pabst/src/**/*.ts",
+    "pabst/src/**/*.ts",
     "!**/*.d.ts",
   ],
   ignorePatterns: [".lakatos", "coverage", "reports", "engines/thales"],
   concurrency: 8,
   timeoutFactor: 3,
   timeoutMS: 60000,
-  disableTypeChecks: "{src,core/src,engines/pabst/src}/**/*.ts",
+  disableTypeChecks: "{src,core/src,pabst/src}/**/*.ts",
   reporters: ["clear-text", "html", "progress"],
 };

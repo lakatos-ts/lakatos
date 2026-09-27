@@ -1,0 +1,36 @@
+import { describe, it, expect, vi } from "vitest";
+import { runMain, useTempProject } from "./helpers/cli.js";
+
+// The per-annotation catch in build-spec wraps only LemmaError in the
+// `file:line: @ensures{name}:` diagnostic; anything else must be rethrown
+// as-is so internal compile-pipeline bugs crash loudly instead of being
+// reported as user errors. The cli-internal-error suite mocks the generator
+// wholesale and never reaches that catch, so simulate a bug deep inside the
+// pipeline — lowerTop throws after buildSpec's try block has been entered —
+// and check the TypeError escapes main() unwrapped.
+vi.mock("../src/lower.js", () => ({
+  lowerTop: () => {
+    throw new TypeError("internal invariant violated in lowering");
+  },
+}));
+
+describe("build-spec internal errors", () => {
+  useTempProject("pabst-buildspec-internal-", {
+    "fine.ts": `/** @ensures{pos} forall (n: nat) { fine(n) >= 0 } */\nexport function fine(n: number): number { return n; }\n`,
+  });
+
+  it("a non-LemmaError thrown mid-annotation escapes main() unwrapped", async () => {
+    // One run, both assertions: the class and the message belong to the
+    // same throw.
+    const thrown = await runMain(["fine.ts"]).then(
+      () => {
+        throw new Error("main() resolved; expected it to throw");
+      },
+      (error: unknown) => error,
+    );
+    expect(thrown).toBeInstanceOf(TypeError);
+    expect((thrown as TypeError).message).toMatch(
+      /internal invariant violated in lowering/,
+    );
+  });
+});

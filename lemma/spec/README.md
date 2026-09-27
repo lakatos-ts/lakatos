@@ -47,7 +47,7 @@ extraction, and prefix/formula parsing — lives in [`lemma/`](../) at
 the repository root, exercised against `fixtures/` in CI. Two engines
 build on it, one from each side of the proofs-and-refutations dialectic:
 
-- [`engines/pabst/`](../../engines/pabst/) (TypeScript) — the **refutation
+- [`pabst/`](../../pabst/) (TypeScript) — the **refutation
   engine**: compiles properties to
   [fast-check](https://fast-check.dev/) runs and hunts for
   counterexamples.

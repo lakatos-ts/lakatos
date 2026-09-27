@@ -169,7 +169,8 @@ Everything is one repository, an npm workspace:
   that renders annotated TypeScript as plain Lean 4, with a graded
   automatic discharge ladder (exhaustive checking on bounded domains,
   then symbolic tactics, then an honest "unable to prove").
-- [`engines/pabst/`](engines/pabst/) — the refutation engine: compiles
+- [`pabst/`](pabst/) — `@lakatos/pabst`, the refutation tool and its
+  `pabst` bin: compiles
   properties to [fast-check](https://fast-check.dev/) runs.
 - [`tarski/`](tarski/) — the JS semantics: the Lean library the proof
   engine proves against (`number` as binary64, the operations Lean lacks,
@@ -186,7 +187,7 @@ Lakatos is a thin frontend over two engines, one per side of the dialectic:
                 /        \
         refute /          \ prove
               v            v
-        engines/pabst   engines/thales
+        pabst           engines/thales
         (TypeScript;    (Lean 4; today: elan/lake
          fast-check)     on PATH — see Status)
 ```

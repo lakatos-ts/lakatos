@@ -9,7 +9,7 @@ on:
       - "tests/**"
       - "schemas/**"
       - "lemma/**"
-      - "engines/pabst/**"
+      - "pabst/**"
       - "engines/thales/frontend/**"
       - "engines/thales/tests/fixtures/**"
       - "tarski/frontend/**"
@@ -91,7 +91,7 @@ jobs:
         run: npx vitest run --exclude '**/e2e.test.ts'
 
       - name: End-to-end tests
-        run: npx vitest run engines/pabst/tests/e2e.test.ts
+        run: npx vitest run pabst/tests/e2e.test.ts
 
   coverage:
     runs-on: ubuntu-latest

@@ -1,102 +1,57 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import * as path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 import { writeEmissionArtifacts } from "../engines/thales/frontend/src/emission-artifacts.js";
 import {
   findEngineRoot,
   type LeanRunResult,
   runEmission,
 } from "../engines/thales/frontend/src/run.js";
-import { generate } from "../engines/pabst/src/codegen.js";
-import { runTests } from "../engines/pabst/src/run.js";
-import { parseSeed, randomSeed } from "../engines/pabst/src/seed.js";
+import { parseSeed, refute } from "@lakatos/pabst";
 import {
+  admit,
   annotationKey,
   clampedEndpoints,
   EmptyAfterClampError,
   extract,
   type InvalidAnnotation,
   LemmaError,
-  type ParsedAnnotation,
-  type ParsedFile,
   parseBody,
   parsePrefix,
   qualifiedName,
+  refusalsOf,
   resolveFiles,
   type TypecheckDiagnostic,
   typecheckProject,
-  typeFormulas,
   unsupportedRangeReason,
 } from "@lakatos/lemma";
-import { joinRefuteVerdicts } from "../engines/pabst/src/join.js";
 import { joinProveVerdicts } from "../engines/thales/frontend/src/join.js";
 import {
   identityOf,
-  interruptedResults,
   UNSUPPORTED_RANGE_KIND,
   type AnnotationResult,
-  type Envelope,
-  type PlannedProperty,
   type PropertyIdentity,
 } from "@lakatos/core/envelope";
 import { executeSource } from "./exe.js";
-import {
-  withInterruptGuard,
-  type InterruptSignal,
-} from "@lakatos/core/interrupt";
 import {
   claimRunDir,
   RUN_ROOT,
   RunDirError,
   TYPECHECK_CACHE,
 } from "@lakatos/core/run-dir";
-
-/** Envelope entries for extraction-level input errors, with their
- * diagnostics echoed to stderr. Any such entry makes the run exit 2.
- * The `file:line:` prefix matches the compile-error diagnostic style. */
-function inputErrorResults(
-  perFile: { file: string; invalid: InvalidAnnotation[] }[],
-): AnnotationResult[] {
-  const results = perFile.flatMap(({ file, invalid }) =>
-    invalid.map((i) => ({
-      file,
-      function: qualifiedName(i.functionName, i.className, i.isStatic),
-      property: i.propertyName,
-      szs: "InputError" as const,
-      error: `${file}:${i.line}: ${i.message}`,
-    })),
-  );
-  for (const r of results) console.error(`error: ${r.error}`);
-  return results;
-}
+import {
+  packageVersion,
+  runTool,
+  type Outcome,
+  type Plan,
+  type Spine,
+} from "@lakatos/core/runner";
 
 function formatTsDiagnostic(d: TypecheckDiagnostic): string {
   const site = d.file !== undefined ? `${d.file}:${d.line}: ` : "";
   return `${site}TS${d.code}: ${d.message}`;
-}
-
-/** Envelope entries for files the gate refused: every extractable
- * annotation is InputError with the given diagnostic, beside the
- * extraction-level input errors found on the way. */
-function refusedResults(files: string[], error: string): AnnotationResult[] {
-  const results: AnnotationResult[] = [];
-  const invalid: { file: string; invalid: InvalidAnnotation[] }[] = [];
-  for (const file of files) {
-    const extracted = extract(file);
-    invalid.push({ file, invalid: extracted.invalid });
-    for (const a of extracted.annotations) {
-      results.push({
-        file,
-        function: qualifiedName(a.functionName, a.className, a.isStatic),
-        property: a.propertyName,
-        szs: "InputError",
-        error,
-      });
-    }
-  }
-  return [...results, ...inputErrorResults(invalid)];
 }
 
 const NO_TSCONFIG =
@@ -105,265 +60,6 @@ const NO_TSCONFIG =
 
 function outsideProgram(file: string): string {
   return `${file} is not part of the program tsconfig.json describes, so it was not type checked`;
-}
-
-function typecheckFailure(diagnostics: TypecheckDiagnostic[]): string {
-  const rest = diagnostics.length - 1;
-  return (
-    `the program does not type check: ${formatTsDiagnostic(diagnostics[0]!)}` +
-    (rest > 0 ? ` (and ${rest} more)` : "")
-  );
-}
-
-// The module runs from src/ under vitest and dist/src/ as a bin, so
-// package.json sits a different number of levels up in each: walk.
-function readVersion(): string {
-  let dir = path.dirname(fileURLToPath(import.meta.url));
-  while (!existsSync(path.join(dir, "package.json"))) {
-    const parent = path.dirname(dir);
-    if (parent === dir) throw new Error("package.json not found");
-    dir = parent;
-  }
-  return JSON.parse(readFileSync(path.join(dir, "package.json"), "utf8"))
-    .version as string;
-}
-
-/** Envelope fields outside the per-annotation list. */
-type EnvelopeMeta = Omit<Envelope, "annotations">;
-
-/** Run metadata every command captures before doing anything. */
-function captureMeta(): { version: string; startedAt: string; cwd: string } {
-  return {
-    version: readVersion(),
-    startedAt: new Date().toISOString(),
-    cwd: process.cwd(),
-  };
-}
-
-function emitEnvelope(envelope: Envelope): void {
-  console.log(JSON.stringify(envelope, null, 2));
-}
-
-/** The output contract for a run that stopped before evaluating
- * anything it planned to: `stopped` accounts for those annotations —
- * NotTried when the engine never reported, User when the run was
- * interrupted — beside the entries that were already resolved, and the
- * documented exit 2. The run stats stay out: a run that did not finish
- * knows no counts. */
-function stoppedExit(
-  meta: EnvelopeMeta,
-  plan: Plan,
-  stopped: AnnotationResult[],
-): number {
-  emitEnvelope({
-    ...meta,
-    annotations: [...stopped, ...plan.untried, ...plan.inputErrors],
-  });
-  return 2;
-}
-
-/** Every command refuses a domain it cannot represent as written, engine
- * or stub alike; the count on stderr is the one place that says so. */
-function noteUnsupportedRanges(untried: AnnotationResult[]): void {
-  const n = untried.filter((u) => u.kind === UNSUPPORTED_RANGE_KIND).length;
-  if (n > 0)
-    console.error(
-      `lakatos: ${n} annotation${n === 1 ? "" : "s"} not tried (unsupported range)`,
-    );
-}
-
-/** The prover's model of a declaration is not always proved equal to the
- * evaluator's run of it, and a PROVED verdict that rests on an
- * unvalidated model says so where a person can see it: one line per
- * proven annotation whose model did not validate, in the rendering
- * `check` will print beside the verdict. A validated model prints
- * nothing, and stdout stays the one parseable envelope. */
-function noteUnvalidatedModels(annotations: AnnotationResult[]): void {
-  for (const a of annotations) {
-    if (a.szs !== "Theorem") continue;
-    if (a.model === undefined || a.model.status !== "unvalidated") continue;
-    console.error(
-      `lakatos: ${a.file} ${a.function}/${a.property}: PROVED (model unvalidated: ${a.model.reason})`,
-    );
-  }
-}
-
-/** What one command's codegen produced, normalized across engines. */
-interface Plan {
-  /** Annotations the engine will attempt; the verdict join accounts for each. */
-  identities: PlannedProperty[];
-  /** Annotations already resolved at codegen time, in envelope form. */
-  untried: AnnotationResult[];
-  /** Extraction-level input errors, already echoed to stderr. */
-  inputErrors: AnnotationResult[];
-  /** The codegen itself failed on part of the run: an engine fault the
-   * envelope carries as Error, and the documented exit 2 beside whatever
-   * else ships. */
-  degraded: boolean;
-  /** Artifacts this invocation generated — the only ones the run may touch. */
-  outFiles: string[];
-  /** Envelope fields only this command carries (refute's seed and count). */
-  meta: Partial<EnvelopeMeta>;
-  /** Envelope fields that hold only when there was nothing to run: refute
-   * reports zero tests passed and failed, which an interrupted run cannot. */
-  emptyMeta: Partial<EnvelopeMeta>;
-  /** Exit code when there is nothing to run and no input errors. Zero for a
-   * real engine — nothing to disprove is a clean run — but the stub commands
-   * report 1: they never attempted the work they were asked for. */
-  emptyExit: number;
-}
-
-/** One engine's run, normalized. Diagnostics reach stderr inside the
- * adapter; the runner owns the envelope and the exit code. */
-type Outcome =
-  | {
-      /** The engine never reported: annotations were produced but not evaluated. */
-      kind: "unhealthy";
-      messages: string[];
-    }
-  | {
-      /** A termination signal stopped the engine mid-run. */
-      kind: "interrupted";
-      signal: InterruptSignal;
-    }
-  | {
-      kind: "completed";
-      annotations: AnnotationResult[];
-      meta: Partial<EnvelopeMeta>;
-      /** The engine failed on part of the run: exit 2 beside the verdicts. */
-      degraded: boolean;
-      /** The engine refuted something: the documented exit 1. */
-      refuted: boolean;
-    };
-
-interface Spine {
-  /** `runDir` is this invocation's artifact root; the engine joins its own
-   * name onto it and never learns where the root came from. `refused`
-   * keys the annotations the CLI already reported: the engine skips them. */
-  plan(files: string[], runDir: string, refused: ReadonlySet<string>): Plan;
-  /** Absent for a command with no engine — its plan yields no artifacts.
-   * `runDir` is the same root the plan was given. */
-  run?(plan: Plan, runDir: string): Outcome;
-}
-
-/** The pipeline every command shares: resolve files, capture run meta, run
- * the engine's codegen, and turn its outcome into one envelope and one exit
- * code. Only the codegen, the run, the verdict join, and the two exit-code
- * contributions are engine-specific. */
-async function runCommand(spine: Spine, patterns: string[]): Promise<number> {
-  const files = resolve(patterns);
-  const base = captureMeta();
-  // The gate sits before claimRunDir so a refused run leaves no empty run
-  // directory, and before any codegen so no engine sees unchecked input.
-  const check = typecheckProject(
-    process.cwd(),
-    path.resolve(RUN_ROOT, TYPECHECK_CACHE),
-  );
-  if (check.kind === "missing") {
-    const annotations = refusedResults(files, NO_TSCONFIG);
-    const n = annotations.length;
-    console.error(
-      `lakatos: no tsconfig.json; reporting ${n} annotation${n === 1 ? "" : "s"} as InputError`,
-    );
-    emitEnvelope({ ...base, annotations });
-    return 2;
-  }
-  if (check.kind === "failed") {
-    for (const d of check.diagnostics)
-      console.error(`error: ${formatTsDiagnostic(d)}`);
-    const annotations = refusedResults(
-      files,
-      typecheckFailure(check.diagnostics),
-    );
-    const n = annotations.length;
-    console.error(
-      `lakatos: the program does not type check under lakatos's required options; reporting ${n} annotation${n === 1 ? "" : "s"} as InputError`,
-    );
-    emitEnvelope({ ...base, annotations });
-    return 2;
-  }
-  // A named file the program does not include was never checked: refuse
-  // it alone, and run the rest.
-  const program = new Set(check.programFiles);
-  const outside = files.filter((f) => !program.has(f));
-  for (const f of outside) console.error(`error: ${outsideProgram(f)}`);
-  const gateErrors = outside.flatMap((f) =>
-    refusedResults([f], outsideProgram(f)),
-  );
-  const checked = files.filter((f) => program.has(f));
-  const parsed = readFormulas(checked);
-  // Atoms are host code the gate never saw: type them before any engine
-  // does, and report a fault as the annotation's own InputError.
-  const typed = typeFormulas(parsed, check.checked);
-  const typeErrors = inputErrorResults(typed.invalid);
-  const runDir = claimRunDir(base.startedAt);
-  const planned = spine.plan(checked, runDir, typed.refused);
-  const plan: Plan = {
-    ...planned,
-    inputErrors: [...gateErrors, ...typeErrors, ...planned.inputErrors],
-  };
-  noteUnsupportedRanges(plan.untried);
-  const meta = { ...base, ...plan.meta };
-
-  if (plan.outFiles.length === 0 || spine.run === undefined) {
-    emitEnvelope({
-      ...meta,
-      ...plan.emptyMeta,
-      annotations: [...plan.untried, ...plan.inputErrors],
-    });
-    return plan.inputErrors.length > 0 || plan.degraded ? 2 : plan.emptyExit;
-  }
-
-  // The guard spans the engine's run and the report that follows. The run
-  // is the window in which lakatos can still learn of a signal — from the
-  // child's death — and the report is the one in which a second signal
-  // must not cut the envelope short: Ctrl-C is rarely pressed just once,
-  // and the first one lands while the engine is still dying.
-  const run = spine.run;
-  const interruptedExit = (signal: InterruptSignal): number => {
-    const n = plan.identities.length;
-    console.error(
-      `lakatos: interrupted by ${signal}; reporting ${n} annotation${n === 1 ? "" : "s"} as User`,
-    );
-    return stoppedExit(meta, plan, interruptedResults(plan.identities, signal));
-  };
-  return withInterruptGuard(async (interrupted) => {
-    const outcome = run(plan, runDir);
-    // The signal that reached lakatos decides, whatever the engine made of
-    // its own copy; a child that died of one lakatos never saw still counts.
-    const observed = await interrupted();
-    if (outcome.kind === "interrupted")
-      return interruptedExit(observed ?? outcome.signal);
-    if (observed !== undefined) return interruptedExit(observed);
-    if (outcome.kind === "unhealthy") {
-      for (const m of outcome.messages) console.error(`error: ${m}`);
-      return stoppedExit(
-        meta,
-        plan,
-        plan.identities.map((i) => ({
-          ...identityOf(i),
-          szs: "NotTried" as const,
-        })),
-      );
-    }
-
-    noteUnvalidatedModels(outcome.annotations);
-    emitEnvelope({
-      ...meta,
-      ...outcome.meta,
-      annotations: [
-        ...outcome.annotations,
-        ...plan.untried,
-        ...plan.inputErrors,
-      ],
-    });
-    // Bad input and engine failures — the codegen's or the run's — outrank
-    // a refutation: the documented exit-2 error mode, even alongside
-    // healthy verdicts.
-    if (plan.inputErrors.length > 0 || plan.degraded || outcome.degraded)
-      return 2;
-    return outcome.refuted ? 1 : 0;
-  });
 }
 
 const EXE_USAGE = "usage: lakatos exe <file.ts>";
@@ -527,16 +223,22 @@ export async function main(
     if (command === "exe") return await runExe(patterns);
     // The seed is parsed before anything else so a bad one is reported
     // without first resolving files.
+    if (command === "refute")
+      return (
+        await refute(
+          patterns,
+          values.seed !== undefined ? { seed: parseSeed(values.seed) } : {},
+        )
+      ).code;
     const spine =
-      command === "refute"
-        ? refuteSpine(
-            values.seed !== undefined ? parseSeed(values.seed) : randomSeed(),
-          )
-        : command === "prove"
-          ? plainProveSpine()
-          : stubSpine(command as Command);
+      command === "prove" ? plainProveSpine() : stubSpine(command as Command);
     // Awaited, not returned: the catch below must see the run's rejection.
-    return await runCommand(spine, patterns);
+    const report = await runTool(
+      { name: "lakatos", version: packageVersion(import.meta.url) },
+      (note) => admit(patterns, path.resolve(RUN_ROOT, TYPECHECK_CACHE), note),
+      spine,
+    );
+    return report.code;
   } catch (e) {
     if (e instanceof LemmaError || e instanceof RunDirError) {
       console.error(`error: ${e.message}`);
@@ -544,41 +246,6 @@ export async function main(
     }
     throw e;
   }
-}
-
-function resolve(patterns: string[]): string[] {
-  const { files, source } = resolveFiles(patterns);
-  if (source === "tsconfig.json") {
-    console.error(
-      `lakatos: no files given; discovered ${files.length} file(s) via tsconfig.json`,
-    );
-  }
-  return files;
-}
-
-/** Extract and parse every formula once, before any engine runs. A formula
- * Lemma's parsers cannot read is a compile error whichever command asked,
- * so the run aborts on that diagnostic; a clamp-emptied interval parses
- * and stays for the engines to contain per annotation. */
-function readFormulas(files: string[]): ParsedFile[] {
-  return files.map((file) => {
-    const { exports, classes, annotations } = extract(file);
-    const parsed: ParsedAnnotation[] = annotations.map((raw) => {
-      try {
-        const { binders, body } = parsePrefix(raw.formula);
-        return { raw, parsed: { binders, formula: parseBody(body) } };
-      } catch (e) {
-        if (e instanceof EmptyAfterClampError) return { raw };
-        if (e instanceof LemmaError)
-          throw new LemmaError(
-            `${file}:${raw.line}: @ensures{${raw.propertyName}}: ${e.message}`,
-            { cause: e },
-          );
-        throw e;
-      }
-    });
-    return { file, exports, classes, annotations: parsed };
-  });
 }
 
 /** The engine-independent enumeration: every annotation lemma can extract
@@ -645,85 +312,6 @@ function enumerate(
   return { untried, invalid };
 }
 
-function refuteSpine(seed: number): Spine {
-  return {
-    plan(files, runDir, refused) {
-      const outRoot = path.join(runDir, "pabst");
-      const results = generate(files, outRoot, seed, refused);
-      const identities: PlannedProperty[] = results.flatMap((r) =>
-        r.properties.map((p) => ({ file: r.sourceFile, ...p })),
-      );
-      const inputErrors = inputErrorResults(
-        results.map((r) => ({ file: r.sourceFile, invalid: r.invalid })),
-      );
-      const generated = identities.length;
-      console.error(
-        `lakatos: generated ${generated} propert${generated === 1 ? "y" : "ies"} across ${results.length} file(s) into ${outRoot}/`,
-      );
-      // Scope the run to the out-files generated by THIS invocation, not the
-      // whole directory: an empty file list would tell vitest to run
-      // everything, so the runner short-circuits when nothing was generated.
-      return {
-        identities,
-        untried: results.flatMap((r) =>
-          r.untried.map((u) => ({
-            file: r.sourceFile,
-            function: u.function,
-            property: u.property,
-            szs: "NotTried" as const,
-            kind: UNSUPPORTED_RANGE_KIND,
-            reason: u.reason,
-          })),
-        ),
-        inputErrors,
-        degraded: false,
-        outFiles: results.flatMap((r) =>
-          r.outFile !== undefined ? [r.outFile] : [],
-        ),
-        meta: { seed, generated },
-        emptyMeta: { passed: 0, failed: 0 },
-        emptyExit: 0,
-      };
-    },
-
-    run(plan, runDir) {
-      const result = runTests(
-        plan.outFiles,
-        path.join(runDir, "pabst", "vitest-results.json"),
-      );
-      if (result.kind === "interrupted")
-        return { kind: "interrupted", signal: result.signal };
-      // Unhealthy runs (vitest died before reporting, or the generated suite
-      // failed to load) still honor the output contract: diagnostics on
-      // stderr, a NotTried envelope on stdout, and the documented exit 2,
-      // not vitest's raw status.
-      if (result.kind !== "completed") {
-        if (result.kind === "no-results") {
-          process.stderr.write(result.stdout);
-          process.stderr.write(result.stderr);
-          return { kind: "unhealthy", messages: [] };
-        }
-        return { kind: "unhealthy", messages: result.messages };
-      }
-      const join = joinRefuteVerdicts(plan.identities, result.json);
-      // A failure the join cannot read means the reporter never ran; that is
-      // engine breakage, contained like a run that reported nothing at all.
-      if (join.kind === "unreadable")
-        return { kind: "unhealthy", messages: join.messages };
-      const failed = result.json.numFailedTests;
-      return {
-        kind: "completed",
-        annotations: join.annotations,
-        meta: { passed: result.json.numPassedTests, failed },
-        degraded: false,
-        // A failing test is a refutation whatever kind of issue it carried:
-        // the count, not the SZS status, is what the exit code reports.
-        refuted: failed > 0,
-      };
-    },
-  };
-}
-
 /** Shared by both prove spines: containment, join, and health discipline
  * over a Lean run result, whatever produced the artifacts. */
 function leanRunOutcome(
@@ -787,8 +375,8 @@ function plainProveSpine(): Spine {
     plan(files, runDir, refused) {
       const outRoot = path.join(runDir, "thales");
       const artifacts = writeEmissionArtifacts(files, outRoot, refused);
-      const inputErrors = inputErrorResults(
-        artifacts.map((a) => ({ file: a.sourceFile, invalid: a.invalid })),
+      const inputErrors = artifacts.flatMap((a) =>
+        refusalsOf(a.sourceFile, a.invalid),
       );
       // Partition each file's annotations once, by object identity:
       // classified ones were settled by the frontend and are never
@@ -830,13 +418,16 @@ function plainProveSpine(): Spine {
         }
       }
       const n = tried.length;
-      console.error(
-        `lakatos: emitted ${n} annotation${n === 1 ? "" : "s"} across ${artifacts.length} file(s) into ${outRoot}/`,
-      );
       return {
         identities: tried,
         untried: classifiedResults,
         inputErrors,
+        notes: [
+          {
+            level: "info",
+            text: `emitted ${n} annotation${n === 1 ? "" : "s"} across ${artifacts.length} file(s) into ${outRoot}/`,
+          },
+        ],
         degraded: classifiedResults.some((r) => r.szs === "Error"),
         outFiles: proveFiles,
         meta: {},
@@ -865,12 +456,13 @@ function stubSpine(command: Command): Spine {
   return {
     plan(files, _runDir, refused) {
       const { untried, invalid } = enumerate(files, refused);
-      const inputErrors = inputErrorResults(invalid);
-      console.error(`lakatos: ${command} is not implemented yet`);
       return {
         identities: [],
         untried,
-        inputErrors,
+        inputErrors: invalid.flatMap(({ file, invalid }) =>
+          refusalsOf(file, invalid),
+        ),
+        notes: [{ level: "info", text: `${command} is not implemented yet` }],
         degraded: false,
         outFiles: [],
         meta: {},
