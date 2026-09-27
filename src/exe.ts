@@ -8,15 +8,15 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
-import { parseScript } from "../tarski/frontend/src/estree.js";
-import { stripTypes } from "../tarski/frontend/src/strip-types.js";
 import {
   type BinaryResult,
   ensureBinary,
+  findTarskiRoot,
+  parseScript,
   runDocument,
   type SpawnOutcome,
-} from "../tarski/frontend/src/binary.js";
-import { findTarskiRoot } from "../tarski/frontend/src/test262/paths.js";
+  stripTypes,
+} from "@lakatos/tarski";
 
 export type ExeOutcome =
   /** The evaluator ran the program: 0, or 1 for an uncaught throw. */

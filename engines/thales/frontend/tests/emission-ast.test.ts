@@ -14,11 +14,14 @@ import {
   parseScript,
   type Program,
   type Statement,
-} from "../../../../tarski/frontend/src/estree.js";
-import { stripTypes } from "../../../../tarski/frontend/src/strip-types.js";
+  stripTypes,
+} from "@lakatos/tarski";
 
 const expectValidProgram = schemaValidator(
-  new URL("../../../../schemas/tarski-estree.schema.json", import.meta.url),
+  new URL(
+    "../../../../tarski/schemas/tarski-estree.schema.json",
+    import.meta.url,
+  ),
   "a declaration's ast",
 );
 

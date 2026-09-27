@@ -32,7 +32,12 @@ const expectValidEmission = schemaValidator(
   // A declaration's `ast` is the ESTree schema's `Program`, referenced
   // across files: the relative `$ref` resolves against the emission
   // schema's `$id` to the ESTree schema's own.
-  [new URL("../../../../schemas/tarski-estree.schema.json", import.meta.url)],
+  [
+    new URL(
+      "../../../../tarski/schemas/tarski-estree.schema.json",
+      import.meta.url,
+    ),
+  ],
 );
 
 /** A declaration with the AST it now carries dropped. What the closure is

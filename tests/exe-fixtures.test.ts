@@ -10,8 +10,7 @@ import {
 } from "node:fs";
 import * as path from "node:path";
 import { executeSource, type ExeDeps } from "../src/exe.js";
-import { ensureBinary } from "../tarski/frontend/src/binary.js";
-import { findTarskiRoot } from "../tarski/frontend/src/test262/paths.js";
+import { ensureBinary, findTarskiRoot } from "@lakatos/tarski";
 
 // Every `@ensures` fixture in the repo, run under `lakatos exe` and under
 // Node, with the two compared. This is what says the evaluator is an

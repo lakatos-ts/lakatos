@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { ParseError, parseScript } from "../src/estree.js";
-import { schemaValidator } from "../../../tests/helpers/schema-validator.js";
+import { schemaValidator } from "./helpers/schema-validator.js";
 
 const validate = schemaValidator(
-  new URL("../../../schemas/tarski-estree.schema.json", import.meta.url),
+  new URL("../../schemas/tarski-estree.schema.json", import.meta.url),
   "ESTree document",
 );
 
