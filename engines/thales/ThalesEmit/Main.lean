@@ -1,6 +1,8 @@
 import ThalesEmit.Json
 import ThalesEmit.Render
 import ThalesEmit.Artifact
+-- `main` loads this module at runtime; importing it makes Lake build it.
+import ThalesEmit
 
 /-! The `thales-emit` executable: one emission JSON in, one readable
 `.lean` artifact out. Any failure — unreadable file, schema mismatch, a
