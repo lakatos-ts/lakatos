@@ -253,6 +253,15 @@ describe("import layering", () => {
     expect(paths.filter((p) => p.endsWith(".tsbuildinfo"))).toEqual([]);
   });
 
+  it("every workspace package publishes publicly", () => {
+    for (const dir of ["core", "lemma", "pabst", "tarski", "thales"]) {
+      const pkg = JSON.parse(
+        readFileSync(path.join(root, dir, "package.json"), "utf8"),
+      ) as { publishConfig?: { access?: string } };
+      expect(pkg.publishConfig?.access, dir).toBe("public");
+    }
+  });
+
   for (const { pkg: pkgDir, src } of [
     { pkg: "lemma", src: "lemma/src" },
     { pkg: "pabst", src: "pabst/src" },

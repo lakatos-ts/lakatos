@@ -43,5 +43,8 @@
       "default": "./dist/runner.js"
     },
     "./schemas/envelope.schema.json": "./schemas/envelope.schema.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

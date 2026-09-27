@@ -16,7 +16,7 @@ describe("cli zero-argument discovery", () => {
       const { code, stdout, stderr } = await runMain(["check"]);
       expect(code).toBe(2);
       expect(stderr).toEqual([
-        'error: no tsconfig.json to discover sources from; pass files or globs (e.g. lakatos refute "src/**/*.ts")',
+        'error: no tsconfig.json to discover sources from; pass files or globs (e.g. "src/**/*.ts")',
       ]);
       expect(stdout).toHaveLength(0);
     });

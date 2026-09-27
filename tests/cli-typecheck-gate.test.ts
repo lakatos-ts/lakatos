@@ -25,7 +25,7 @@ describe("a tsconfig that names no files", () => {
     const run = await runMain(["check"]);
     expect(run.code).toBe(2);
     expect(run.stderr).toEqual([
-      'error: tsconfig.json names no files; pass files or globs (e.g. lakatos refute "src/**/*.ts")',
+      'error: tsconfig.json names no files; pass files or globs (e.g. "src/**/*.ts")',
     ]);
     expect(run.stdout).toHaveLength(0);
   });
