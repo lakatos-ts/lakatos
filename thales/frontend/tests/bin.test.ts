@@ -28,6 +28,12 @@ async function capture(argv: string[]) {
 }
 
 describe("the thales bin", () => {
+  it("-h is --help", async () => {
+    expect((await capture(["-h"])).out).toEqual(
+      (await capture(["--help"])).out,
+    );
+  });
+
   it("prints help naming itself and exits 0", async () => {
     const r = await capture(["--help"]);
     expect(r.code).toBe(0);

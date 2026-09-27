@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
-import { readFileSync, realpathSync } from "node:fs";
+import { realpathSync } from "node:fs";
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
-import { prove } from "@lakatos/thales";
+import { exeMain, prove } from "@lakatos/thales";
 import { parseSeed, refute } from "@lakatos/pabst";
 import {
   admit,
@@ -17,111 +17,14 @@ import {
   parsePrefix,
   qualifiedName,
   refusalsOf,
-  resolveFiles,
-  type TypecheckDiagnostic,
-  typecheckProject,
   unsupportedRangeReason,
 } from "@lakatos/lemma";
 import {
   UNSUPPORTED_RANGE_KIND,
   type AnnotationResult,
 } from "@lakatos/core/envelope";
-import { executeSource } from "./exe.js";
-import {
-  claimRunDir,
-  RUN_ROOT,
-  RunDirError,
-  TYPECHECK_CACHE,
-} from "@lakatos/core/run-dir";
+import { RUN_ROOT, RunDirError, TYPECHECK_CACHE } from "@lakatos/core/run-dir";
 import { packageVersion, runTool, type Spine } from "@lakatos/core/runner";
-
-function formatTsDiagnostic(d: TypecheckDiagnostic): string {
-  const site = d.file !== undefined ? `${d.file}:${d.line}: ` : "";
-  return `${site}TS${d.code}: ${d.message}`;
-}
-
-const NO_TSCONFIG =
-  "no tsconfig.json: lakatos type checks the program before analyzing it " +
-  "and needs the project's compiler options to do so";
-
-function outsideProgram(file: string): string {
-  return `${file} is not part of the program tsconfig.json describes, so it was not type checked`;
-}
-
-const EXE_USAGE = "usage: lakatos exe <file.ts>";
-
-/** `exe`: one file, run on the tarski evaluator.
- *
- * It shares `prove`'s gate — the same `typecheckProject` call against the
- * same cache, and the same three refusals — and nothing else: there is no
- * envelope to emit (the issue says so), so no `Spine`, and no interrupt
- * guard, since Ctrl-C should end lakatos and the binary together exactly
- * as it would end `node`. The run directory is not announced either: this
- * command's stderr belongs to the program. */
-async function runExe(patterns: string[]): Promise<number> {
-  if (patterns.length !== 1) {
-    console.error(EXE_USAGE);
-    return 2;
-  }
-  // A glob is allowed, but it has to name one file: `exe` runs a program,
-  // not a set of them.
-  const { files } = resolveFiles(patterns);
-  if (files.length !== 1) {
-    console.error(EXE_USAGE);
-    return 2;
-  }
-  const file = files[0]!;
-  const check = typecheckProject(
-    process.cwd(),
-    path.resolve(RUN_ROOT, TYPECHECK_CACHE),
-  );
-  if (check.kind === "missing") {
-    console.error(`lakatos: ${NO_TSCONFIG}`);
-    return 2;
-  }
-  if (check.kind === "failed") {
-    for (const d of check.diagnostics)
-      console.error(`error: ${formatTsDiagnostic(d)}`);
-    console.error(
-      "lakatos: the program does not type check under lakatos's required options",
-    );
-    return 2;
-  }
-  if (!check.programFiles.includes(file)) {
-    console.error(`lakatos: ${outsideProgram(file)}`);
-    return 2;
-  }
-  const runDir = claimRunDir(new Date().toISOString());
-  const outcome = executeSource(
-    readFileSync(file, "utf8"),
-    file,
-    path.join(runDir, "tarski"),
-  );
-  switch (outcome.kind) {
-    case "ran":
-      // Both streams are the program's own, forwarded byte for byte.
-      process.stdout.write(outcome.stdout);
-      process.stderr.write(outcome.stderr);
-      return outcome.status;
-    case "unsupported":
-      console.error(`lakatos: ${file}: unsupported syntax: ${outcome.node}`);
-      return 2;
-    case "no-project":
-      console.error(`lakatos: ${outcome.message}`);
-      return 2;
-    case "build-failed":
-      process.stderr.write(outcome.stdout);
-      process.stderr.write(outcome.stderr);
-      console.error("lakatos: lake build tarski failed");
-      return 2;
-    case "refused":
-      process.stderr.write(outcome.stderr);
-      console.error(
-        "lakatos: the evaluator refused the document lakatos handed it",
-      );
-      return 2;
-  }
-}
 
 const USAGE =
   "usage: lakatos <prove|refute|check|exe> [--seed <n>] [files-or-globs...]";
@@ -206,7 +109,7 @@ export async function main(
   try {
     // exe has no envelope and so no spine: it is the one verb whose stdout
     // is the program's rather than lakatos's.
-    if (command === "exe") return await runExe(patterns);
+    if (command === "exe") return await exeMain(patterns);
     // The seed is parsed before anything else so a bad one is reported
     // without first resolving files.
     if (command === "refute")

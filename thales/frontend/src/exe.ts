@@ -1,9 +1,9 @@
-// `lakatos exe`'s pipeline, without the CLI's input or output: strip a
+// `thales-exe`'s pipeline, without the bin's input or output: strip a
 // TypeScript file's types, put the result through the parser bridge, and
 // run the document on the tarski evaluator.
 //
 // It is a module of its own so that the fixture comparison against Node
-// (`tests/exe-fixtures.test.ts`) can drive the same pipeline the command
+// (`thales/tests/exe-fixtures.test.ts`) can drive the same pipeline the command
 // drives without going through argv, a tsconfig, or a run directory.
 
 import { mkdirSync, writeFileSync } from "node:fs";

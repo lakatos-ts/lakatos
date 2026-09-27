@@ -5,7 +5,8 @@
   "type": "module",
   "license": "MIT",
   "bin": {
-    "thales": "dist/cli.js"
+    "thales": "dist/cli.js",
+    "thales-exe": "dist/exe-cli.js"
   },
   "files": [
     "dist/*.js",

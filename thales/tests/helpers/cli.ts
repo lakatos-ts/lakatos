@@ -3,6 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
 import { main } from "../../frontend/src/cli.js";
+import { main as exeMain } from "../../frontend/src/exe-cli.js";
 import { expectValidEnvelope } from "./envelope-schema.js";
 import type { Envelope } from "@lakatos/core/envelope";
 import { BUILD_TIMEOUT_MS, LEAN_TIMEOUT_MS } from "../../frontend/src/run.js";
@@ -31,6 +32,50 @@ export async function runMain(argv: string[]): Promise<MainRun> {
   } finally {
     logSpy.mockRestore();
     errSpy.mockRestore();
+  }
+}
+
+export interface RawRun {
+  code: number;
+  stdout: string;
+  stderr: string;
+}
+
+/**
+ * Run the thales-exe bin's main() with all four output paths captured as two
+ * strings: it forwards the program's own bytes through `process.stdout.write`,
+ * which `runMain` does not see, and a test of it reads stdout as one stream.
+ */
+export async function runExeRaw(argv: string[]): Promise<RawRun> {
+  let stdout = "";
+  let stderr = "";
+  const outSpy = vi
+    .spyOn(process.stdout, "write")
+    .mockImplementation((chunk: unknown) => {
+      stdout += String(chunk);
+      return true;
+    });
+  const errSpy = vi
+    .spyOn(process.stderr, "write")
+    .mockImplementation((chunk: unknown) => {
+      stderr += String(chunk);
+      return true;
+    });
+  const logSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
+    stdout += `${args.join(" ")}\n`;
+  });
+  const consoleErrSpy = vi
+    .spyOn(console, "error")
+    .mockImplementation((...args) => {
+      stderr += `${args.join(" ")}\n`;
+    });
+  try {
+    return { code: await exeMain(argv), stdout, stderr };
+  } finally {
+    outSpy.mockRestore();
+    errSpy.mockRestore();
+    logSpy.mockRestore();
+    consoleErrSpy.mockRestore();
   }
 }
 

@@ -225,7 +225,10 @@ describe("import layering", () => {
       scripts: Record<string, string>;
     };
     expect(pkg.name).toBe("@lakatos/thales");
-    expect(pkg.bin).toEqual({ thales: "dist/cli.js" });
+    expect(pkg.bin).toEqual({
+      thales: "dist/cli.js",
+      "thales-exe": "dist/exe-cli.js",
+    });
     expect(Object.keys(pkg.exports)).toEqual(["."]);
     expect(Object.keys(pkg.scripts).sort()).toEqual([
       "check:envelopes",
