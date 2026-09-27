@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 import * as os from "node:os";
 import * as path from "node:path";
-import { admit, refusalsOf } from "../src/admit.js";
+import { admit, refusalsOf, type Note } from "../src/admit.js";
 import { LemmaError } from "../src/errors.js";
 import { useTempProject } from "./helpers/temp-project.js";
 
 const cache = (): string =>
   path.join(os.tmpdir(), `admit-cache-${process.pid}-${Math.random()}`);
+
+/** Admit, collecting the notes it streams. */
+function admitted(patterns: string[]) {
+  const notes: Note[] = [];
+  const a = admit(patterns, cache(), (n) => notes.push(n));
+  return { ...a, notes };
+}
 
 const GOOD = `/** @ensures{p} forall (n: int) { f(n) === n } */\nexport function f(n: number): number { return n; }\n`;
 
@@ -33,7 +40,7 @@ describe("admit without a tsconfig", () => {
   useTempProject("admit-missing-", { "a.ts": GOOD }, { tsconfig: false });
 
   it("refuses every annotation and says why", () => {
-    const a = admit(["a.ts"], cache());
+    const a = admitted(["a.ts"]);
     expect(a.kind).toBe("refused");
     expect(a.refusals).toEqual([
       {
@@ -59,7 +66,7 @@ describe("admit over an ill-typed program", () => {
   });
 
   it("echoes the diagnostic, then counts the refusals", () => {
-    const a = admit([], cache());
+    const a = admitted([]);
     expect(a.kind).toBe("refused");
     expect(a.notes[0]).toEqual({
       level: "info",
@@ -87,7 +94,7 @@ describe("admit with a named file outside the program", () => {
   });
 
   it("refuses only that file and admits the rest", () => {
-    const a = admit(["a.ts", "extra/b.ts"], cache());
+    const a = admitted(["a.ts", "extra/b.ts"]);
     expect(a.kind).toBe("admitted");
     if (a.kind !== "admitted") return;
     expect(a.files).toEqual(["a.ts"]);
@@ -105,8 +112,19 @@ describe("admit over an unreadable formula", () => {
     "a.ts": `/** @ensures{p} forall (n: int) { forall (m: int) { f(n) === m } } */\nexport function f(n: number): number { return n; }\n`,
   });
 
+  it("has already noted discovery when it throws", () => {
+    const notes: Note[] = [];
+    expect(() => admit([], cache(), (n) => notes.push(n))).toThrow(LemmaError);
+    expect(notes).toEqual([
+      {
+        level: "info",
+        text: "no files given; discovered 1 file(s) via tsconfig.json",
+      },
+    ]);
+  });
+
   it("throws a LemmaError naming the annotation", () => {
-    expect(() => admit(["a.ts"], cache())).toThrow(LemmaError);
-    expect(() => admit(["a.ts"], cache())).toThrow(/^a\.ts:1: @ensures\{p\}: /);
+    expect(() => admitted(["a.ts"])).toThrow(LemmaError);
+    expect(() => admitted(["a.ts"])).toThrow(/^a\.ts:1: @ensures\{p\}: /);
   });
 });

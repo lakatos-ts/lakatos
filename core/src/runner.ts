@@ -32,18 +32,17 @@ export interface InputRefusal extends PropertyIdentity {
   error: string;
 }
 
-/** The front end's verdict on a command line, before any engine runs.
- * `notes` are in stderr order and already cover the refusals that need
+/** The front end's verdict on a command line, before any engine runs. Its
+ * notes went out as they arose, including every refusal that needed
  * echoing. A refused admission stops the run at exit 2. */
 export type Admission =
-  | { kind: "refused"; refusals: InputRefusal[]; notes: Note[] }
+  | { kind: "refused"; refusals: InputRefusal[] }
   | {
       kind: "admitted";
       files: string[];
       /** Annotations the engine skips: already refused during admission. */
       refused: ReadonlySet<string>;
       refusals: InputRefusal[];
-      notes: Note[];
     };
 
 /** Envelope fields outside the per-annotation list. */
@@ -153,7 +152,7 @@ const annotations = (n: number): string =>
  */
 export async function runTool(
   tool: Tool,
-  admit: () => Admission,
+  admit: (note: (n: Note) => void) => Admission,
   spine: Spine,
   io: ToolIo = consoleIo,
 ): Promise<RunReport> {
@@ -172,8 +171,7 @@ export async function runTool(
   };
   // Admission runs before claimRunDir, so a refused run leaves no empty
   // run directory and no engine sees unchecked input.
-  const admission = admit();
-  for (const n of admission.notes) say(n);
+  const admission = admit(say);
   if (admission.kind === "refused")
     return report(
       { ...base, annotations: admission.refusals.map(inputError) },

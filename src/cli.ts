@@ -235,7 +235,7 @@ export async function main(
     // Awaited, not returned: the catch below must see the run's rejection.
     const report = await runTool(
       { name: "lakatos", version: packageVersion(import.meta.url) },
-      () => admit(patterns, path.resolve(RUN_ROOT, TYPECHECK_CACHE)),
+      (note) => admit(patterns, path.resolve(RUN_ROOT, TYPECHECK_CACHE), note),
       spine,
     );
     return report.code;

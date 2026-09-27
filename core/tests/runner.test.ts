@@ -34,7 +34,6 @@ const admitted = (over: Partial<Admission> = {}): Admission =>
     files: ["a.ts"],
     refused: new Set<string>(),
     refusals: [],
-    notes: [],
     ...over,
   }) as Admission;
 
@@ -75,11 +74,10 @@ describe("runTool", () => {
     const io = capture();
     const report = await runTool(
       TOOL,
-      () => ({
-        kind: "refused",
-        refusals: [{ ...ID, error: "no tsconfig" }],
-        notes: [{ level: "info", text: "refused 1" }],
-      }),
+      (note) => {
+        note({ level: "info", text: "refused 1" });
+        return { kind: "refused", refusals: [{ ...ID, error: "no tsconfig" }] };
+      },
       spine(plan()),
       io,
     );
@@ -93,11 +91,30 @@ describe("runTool", () => {
     expect(fs.existsSync(RUN_ROOT)).toBe(false);
   });
 
+  it("prints admission notes made before admission throws", async () => {
+    const io = capture();
+    await expect(
+      runTool(
+        TOOL,
+        (note) => {
+          note({ level: "info", text: "discovered 2 file(s)" });
+          throw new Error("unreadable formula");
+        },
+        spine(plan()),
+        io,
+      ),
+    ).rejects.toThrow("unreadable formula");
+    expect(io.lines).toEqual(["tool: discovered 2 file(s)"]);
+  });
+
   it("echoes the plan's refusals before the plan's own notes", async () => {
     const io = capture();
     await runTool(
       TOOL,
-      () => admitted({ notes: [{ level: "error", text: "admission fault" }] }),
+      (note) => {
+        note({ level: "error", text: "admission fault" });
+        return admitted();
+      },
       spine(
         plan({
           outFiles: [],

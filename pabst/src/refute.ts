@@ -37,7 +37,7 @@ export function refute(
 ): Promise<RunReport> {
   return runTool(
     { name: "pabst", version: packageVersion(import.meta.url) },
-    () => admit(patterns, path.resolve(RUN_ROOT, TYPECHECK_CACHE)),
+    (note) => admit(patterns, path.resolve(RUN_ROOT, TYPECHECK_CACHE), note),
     refuteSpine(options.seed ?? randomSeed()),
     options.io,
   );

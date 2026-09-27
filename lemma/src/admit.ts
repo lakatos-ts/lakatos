@@ -31,13 +31,12 @@ export interface Note {
  * admitted names the checked files and the annotation keys the engines
  * skip because a refusal already covers them. */
 export type Admission =
-  | { kind: "refused"; refusals: Refusal[]; notes: Note[] }
+  | { kind: "refused"; refusals: Refusal[] }
   | {
       kind: "admitted";
       files: string[];
       refused: ReadonlySet<string>;
       refusals: Refusal[];
-      notes: Note[];
     };
 
 const NO_TSCONFIG =
@@ -130,69 +129,62 @@ function readFormulas(files: string[]): ParsedFile[] {
  * Resolve `patterns` (or discover the tsconfig's files), type check the
  * whole project under lakatos's required options with `cacheFile` as the
  * incremental build info, and type every formula's atoms. Throws LemmaError
- * when resolution comes up empty or a formula cannot be read.
+ * when resolution comes up empty or a formula cannot be read. Notes go to
+ * `note` as they arise, so the ones made before a throw still reach stderr.
  */
-export function admit(patterns: string[], cacheFile: string): Admission {
-  const notes: Note[] = [];
+export function admit(
+  patterns: string[],
+  cacheFile: string,
+  note: (n: Note) => void,
+): Admission {
   const { files, source } = resolveFiles(patterns);
   if (source === "tsconfig.json")
-    notes.push({
+    note({
       level: "info",
       text: `no files given; discovered ${files.length} file(s) via tsconfig.json`,
     });
   const check = typecheckProject(process.cwd(), cacheFile);
   if (check.kind === "missing") {
     const refused = refuseFiles(files, NO_TSCONFIG);
-    return {
-      kind: "refused",
-      refusals: refused.refusals,
-      notes: [
-        ...notes,
-        ...refused.notes,
-        {
-          level: "info",
-          text: `no tsconfig.json; reporting ${annotations(refused.refusals.length)} as InputError`,
-        },
-      ],
-    };
+    refused.notes.forEach(note);
+    note({
+      level: "info",
+      text: `no tsconfig.json; reporting ${annotations(refused.refusals.length)} as InputError`,
+    });
+    return { kind: "refused", refusals: refused.refusals };
   }
   if (check.kind === "failed") {
+    for (const d of check.diagnostics)
+      note({ level: "error", text: formatTsDiagnostic(d) });
     const refused = refuseFiles(files, typecheckFailure(check.diagnostics));
-    return {
-      kind: "refused",
-      refusals: refused.refusals,
-      notes: [
-        ...notes,
-        ...check.diagnostics.map((d): Note => ({
-          level: "error",
-          text: formatTsDiagnostic(d),
-        })),
-        ...refused.notes,
-        {
-          level: "info",
-          text: `the program does not type check under lakatos's required options; reporting ${annotations(refused.refusals.length)} as InputError`,
-        },
-      ],
-    };
+    refused.notes.forEach(note);
+    note({
+      level: "info",
+      text: `the program does not type check under lakatos's required options; reporting ${annotations(refused.refusals.length)} as InputError`,
+    });
+    return { kind: "refused", refusals: refused.refusals };
   }
   // A named file the program does not include was never checked: refuse it
   // alone, and admit the rest.
   const program = new Set(check.programFiles);
   const outside = files.filter((f) => !program.has(f));
-  for (const f of outside)
-    notes.push({ level: "error", text: outsideProgram(f) });
-  const gate = outside.map((f) => refuseFiles([f], outsideProgram(f)));
+  for (const f of outside) note({ level: "error", text: outsideProgram(f) });
+  const gate = outside.flatMap((f) => {
+    const refused = refuseFiles([f], outsideProgram(f));
+    refused.notes.forEach(note);
+    return refused.refusals;
+  });
   const checked = files.filter((f) => program.has(f));
   // Atoms are host code the gate never saw: type them before any engine does.
   const typed = typeFormulas(readFormulas(checked), check.checked);
   const typeErrors = typed.invalid.flatMap(({ file, invalid }) =>
     refusalsOf(file, invalid),
   );
+  echo(typeErrors).forEach(note);
   return {
     kind: "admitted",
     files: checked,
     refused: typed.refused,
-    refusals: [...gate.flatMap((g) => g.refusals), ...typeErrors],
-    notes: [...notes, ...gate.flatMap((g) => g.notes), ...echo(typeErrors)],
+    refusals: [...gate, ...typeErrors],
   };
 }
