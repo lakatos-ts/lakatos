@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,7 +32,11 @@ const PACKAGES: { dir: string; forbidden: string[] }[] = [
   },
   {
     dir: "tarski/frontend/src",
-    forbidden: ["src", "lemma", "pabst", "engines"],
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines"],
+  },
+  {
+    dir: "tarski/frontend/tests",
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines"],
   },
 ];
 
@@ -133,7 +138,64 @@ describe("import layering", () => {
     expect(existsSync(path.join(root, "engines/pabst"))).toBe(false);
   });
 
-  for (const pkgDir of ["lemma", "pabst"]) {
+  it("tarski names no other workspace package", () => {
+    const offenders = [
+      ...tsFiles(path.join(root, "tarski/frontend/src")),
+      ...tsFiles(path.join(root, "tarski/frontend/tests")),
+    ].filter((f) =>
+      /["']@lakatos\/(?!tarski[/"'])/.test(readFileSync(f, "utf8")),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it("tarski is a workspace package with the test262 bin and the ESTree schema", () => {
+    const pkg = JSON.parse(
+      readFileSync(path.join(root, "tarski/package.json"), "utf8"),
+    ) as {
+      name: string;
+      bin: Record<string, string>;
+      exports: Record<string, unknown>;
+      dependencies?: Record<string, string>;
+    };
+    expect(pkg.name).toBe("@lakatos/tarski");
+    expect(pkg.bin).toEqual({ "tarski-test262": "dist/test262/cli.js" });
+    expect(Object.keys(pkg.exports).sort()).toEqual([
+      ".",
+      "./schemas/tarski-estree.schema.json",
+    ]);
+    expect(
+      Object.keys(pkg.dependencies ?? {}).filter((d) =>
+        d.startsWith("@lakatos/"),
+      ),
+    ).toEqual([]);
+    const rootPkg = JSON.parse(
+      readFileSync(path.join(root, "package.json"), "utf8"),
+    ) as { bin?: Record<string, string> };
+    expect(rootPkg.bin?.["tarski-test262"]).toBeUndefined();
+    expect(
+      existsSync(path.join(root, "schemas/tarski-estree.schema.json")),
+    ).toBe(false);
+  });
+
+  // `dist/test262/` needs a recursive glob, which must not sweep in the
+  // build info tsc -b writes beside the output.
+  it("tarski's tarball ships no build info", () => {
+    const [packed] = JSON.parse(
+      execFileSync("npm", ["pack", "--dry-run", "--json", "-w", "tarski"], {
+        cwd: root,
+        encoding: "utf8",
+      }),
+    ) as { files: { path: string }[] }[];
+    const paths = packed!.files.map((f) => f.path);
+    expect(paths).toContain("dist/test262/cli.js");
+    expect(paths.filter((p) => p.endsWith(".tsbuildinfo"))).toEqual([]);
+  });
+
+  for (const { pkg: pkgDir, src } of [
+    { pkg: "lemma", src: "lemma/src" },
+    { pkg: "pabst", src: "pabst/src" },
+    { pkg: "tarski", src: "tarski/frontend/src" },
+  ]) {
     it(`${pkgDir} declares every package its sources import at runtime`, () => {
       const pkg = JSON.parse(
         readFileSync(path.join(root, pkgDir, "package.json"), "utf8"),
@@ -146,7 +208,7 @@ describe("import layering", () => {
         ...Object.keys(pkg.peerDependencies ?? {}),
       ]);
       const undeclared = new Set<string>();
-      for (const file of tsFiles(path.join(root, pkgDir, "src"))) {
+      for (const file of tsFiles(path.join(root, src))) {
         const text = readFileSync(file, "utf8");
         for (const [, name] of text.matchAll(
           /^import\s+(?!type\b)[^"]*?from\s+"([^".][^"]*)"/gm,

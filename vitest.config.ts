@@ -33,6 +33,12 @@ export default defineConfig({
           new URL("./pabst/src/index.ts", import.meta.url),
         ),
       },
+      {
+        find: /^@lakatos\/tarski$/,
+        replacement: fileURLToPath(
+          new URL("./tarski/frontend/src/index.ts", import.meta.url),
+        ),
+      },
     ],
   },
   test: {

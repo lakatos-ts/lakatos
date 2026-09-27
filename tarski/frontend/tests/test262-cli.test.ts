@@ -524,16 +524,8 @@ describe("tarski-test262", () => {
 
 // The built file, run the way a person runs it, as `bridge-cli.test.ts`
 // does for the parser bridge. The build is the suite-wide globalSetup's.
-describe("dist/tarski/frontend/src/test262/cli.js", () => {
-  const cli = path.join(
-    root,
-    "dist",
-    "tarski",
-    "frontend",
-    "src",
-    "test262",
-    "cli.js",
-  );
+describe("tarski/dist/test262/cli.js", () => {
+  const cli = path.join(root, "tarski", "dist", "test262", "cli.js");
 
   it("starts with a shebang", () => {
     expect(readFileSync(cli, "utf8").startsWith("#!/usr/bin/env node\n")).toBe(

@@ -4,10 +4,11 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["src", "engines/thales/frontend/src", "tarski/frontend/src"],
+  "include": ["src", "engines/thales/frontend/src"],
   "references": [
     { "path": "./core" },
     { "path": "./lemma" },
-    { "path": "./pabst" }
+    { "path": "./pabst" },
+    { "path": "./tarski" }
   ]
 }

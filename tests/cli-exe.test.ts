@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runMainRaw, useTempProject } from "./helpers/cli.js";
 import { RUN_ROOT } from "@lakatos/core/run-dir";
-import type { BinaryResult } from "../tarski/frontend/src/binary.js";
+import type { BinaryResult } from "@lakatos/tarski";
 
 // The evaluator is mocked at the module seam the prove tests use for
 // thales, and only its *build* is: `runDocument` stays real, so the spawn

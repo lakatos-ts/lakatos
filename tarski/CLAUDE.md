@@ -4,7 +4,7 @@
 
 Tarski is lakatos's JS-semantics library: the Lean definitions that give TypeScript's values and operations their meaning. `lakatos prove` (thales) proves `@ensures` properties against models built from these definitions. The package is shared: thales requires it by path (`require tarski from "../../tarski"` in `engines/thales/lakefile.lean`); no engine may be required by it. The boundary rule: nothing here mentions `ThalesDsl` or any emission concern — lakatos owns syntax and search, this library owns meaning.
 
-It holds two things over one set of definitions. `Js/` is the semantics library. `Tarski/` is an evaluator for a fragment of JavaScript — a definitional interpreter whose every primitive operation _is_ one of the library's, so a `Theorem` and a run appeal to the same meaning. The evaluator's parser is not in Lean: `frontend/` is a TypeScript bridge over tsc that emits ESTree JSON, and `schemas/tarski-estree.schema.json` at the repo root is the seam. Growing the evaluator is GitHub epic #376.
+It holds two things over one set of definitions. `Js/` is the semantics library. `Tarski/` is an evaluator for a fragment of JavaScript — a definitional interpreter whose every primitive operation _is_ one of the library's, so a `Theorem` and a run appeal to the same meaning. The evaluator's parser is not in Lean: `frontend/` is a TypeScript bridge over tsc that emits ESTree JSON, and `schemas/tarski-estree.schema.json` is the seam. Growing the evaluator is GitHub epic #376.
 
 The Lean toolchain pin is `lean-toolchain` here; `engines/thales/lean-toolchain` is a symlink to it. `lake-manifest.json` is tracked.
 
@@ -25,8 +25,8 @@ from the repo root first:
 
 ```bash
 node scripts/setup-test262.js       # clone the pin into .test262 (or set LAKATOS_TEST262)
-node ../dist/tarski/frontend/src/test262/cli.js --slice-file test262/slice.txt
-node ../dist/tarski/frontend/src/test262/cli.js --slice-file test262/slice.txt \
+node dist/test262/cli.js --slice-file test262/slice.txt
+node dist/test262/cli.js --slice-file test262/slice.txt \
   --check test262/expected.json
 sh scripts/test262-full.sh          # the scheduled full run; writes test262/results.{md,json}
 ```
@@ -37,20 +37,20 @@ runner labels a results table with the commit that checkout is really at.
 14400000, four hours) are what `test262-full.sh` passes as `--timeout` and
 `--budget`.
 
-The installed name is `tarski-test262`, a `bin` of the root package. npm
-does not link a package's own bins, so in a checkout the spelling is the
-`node dist/…` one above; `npx tarski-test262` works once lakatos is
-installed or linked.
+The installed name is `tarski-test262`, the `bin` of `@lakatos/tarski`.
+npm does not link a package's own bins, so here the spelling is the
+`node dist/…` one above; from the repo root, `npx tarski-test262` works
+through the workspace link.
 
 The binary lands at `.lake/build/bin/tarski` and takes one ESTree document:
 
 ```bash
-node ../dist/tarski/frontend/src/bridge-cli.js t.js t.json   # after npm run build
+node dist/bridge-cli.js t.js t.json   # after npm run build
 .lake/build/bin/tarski run t.json    # the completion value is a line of output
 .lake/build/bin/tarski exec t.json   # it is not; this is what `lakatos exe` calls
 ```
 
-The bridge and its tests are part of the repo-root npm package, not this lake package: build, typecheck, test, and format them from the repo root.
+This directory is both the lake package and the npm workspace package `@lakatos/tarski`: the TypeScript lives in `frontend/`, and its build lands in `dist/`. Build, typecheck, test, and format it from the repo root.
 
 Wrap `lake env lean` in a timeout when running it by hand; a bad artifact can grind indefinitely.
 

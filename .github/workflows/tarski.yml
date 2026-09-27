@@ -295,7 +295,7 @@ jobs:
         # aggregator checks their union.
         timeout-minutes: 20
         run: |
-          node ../dist/tarski/frontend/src/test262/cli.js \
+          node dist/test262/cli.js \
             --slice-file test262/slice.txt \
             --shard ${{ matrix.shard }}/3 \
             --write "shard-${{ matrix.shard }}.json"
@@ -420,7 +420,7 @@ jobs:
       - name: Check the union against the expectations
         if: needs.test262-slice.result == 'success'
         run: |
-          node ../dist/tarski/frontend/src/test262/cli.js \
+          node dist/test262/cli.js \
             --merge shards/shard-1.json \
             --merge shards/shard-2.json \
             --merge shards/shard-3.json \

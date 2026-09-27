@@ -130,17 +130,10 @@ describe("the bridge as a command", () => {
   }
 });
 
-// The built file, run the way a person runs it: `node dist/.../
-// bridge-cli.js t.js > t.json`. The build is the suite-wide globalSetup's.
-describe("dist/tarski/frontend/src/bridge-cli.js", () => {
-  const cli = path.join(
-    root,
-    "dist",
-    "tarski",
-    "frontend",
-    "src",
-    "bridge-cli.js",
-  );
+// The built file, run the way a person runs it: `node dist/bridge-cli.js
+// t.js > t.json`. The build is the suite-wide globalSetup's.
+describe("tarski/dist/bridge-cli.js", () => {
+  const cli = path.join(root, "tarski", "dist", "bridge-cli.js");
 
   it("starts with an env-node shebang", () => {
     expect(readFileSync(cli, "utf8").split("\n", 1)[0]).toBe(

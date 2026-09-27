@@ -20,8 +20,8 @@ import {
   parseScript,
   type Program,
   type Statement,
-} from "../../../../tarski/frontend/src/estree.js";
-import { stripTypes } from "../../../../tarski/frontend/src/strip-types.js";
+  stripTypes,
+} from "@lakatos/tarski";
 import { type ModelRef } from "./module-graph.js";
 
 /** One walked module: the qualifier its models carry (empty for the

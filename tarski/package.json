@@ -1,0 +1,40 @@
+{
+  "name": "@lakatos/tarski",
+  "version": "0.1.0",
+  "description": "The JavaScript semantics behind lakatos: the TypeScript-to-ESTree bridge, the evaluator binary's runner, and the test262 harness",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "tarski-test262": "dist/test262/cli.js"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "schemas"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakatos-ts/lakatos.git",
+    "directory": "tarski"
+  },
+  "homepage": "https://github.com/lakatos-ts/lakatos#readme",
+  "bugs": {
+    "url": "https://github.com/lakatos-ts/lakatos/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas/tarski-estree.schema.json": "./schemas/tarski-estree.schema.json"
+  },
+  "dependencies": {
+    "typescript": "^6.0.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runMainRaw, useTempProject } from "./helpers/cli.js";
-import { BUILD_TIMEOUT_MS } from "../tarski/frontend/src/binary.js";
+import { BUILD_TIMEOUT_MS } from "@lakatos/tarski";
 
 // `lakatos exe` against the *real* evaluator, which needs a lakatos
 // checkout with the Lean toolchain — `tarski.yml` is the one workflow with

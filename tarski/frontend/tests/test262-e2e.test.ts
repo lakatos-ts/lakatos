@@ -12,15 +12,7 @@ import path from "node:path";
 // `LAKATOS_TARSKI_E2E=1` in `tarski.yml`, where it is.
 const root = fileURLToPath(new URL("../../..", import.meta.url));
 const TREE = fileURLToPath(new URL("fixtures/test262", import.meta.url));
-const CLI = path.join(
-  root,
-  "dist",
-  "tarski",
-  "frontend",
-  "src",
-  "test262",
-  "cli.js",
-);
+const CLI = path.join(root, "tarski", "dist", "test262", "cli.js");
 const BINARY = path.join(root, "tarski", ".lake", "build", "bin", "tarski");
 const FAKE = fileURLToPath(
   new URL("fixtures/fake-tarski.mjs", import.meta.url),

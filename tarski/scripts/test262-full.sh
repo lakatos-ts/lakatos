@@ -20,7 +20,7 @@
 # Needs `npm run build` at the repo root and `lake build tarski` here.
 set -eu
 cd "$(dirname "$0")/.."
-exec node ../dist/tarski/frontend/src/test262/cli.js \
+exec node dist/test262/cli.js \
   test/language test/built-ins test/intl402 \
   --summary \
   --timeout "${TEST262_TIMEOUT_MS:-10000}" \

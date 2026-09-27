@@ -18,16 +18,20 @@ describe("findTarskiRoot", () => {
     expect(existsSync(path.join(root ?? "", "lakefile.lean"))).toBe(true);
   });
 
-  // The installed copy's `dist/` is not under `tarski/`, so the walk has
-  // to find the package as a *child* of an ancestor as well.
+  // A file outside `tarski/` finds the package as a *child* of an ancestor.
   it("finds the lake package from a sibling tree", () => {
     const root = findTarskiRoot(here);
     const repo = path.dirname(root ?? "");
+    expect(findTarskiRoot(path.join(repo, "dist", "src", "x.js"))).toBe(root);
+  });
+
+  // The built runner stops at the package root, not past it.
+  it("finds the lake package from the built runner", () => {
+    const root = findTarskiRoot(here);
+    const repo = path.dirname(root ?? "");
     expect(
-      findTarskiRoot(
-        path.join(repo, "dist", "tarski", "frontend", "src", "x.js"),
-      ),
-    ).toBe(root);
+      findTarskiRoot(path.join(repo, "tarski", "dist", "test262", "cli.js")),
+    ).toBe(path.join(repo, "tarski"));
   });
 
   it("is undefined where there is no lake package", () => {
