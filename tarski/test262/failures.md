@@ -4,7 +4,7 @@ Written 2026-09-15 against test262 at `419d3e0a2273ba01a3bfcbec423f2801425b8e93`
 (`tarski/test262/pin.json`), from one run of
 
 ```bash
-node ../dist/tarski/frontend/src/test262/cli.js --slice-file test262/slice.txt
+node dist/test262/cli.js --slice-file test262/slice.txt
 ```
 
 Every failing test in `tarski/test262/slice.txt` is classified here — the

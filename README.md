@@ -172,7 +172,8 @@ Everything is one repository, an npm workspace:
 - [`pabst/`](pabst/) — `@lakatos/pabst`, the refutation tool and its
   `pabst` bin: compiles
   properties to [fast-check](https://fast-check.dev/) runs.
-- [`tarski/`](tarski/) — the JS semantics: the Lean library the proof
+- [`tarski/`](tarski/) — `@lakatos/tarski` and its `tarski-test262`
+  bin, the JS semantics: the Lean library the proof
   engine proves against (`number` as binary64, the operations Lean lacks,
   the value domain, and their kernel-checked theory) and, over the same
   definitions, an evaluator for a growing fragment of JavaScript, with a
