@@ -1,4 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 import { parseArgs } from "node:util";
 import { main } from "../src/cli.js";
 
@@ -48,5 +51,26 @@ describe("the thales bin", () => {
       throw new RangeError("not a parse error");
     });
     await expect(capture([])).rejects.toThrow(RangeError);
+  });
+});
+
+describe("with no tsconfig.json and no arguments", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "thales-no-tsconfig-"));
+  const prev = process.cwd();
+  beforeAll(() => {
+    fs.writeFileSync(path.join(dir, "a.ts"), "export const one = 1;\n");
+    process.chdir(dir);
+  });
+  afterAll(() => {
+    process.chdir(prev);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("exits 2 with a hint that names no tool", async () => {
+    const r = await capture([]);
+    expect(r.code).toBe(2);
+    expect(r.err).toEqual([
+      'error: no tsconfig.json to discover sources from; pass files or globs (e.g. "src/**/*.ts")',
+    ]);
   });
 });

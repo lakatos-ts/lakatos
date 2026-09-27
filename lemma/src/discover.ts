@@ -48,7 +48,7 @@ function globbedFiles(patterns: string[]): string[] {
   return files;
 }
 
-const PASS_FILES = 'pass files or globs (e.g. lakatos refute "src/**/*.ts")';
+const PASS_FILES = 'pass files or globs (e.g. "src/**/*.ts")';
 const NO_TSCONFIG = `no tsconfig.json to discover sources from; ${PASS_FILES}`;
 const NO_INPUTS = `tsconfig.json names no files; ${PASS_FILES}`;
 

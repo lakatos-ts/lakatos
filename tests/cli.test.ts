@@ -88,7 +88,7 @@ describe("cli main without a tsconfig", () => {
     expect(code).toBe(2);
     expect(stderr).toHaveLength(1);
     expect(stderr[0]).toBe(
-      'error: no tsconfig.json to discover sources from; pass files or globs (e.g. lakatos refute "src/**/*.ts")',
+      'error: no tsconfig.json to discover sources from; pass files or globs (e.g. "src/**/*.ts")',
     );
   });
 });
