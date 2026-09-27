@@ -58,7 +58,7 @@ describe("cli on an interrupted run", () => {
       env.annotations.every((a: { szs: string }) => a.szs === "User"),
     ).toBe(true);
     expect(stderr).toContain(
-      "lakatos: interrupted by SIGTERM; reporting 2 annotations as User",
+      "thales: interrupted by SIGTERM; reporting 2 annotations as User",
     );
   });
 
@@ -73,7 +73,7 @@ describe("cli on an interrupted run", () => {
       env.annotations.every((a: { szs: string }) => a.szs === "User"),
     ).toBe(true);
     expect(stderr).toContain(
-      "lakatos: interrupted by SIGINT; reporting 2 annotations as User",
+      "thales: interrupted by SIGINT; reporting 2 annotations as User",
     );
   });
 });

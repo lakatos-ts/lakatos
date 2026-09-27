@@ -511,7 +511,7 @@ describe("cli prove, plain pipeline", () => {
         .model,
     ).toEqual({ status: "unvalidated", reason: "'**' is not supported" });
     expect(stderr.filter((l) => l.includes("model unvalidated"))).toEqual([
-      "lakatos: mixed.ts small/pos: PROVED (model unvalidated: '**' is not supported)",
+      "thales: mixed.ts small/pos: PROVED (model unvalidated: '**' is not supported)",
     ]);
   });
 

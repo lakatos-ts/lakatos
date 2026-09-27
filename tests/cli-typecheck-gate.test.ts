@@ -153,7 +153,7 @@ describe("the project switches strict off", () => {
       "error: src/a.ts:3: TS2322: Type 'undefined' is not assignable to type 'number'.",
     );
     expect(run.stderr.join("\n")).toContain(
-      "lakatos: the program does not type check under lakatos's required options; reporting 1 annotation as InputError",
+      "thales: the program does not type check under lakatos's required options; reporting 1 annotation as InputError",
     );
     expect(JSON.parse(run.stdout[0]!).annotations[0]).toMatchObject({
       szs: "InputError",
