@@ -12,18 +12,15 @@ import { QUALIFIED_NAME_PATTERN, qualifiedName } from "@lakatos/lemma";
 import * as runtime from "../src/runtime.js";
 
 describe("contract pins", () => {
-  it("spells the runtime specifier as package.json's name + /runtime", () => {
+  it("spells the runtime specifier as pabst's name + /runtime", () => {
     const pkg = JSON.parse(
-      readFileSync(new URL("../../../package.json", import.meta.url), "utf8"),
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
     );
     expect(RUNTIME_SPECIFIER).toBe(`${pkg.name}/runtime`);
-    expect(Object.keys(pkg.exports)).toContain("./runtime");
-    expect(pkg.exports["./runtime"].default).toBe(
-      "./dist/engines/pabst/src/runtime.js",
-    );
-    expect(pkg.exports["./runtime"].types).toBe(
-      "./dist/engines/pabst/src/runtime.d.ts",
-    );
+    expect(pkg.exports["./runtime"]).toEqual({
+      types: "./dist/runtime.d.ts",
+      default: "./dist/runtime.js",
+    });
   });
 
   it("binds aliases to exports the runtime actually has", () => {

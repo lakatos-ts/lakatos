@@ -9,8 +9,8 @@ const repoRoot = process.cwd();
 
 // README usage claims about the envelope a run prints: one JSON document
 // on stdout, exit 0 or 1 by whether anything was falsified, and a flagged
-// annotation when it was. The generated tests import "lakatos/runtime" via
-// the package self-reference, so these must run inside the repo tree (a
+// annotation when it was. The generated tests import "@lakatos/pabst/runtime" via
+// the workspace link, so these must run inside the repo tree (a
 // gitignored scratch dir under .lakatos/), unlike the os.tmpdir()-based
 // suites above.
 describe("cli refute envelopes", () => {

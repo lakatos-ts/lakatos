@@ -5,10 +5,6 @@ import * as os from "node:os";
 import { main } from "../../src/cli.js";
 import { expectValidEnvelope } from "./envelope-schema.js";
 import type { Envelope } from "@lakatos/core/envelope";
-import {
-  BUILD_TIMEOUT_MS,
-  LEAN_TIMEOUT_MS,
-} from "../../engines/thales/frontend/src/run.js";
 
 export interface MainRun {
   code: number;
@@ -17,8 +13,8 @@ export interface MainRun {
 }
 
 /**
- * Run the CLI's main() with both console streams captured, so tests can
- * assert on diagnostics regardless of which stream they land on.
+ * Run the pabst bin's main() with both console streams captured, so tests
+ * can assert on diagnostics regardless of which stream they land on.
  */
 export async function runMain(argv: string[]): Promise<MainRun> {
   const stdout: string[] = [];
@@ -37,53 +33,8 @@ export async function runMain(argv: string[]): Promise<MainRun> {
   }
 }
 
-export interface RawRun {
-  code: number;
-  stdout: string;
-  stderr: string;
-}
-
-/**
- * Run the CLI's main() with all four output paths captured as two strings.
- * `exe` forwards the program's own bytes through `process.stdout.write`,
- * which `runMain` does not see, and a test of it has to read stdout the
- * way a shell does — as one stream, not a list of console.log calls.
- */
-export async function runMainRaw(argv: string[]): Promise<RawRun> {
-  let stdout = "";
-  let stderr = "";
-  const outSpy = vi
-    .spyOn(process.stdout, "write")
-    .mockImplementation((chunk: unknown) => {
-      stdout += String(chunk);
-      return true;
-    });
-  const errSpy = vi
-    .spyOn(process.stderr, "write")
-    .mockImplementation((chunk: unknown) => {
-      stderr += String(chunk);
-      return true;
-    });
-  const logSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
-    stdout += `${args.join(" ")}\n`;
-  });
-  const consoleErrSpy = vi
-    .spyOn(console, "error")
-    .mockImplementation((...args) => {
-      stderr += `${args.join(" ")}\n`;
-    });
-  try {
-    return { code: await main(argv), stdout, stderr };
-  } finally {
-    outSpy.mockRestore();
-    errSpy.mockRestore();
-    logSpy.mockRestore();
-    consoleErrSpy.mockRestore();
-  }
-}
-
 /** The tsconfig a scratch project gets when a suite supplies none: enough
- * for tsc to describe the program (lakatos forces strict itself). Excludes
+ * for tsc to describe the program (lemma forces strict itself). Excludes
  * the run root so generated artifacts never join the program. */
 export const DEFAULT_TSCONFIG = JSON.stringify({
   compilerOptions: { target: "es2022", module: "nodenext", types: [] },
@@ -97,12 +48,12 @@ function ensureTsconfig(dir: string): void {
 }
 
 /**
- * The run directory the CLI announced on stderr. Tests read it the way a
- * user does rather than recomputing it from the envelope's startedAt: a run
+ * The run directory pabst announced on stderr. Tests read it the way a user
+ * does rather than recomputing it from the envelope's startedAt: a run
  * whose name was taken steps to the next free one, so the two can differ.
  */
 export function announcedRunDir(stderr: string[]): string {
-  const m = /into (.+)[/\\](?:pabst|thales)\/$/m.exec(stderr.join("\n"));
+  const m = /into (.+)[/\\]pabst\/$/m.exec(stderr.join("\n"));
   if (m === null)
     throw new Error(`no run directory announced in: ${stderr.join("\n")}`);
   return m[1]!;
@@ -126,19 +77,9 @@ export async function runForEnvelope(
 }
 
 /**
- * Test-timeout ceiling for one `prove` run over `fileCount` artifacts: the
- * pipeline's own containment budget (one build, one Lean run per file) plus
- * slack, so a contained-but-slow run gets to report which file failed
- * instead of being killed by a bare vitest timeout.
- */
-export function proveTimeoutMs(fileCount: number): number {
-  return BUILD_TIMEOUT_MS + fileCount * LEAN_TIMEOUT_MS + 60_000;
-}
-
-/**
- * Like useTempProject, but the directory lives inside the repo tree:
- * refute's generated tests import "@lakatos/pabst/runtime" via the workspace
- * link, so suites that run refute cannot work under os.tmpdir().
+ * Like useTempProject, but the directory lives inside the repo tree: the
+ * generated tests import "@lakatos/pabst/runtime" through the workspace
+ * link, so suites that run pabst cannot work under os.tmpdir().
  * `populate` writes the project's files before the chdir.
  */
 export function useRepoScratchDir(

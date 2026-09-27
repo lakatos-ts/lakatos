@@ -9,8 +9,8 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TREES = [
   "src",
   "tests",
-  "engines/pabst/src",
-  "engines/pabst/tests",
+  "pabst/src",
+  "pabst/tests",
   "engines/thales/frontend/src",
   "engines/thales/frontend/tests",
 ];

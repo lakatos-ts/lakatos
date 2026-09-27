@@ -22,10 +22,10 @@ export interface Issue {
 }
 
 /**
- * Module specifier generated tests import the runtime from. Must match the
- * lakatos package's `name` + `exports` map at the repo root (pinned by a test).
+ * Module specifier generated tests import the runtime from: this package's
+ * name plus its `./runtime` export (pinned by a test).
  */
-export const RUNTIME_SPECIFIER = "lakatos/runtime";
+export const RUNTIME_SPECIFIER = "@lakatos/pabst/runtime";
 
 /** Names the runtime module exports (pinned against src/runtime.ts by a test). */
 export const BOOL_EXPORT = "bool";

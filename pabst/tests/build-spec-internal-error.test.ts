@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { runMain, useTempProject } from "../../../tests/helpers/cli.js";
+import { runMain, useTempProject } from "./helpers/cli.js";
 
 // The per-annotation catch in build-spec wraps only LemmaError in the
 // `file:line: @ensures{name}:` diagnostic; anything else must be rethrown
@@ -22,7 +22,7 @@ describe("build-spec internal errors", () => {
   it("a non-LemmaError thrown mid-annotation escapes main() unwrapped", async () => {
     // One run, both assertions: the class and the message belong to the
     // same throw.
-    const thrown = await runMain(["refute", "fine.ts"]).then(
+    const thrown = await runMain(["fine.ts"]).then(
       () => {
         throw new Error("main() resolved; expected it to throw");
       },

@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 import { main } from "../src/cli.js";
-import { runTests } from "../engines/pabst/src/run.js";
+import { runTests } from "../pabst/src/run.js";
 import { runEmission } from "../engines/thales/frontend/src/run.js";
 import { RUN_ROOT } from "@lakatos/core/run-dir";
 
@@ -12,7 +12,7 @@ import { RUN_ROOT } from "@lakatos/core/run-dir";
 // reports User, and the documented exit 2. Both engines are mocked at the
 // same module seams cli-unhealthy and cli-prove use, so no signal is sent
 // here; tests/interrupt-e2e.test.ts covers the real thing.
-vi.mock("../engines/pabst/src/run.js", () => ({ runTests: vi.fn() }));
+vi.mock("../pabst/src/run.js", () => ({ runTests: vi.fn() }));
 vi.mock("../engines/thales/frontend/src/run.js", () => ({
   runEmission: vi.fn(),
   findEngineRoot: vi.fn(),

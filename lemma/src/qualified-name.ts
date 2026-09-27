@@ -21,7 +21,7 @@ export function qualifiedName(
  * TypeScript identifiers; unicode identifiers (e.g. `précis`) are legal
  * TypeScript but not matched — a known gap, kept so the pattern stays within
  * JSON Schema's ECMA-regex subset (schemas/envelope.schema.json and
- * engines/pabst/schemas/issue.schema.json each embed it; a sync test keeps
+ * pabst/schemas/issue.schema.json each embed it; a sync test keeps
  * every spelling identical).
  */
 export const QUALIFIED_NAME_PATTERN =

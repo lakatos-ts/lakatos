@@ -9,7 +9,7 @@ const repoRoot = process.cwd();
 
 // What an InputError does to the rest of a run: the sound annotations
 // beside it still run, and its exit code outranks a refutation's. The
-// generated tests import "lakatos/runtime" via the package self-reference,
+// generated tests import "@lakatos/pabst/runtime" via the workspace link,
 // so these must run inside the repo tree, in a scratch directory of this
 // file's own.
 describe("cli refute input errors", () => {

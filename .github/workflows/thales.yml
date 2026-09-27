@@ -115,9 +115,9 @@ jobs:
 
       - name: Prove end-to-end
         # vitest positionals are substring filters (tests/e2e.test.ts also
-        # matches engines/pabst/tests/e2e.test.ts); serialized because
-        # parallel forks would race lake builds in the same checkout.
-        run: npx vitest run --no-file-parallelism --exclude "engines/**" tests/e2e.test.ts
+        # matches pabst/tests/e2e.test.ts); serialized because parallel
+        # forks would race lake builds in the same checkout.
+        run: npx vitest run --no-file-parallelism --exclude "engines/**" --exclude "pabst/**" tests/e2e.test.ts
         working-directory: .
         env:
           LAKATOS_PROVE_E2E: "1"

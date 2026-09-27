@@ -5,7 +5,7 @@ import { runMain, useTempProject } from "./helpers/cli.js";
 // that is not a LemmaError) must keep crashing loudly rather than being
 // dressed up as a usage error. A real internal bug can't be triggered on
 // purpose, so simulate one by making the generator throw a TypeError.
-vi.mock("../engines/pabst/src/codegen.js", () => ({
+vi.mock("../pabst/src/codegen.js", () => ({
   generate: () => {
     throw new TypeError("internal invariant violated");
   },

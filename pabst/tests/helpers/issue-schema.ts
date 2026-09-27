@@ -1,4 +1,4 @@
-import { schemaValidator } from "../../../../tests/helpers/schema-validator.js";
+import { schemaValidator } from "./schema-validator.js";
 
 /** Fail the current test if `issue` does not match the issue JSON Schema. */
 export const expectValidIssue = schemaValidator(

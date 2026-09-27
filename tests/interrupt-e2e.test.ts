@@ -11,8 +11,8 @@ import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 // The build behind dist/ is the suite-wide globalSetup's.
 const repoRoot = process.cwd();
 const cliJs = path.join(repoRoot, "dist", "src", "cli.js");
-// Inside the repo tree: the generated tests resolve "lakatos/runtime" by
-// package self-reference and "vitest" by walking up node_modules, neither
+// Inside the repo tree: the generated tests resolve "@lakatos/pabst/runtime" by
+// workspace link and "vitest" by walking up node_modules, neither
 // of which works from os.tmpdir().
 const workDir = path.join(repoRoot, ".lakatos", "interrupt-e2e");
 

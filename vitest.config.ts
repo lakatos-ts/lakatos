@@ -19,6 +19,20 @@ export default defineConfig({
           new URL("./lemma/src/index.ts", import.meta.url),
         ),
       },
+      {
+        find: /^@lakatos\/pabst\/runtime$/,
+        replacement: fileURLToPath(
+          new URL("./pabst/src/runtime.ts", import.meta.url),
+        ),
+      },
+      {
+        // Pabst from source; a vitest child, which runs generated tests
+        // with no aliases, resolves pabst/dist through the workspace link.
+        find: /^@lakatos\/pabst$/,
+        replacement: fileURLToPath(
+          new URL("./pabst/src/index.ts", import.meta.url),
+        ),
+      },
     ],
   },
   test: {
@@ -26,7 +40,7 @@ export default defineConfig({
       "tests/**/*.test.ts",
       "core/tests/**/*.test.ts",
       "lemma/tests/**/*.test.ts",
-      "engines/pabst/tests/**/*.test.ts",
+      "pabst/tests/**/*.test.ts",
       "engines/thales/frontend/tests/**/*.test.ts",
       "tarski/frontend/tests/**/*.test.ts",
     ],
@@ -43,7 +57,7 @@ export default defineConfig({
         "src/**/*.ts",
         "core/src/**/*.ts",
         "lemma/src/**/*.ts",
-        "engines/pabst/src/**/*.ts",
+        "pabst/src/**/*.ts",
         "engines/thales/frontend/src/**/*.ts",
         "tarski/frontend/src/**/*.ts",
       ],

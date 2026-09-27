@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
-import { runTests } from "../engines/pabst/src/run.js";
+import { runTests } from "../pabst/src/run.js";
 
 // The output contract holds even when the underlying vitest run is
 // unhealthy: one schema-valid envelope on stdout (every annotation
 // NotTried — generated but never evaluated), diagnostics on stderr, and
 // exit 2. Both unhealthy RunResult kinds are pinned by mocking runTests.
-vi.mock("../engines/pabst/src/run.js", () => ({ runTests: vi.fn() }));
+vi.mock("../pabst/src/run.js", () => ({ runTests: vi.fn() }));
 const runTestsMock = vi.mocked(runTests);
 
 describe("cli refute on unhealthy runs", () => {
@@ -61,7 +61,7 @@ describe("cli refute on unhealthy runs", () => {
     runTestsMock.mockReturnValue({
       kind: "broken-run",
       status: 1,
-      messages: ["Cannot find module 'lakatos/runtime'"],
+      messages: ["Cannot find module '@lakatos/pabst/runtime'"],
     });
     const { code, stdout, stderr } = await runMain(["refute", "annotated.ts"]);
     expect(code).toBe(2);
@@ -76,7 +76,9 @@ describe("cli refute on unhealthy runs", () => {
         szs: "NotTried",
       },
     ]);
-    expect(stderr).toContain("error: Cannot find module 'lakatos/runtime'");
+    expect(stderr).toContain(
+      "error: Cannot find module '@lakatos/pabst/runtime'",
+    );
   });
 
   it("an unevaluated annotation carries no planned case count", async () => {
@@ -84,7 +86,7 @@ describe("cli refute on unhealthy runs", () => {
     runTestsMock.mockReturnValue({
       kind: "broken-run",
       status: 1,
-      messages: ["Cannot find module 'lakatos/runtime'"],
+      messages: ["Cannot find module '@lakatos/pabst/runtime'"],
     });
     const { code, stdout } = await runMain(["refute", "bounded.ts"]);
     expect(code).toBe(2);

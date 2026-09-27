@@ -9,7 +9,7 @@ import {
   type LeanRunResult,
   runEmission,
 } from "../engines/thales/frontend/src/run.js";
-import { parseSeed, refute } from "../engines/pabst/src/index.js";
+import { parseSeed, refute } from "@lakatos/pabst";
 import {
   admit,
   annotationKey,

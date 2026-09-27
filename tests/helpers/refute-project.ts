@@ -6,7 +6,7 @@ import { RUN_ROOT, TYPECHECK_CACHE } from "@lakatos/core/run-dir";
 /** The README-usage project the refute CLI suites run in: two annotated
  * files, one plain, one class, and the input-error, stacked, and guarded
  * cases. Lives inside the repo tree because generated tests import
- * "lakatos/runtime" through the package self-reference. */
+ * "@lakatos/pabst/runtime" through the workspace link. */
 export function seedRefuteProject(dir: string): void {
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });

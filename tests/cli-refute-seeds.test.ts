@@ -8,7 +8,7 @@ const repoRoot = process.cwd();
 
 // README usage claims about the seed: `lakatos refute` echoes the seed it
 // used, and passing that seed back reproduces the run. The generated tests
-// import "lakatos/runtime" via the package self-reference, so these must
+// import "@lakatos/pabst/runtime" via the workspace link, so these must
 // run inside the repo tree (a gitignored scratch dir under .lakatos/), and
 // the directory is this file's own so a sibling suite's runs never appear
 // beside these.

@@ -9,7 +9,7 @@ const repoRoot = process.cwd();
 
 // Where refute finds an @ensures: in every stacked JSDoc block, and on a
 // getter, reported under Class#getter. The generated tests import
-// "lakatos/runtime" via the package self-reference, so these must run
+// "@lakatos/pabst/runtime" via the workspace link, so these must run
 // inside the repo tree, in a scratch directory of this file's own.
 describe("cli refute annotation discovery", () => {
   const workDir = path.join(repoRoot, ".lakatos", "clitest-discovery");

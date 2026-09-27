@@ -11,7 +11,7 @@ const repoRoot = process.cwd();
 // names the run directory, a later invocation reads none of an earlier
 // one's mirrors, and a glob reports across every matched file. The
 // generated tests import
-// "lakatos/runtime" via the package self-reference, so these must run inside
+// "@lakatos/pabst/runtime" via the workspace link, so these must run inside
 // the repo tree (a gitignored scratch dir under .lakatos/), unlike the
 // os.tmpdir()-based suites above.
 describe("cli refute run directories", () => {

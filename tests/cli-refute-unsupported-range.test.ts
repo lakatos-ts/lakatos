@@ -2,13 +2,13 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import * as fs from "node:fs";
 import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
-import { runTests, type RunResult } from "../engines/pabst/src/run.js";
+import { runTests, type RunResult } from "../pabst/src/run.js";
 import { RUN_ROOT } from "@lakatos/core/run-dir";
 
 // A domain that only fits after the safe-integer clamp is refused, not
 // silently narrowed — the same NotTried + unsupported-range the prover
 // emits. vitest is mocked at the module seam, as cli-unhealthy does.
-vi.mock("../engines/pabst/src/run.js", () => ({ runTests: vi.fn() }));
+vi.mock("../pabst/src/run.js", () => ({ runTests: vi.fn() }));
 const runTestsMock = vi.mocked(runTests);
 
 const HUGE = "1000000000000000000000000000000";

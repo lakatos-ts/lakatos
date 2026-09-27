@@ -63,7 +63,7 @@ describe("emit", () => {
     // "lakatos" is the root package name (the self-reference the
     // generated tests resolve), distinct from any bin name.
     expect(out).toContain(
-      'import { report as __pabstReport, bool as __bool, budget as __pabstBudget } from "lakatos/runtime";',
+      'import { report as __pabstReport, bool as __bool, budget as __pabstBudget } from "@lakatos/pabst/runtime";',
     );
     // no inline copy of the helper
     expect(out).not.toContain("function __pabstReport(");
@@ -75,7 +75,7 @@ describe("emit", () => {
       42,
       LOOP_BUDGET_MS,
     );
-    const occurrences = multi.split('from "lakatos/runtime"').length - 1;
+    const occurrences = multi.split('from "@lakatos/pabst/runtime"').length - 1;
     expect(occurrences).toBe(1);
   });
 });
@@ -350,7 +350,7 @@ describe("emit — enumerated specs", () => {
 
   it("imports the budget reporter beside the others", () => {
     expect(out).toContain(
-      'import { report as __pabstReport, bool as __bool, budget as __pabstBudget } from "lakatos/runtime";',
+      'import { report as __pabstReport, bool as __bool, budget as __pabstBudget } from "@lakatos/pabst/runtime";',
     );
   });
 
