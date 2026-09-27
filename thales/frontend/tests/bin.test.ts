@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
+import { parseArgs } from "node:util";
 import { main } from "../src/cli.js";
+
+vi.mock("node:util", async (importActual) => {
+  const actual = await importActual<typeof import("node:util")>();
+  return { ...actual, parseArgs: vi.fn(actual.parseArgs) };
+});
 
 async function capture(argv: string[]) {
   const out: string[] = [];
@@ -35,5 +41,12 @@ describe("the thales bin", () => {
     const r = await capture(["no-such-file-anywhere.ts"]);
     expect(r.code).toBe(2);
     expect(r.err.at(-1)).toMatch(/^error: /);
+  });
+
+  it("lets an error that is not a usage error escape", async () => {
+    vi.mocked(parseArgs).mockImplementationOnce(() => {
+      throw new RangeError("not a parse error");
+    });
+    await expect(capture([])).rejects.toThrow(RangeError);
   });
 });

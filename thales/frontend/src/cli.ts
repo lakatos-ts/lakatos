@@ -51,7 +51,6 @@ export async function main(
       console.error(USAGE);
       return 2;
     }
-    /* v8 ignore next -- parseArgs throws only its ERR_PARSE_ARGS_ errors */
     throw e;
   }
   if (values.help) {
