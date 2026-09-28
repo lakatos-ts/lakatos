@@ -125,6 +125,41 @@ export async function runForEnvelope(
   return env;
 }
 
+/** A bin's `main`, the shape the pabst and thales bins both export. */
+export type BinMain = (argv: string[]) => Promise<number>;
+
+/** `runMain`, against the bin whose `main` is given. */
+export async function runBin(main: BinMain, argv: string[]): Promise<MainRun> {
+  const stdout: string[] = [];
+  const stderr: string[] = [];
+  const logSpy = vi.spyOn(console, "log").mockImplementation((s) => {
+    stdout.push(String(s));
+  });
+  const errSpy = vi.spyOn(console, "error").mockImplementation((s) => {
+    stderr.push(String(s));
+  });
+  try {
+    return { code: await main(argv), stdout, stderr };
+  } finally {
+    logSpy.mockRestore();
+    errSpy.mockRestore();
+  }
+}
+
+/** `runForEnvelope`, against the bin whose `main` is given. */
+export async function runBinForEnvelope(
+  main: BinMain,
+  argv: string[],
+  expectedCode = 0,
+): Promise<Envelope> {
+  const run = await runBin(main, argv);
+  expect(run.code, run.stderr.join("\n")).toBe(expectedCode);
+  expect(run.stdout).toHaveLength(1);
+  const env = JSON.parse(run.stdout[0]!) as Envelope;
+  expectValidEnvelope(env);
+  return env;
+}
+
 /**
  * Test-timeout ceiling for one `prove` run over `fileCount` artifacts: the
  * pipeline's own containment budget (one build, one Lean run per file) plus

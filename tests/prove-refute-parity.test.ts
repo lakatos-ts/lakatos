@@ -3,13 +3,38 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import {
   proveTimeoutMs,
-  runForEnvelope,
+  runBin,
+  runBinForEnvelope,
   useRepoScratchDir,
+  useTempProject,
 } from "./helpers/cli.js";
 import type { Envelope } from "@lakatos/core/envelope";
+import { main as proveMain } from "../thales/frontend/src/cli.js";
+import { main as refuteMain } from "../pabst/src/cli.js";
+import { COMPILE_ERROR_CASES } from "../pabst/tests/helpers/compile-error-cases.js";
 
-// Prove and refute over the same files, through the lakatos CLI: the one
-// place both engines run side by side. Gated like the prove e2e.
+// Prove and refute over the same files, through the thales and pabst bins:
+// the one place both engines run side by side.
+describe("prove and refute report compile errors alike", () => {
+  useTempProject(
+    "lakatos-parity-err-",
+    Object.fromEntries(COMPILE_ERROR_CASES.map((c) => [c.file, c.source])),
+  );
+
+  it.each(COMPILE_ERROR_CASES.filter((c) => c.parseLevel))(
+    "prove on $name exits 2 with the same diagnostic as refute",
+    async (c) => {
+      const refute = await runBin(refuteMain, [c.file]);
+      const prove = await runBin(proveMain, [c.file]);
+      expect(prove.code).toBe(2);
+      expect(refute.code).toBe(2);
+      expect(prove.stdout).toEqual(refute.stdout);
+      expect(prove.stderr).toEqual(refute.stderr);
+    },
+  );
+});
+
+// The rest is gated like the prove e2e.
 const enabled = process.env.LAKATOS_PROVE_E2E === "1";
 
 const repoRoot = process.cwd();
@@ -77,10 +102,10 @@ describe.runIf(enabled)("prove and refute agree", () => {
     "prove and refute report identical identity keys for the same file",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const proveEnv = await runForEnvelope(["prove", "parity.ts"]);
+      const proveEnv = await runBinForEnvelope(proveMain, ["parity.ts"]);
       expect(proveEnv.annotations[0]).toMatchObject({ szs: "Theorem" });
 
-      const refuteEnv = await runForEnvelope(["refute", "parity.ts"]);
+      const refuteEnv = await runBinForEnvelope(refuteMain, ["parity.ts"]);
 
       const ids = (e: Envelope) =>
         e.annotations.map((a) => [a.file, a.function, a.property]).sort();
@@ -93,8 +118,8 @@ describe.runIf(enabled)("prove and refute agree", () => {
     "a boolean binder's witness is the same assignment under both engines",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const proveEnv = await runForEnvelope(["prove", "boolwit.ts"], 1);
-      const refuteEnv = await runForEnvelope(["refute", "boolwit.ts"], 1);
+      const proveEnv = await runBinForEnvelope(proveMain, ["boolwit.ts"], 1);
+      const refuteEnv = await runBinForEnvelope(refuteMain, ["boolwit.ts"], 1);
       const witnesses = (e: Envelope) =>
         e.annotations
           .map((a) => [a.property, a.counterexample] as const)
@@ -111,8 +136,8 @@ describe.runIf(enabled)("prove and refute agree", () => {
     "prove and refute both report Theorem on a small finite domain",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const proveEnv = await runForEnvelope(["prove", "small.ts"]);
-      const refuteEnv = await runForEnvelope(["refute", "small.ts"]);
+      const proveEnv = await runBinForEnvelope(proveMain, ["small.ts"]);
+      const refuteEnv = await runBinForEnvelope(refuteMain, ["small.ts"]);
       const by = (e: Envelope) =>
         new Map(e.annotations.map((a) => [`${a.function}/${a.property}`, a]));
       const proved = by(proveEnv);
@@ -142,8 +167,8 @@ describe.runIf(enabled)("prove and refute agree", () => {
     "prove and refute agree on a class binder over a boolean constructor parameter",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const proveEnv = await runForEnvelope(["prove", "flag.ts"]);
-      const refuteEnv = await runForEnvelope(["refute", "flag.ts"]);
+      const proveEnv = await runBinForEnvelope(proveMain, ["flag.ts"]);
+      const refuteEnv = await runBinForEnvelope(refuteMain, ["flag.ts"]);
       const by = (e: Envelope) =>
         new Map(e.annotations.map((a) => [`${a.function}/${a.property}`, a]));
       const proved = by(proveEnv);
