@@ -1,6 +1,6 @@
 {
   "name": "@lakatos/pabst",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Refutation for TypeScript: @ensures annotations become fast-check property tests, run with vitest and reported in the lakatos result envelope.",
   "type": "module",
   "license": "MIT",

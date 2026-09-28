@@ -1,6 +1,6 @@
 {
   "name": "@lakatos/thales",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Proof for TypeScript: @ensures annotations become Lean theorems, discharged automatically and reported in the lakatos result envelope. Runs from a lakatos checkout with the Lean toolchain.",
   "type": "module",
   "license": "MIT",
