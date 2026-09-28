@@ -67,7 +67,6 @@ export default defineConfig({
       // code drags the baseline down instead of hiding from the ratchet.
       all: true,
       include: [
-        "src/**/*.ts",
         "core/src/**/*.ts",
         "lemma/src/**/*.ts",
         "pabst/src/**/*.ts",
@@ -131,7 +130,8 @@ export default defineConfig({
         // arm reached by a test for all of them. The one ignore added
         // with them is a dot access's name, which tsc types as an
         // identifier or a private name and nothing else.
-        // Ratcheted 2026-09-14: `lakatos exe` joined it — `src/exe.ts` and
+        // Ratcheted 2026-09-14: the exe command joined it — its pipeline
+        // (now `thales/frontend/src/exe.ts`) and
         // `tarski/frontend/src/binary.ts`, both fully covered, including
         // the arms a spawn that never started reaches (both streams null
         // beside an error).

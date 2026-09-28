@@ -6,10 +6,10 @@ import { fileURLToPath } from "node:url";
 const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 /**
- * One tsc for the whole run. Several suites exercise the *built* CLI in
- * dist/, and test files run in parallel: building per file would have two
- * tsc processes truncating and rewriting the same output while a third
- * suite reads or spawns it.
+ * One tsc for the whole run. Several suites exercise the *built* bins in
+ * each package's dist/, and test files run in parallel: building per file
+ * would have two tsc processes truncating and rewriting the same output
+ * while a third suite reads or spawns it.
  *
  * A refute child runs under its own config and never reaches this file;
  * the cwd guard stays as a belt for any other vitest started inside the

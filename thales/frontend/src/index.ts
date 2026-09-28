@@ -3,6 +3,5 @@
 export { prove } from "./prove.js";
 export type { ProveOptions } from "./prove.js";
 export { findEngineRoot } from "./run.js";
-export { main as exeMain } from "./exe-cli.js";
 export type { RunReport, ToolIo } from "@lakatos/core/runner";
 export type { AnnotationResult, Envelope } from "@lakatos/core/envelope";

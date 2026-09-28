@@ -122,7 +122,7 @@ jobs:
           out=$(.lake/build/bin/tarski run Test/Tarski/fixtures/class-box.json)
           test "$out" = "true" || { echo "expected true, got $out"; exit 1; }
 
-      # The four class fixtures `lakatos prove` proves `Theorem`s over,
+      # The four class fixtures `thales` proves `Theorem`s over,
       # stripped of their types, with each `@ensures` instantiated at one
       # witness. This is the fragment the prover's own tests assume the
       # evaluator agrees with.
@@ -322,7 +322,7 @@ jobs:
         run: lake build tarski
 
       # The suites that need the real binary: what ties the fake binary the
-      # unit tests run to the real one, `lakatos exe`'s own transcript, and
+      # unit tests run to the real one, `thales-exe`'s own transcript, and
       # the comparison of every `@ensures` fixture in the repo against
       # Node. Serialized, because two forks would race `lake build`.
       - name: Runner and exe end to end
@@ -333,8 +333,8 @@ jobs:
         run: |
           npx vitest run --no-file-parallelism \
             tarski/frontend/tests/test262-e2e.test.ts \
-            tests/exe-e2e.test.ts \
-            tests/exe-fixtures.test.ts
+            thales/tests/exe-e2e.test.ts \
+            thales/tests/exe-fixtures.test.ts
 
   warm-cache:
     # A push to main gates nothing: every commit arrives through the merge

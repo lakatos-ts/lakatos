@@ -2,7 +2,6 @@ import { beforeAll, afterAll, expect, vi } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
-import { main } from "../../src/cli.js";
 import { expectValidEnvelope } from "./envelope-schema.js";
 import type { Envelope } from "@lakatos/core/envelope";
 import {
@@ -16,76 +15,10 @@ export interface MainRun {
   stderr: string[];
 }
 
-/**
- * Run the CLI's main() with both console streams captured, so tests can
- * assert on diagnostics regardless of which stream they land on.
- */
-export async function runMain(argv: string[]): Promise<MainRun> {
-  const stdout: string[] = [];
-  const stderr: string[] = [];
-  const logSpy = vi.spyOn(console, "log").mockImplementation((s) => {
-    stdout.push(String(s));
-  });
-  const errSpy = vi.spyOn(console, "error").mockImplementation((s) => {
-    stderr.push(String(s));
-  });
-  try {
-    return { code: await main(argv), stdout, stderr };
-  } finally {
-    logSpy.mockRestore();
-    errSpy.mockRestore();
-  }
-}
-
-export interface RawRun {
-  code: number;
-  stdout: string;
-  stderr: string;
-}
-
-/**
- * Run the CLI's main() with all four output paths captured as two strings.
- * `exe` forwards the program's own bytes through `process.stdout.write`,
- * which `runMain` does not see, and a test of it has to read stdout the
- * way a shell does — as one stream, not a list of console.log calls.
- */
-export async function runMainRaw(argv: string[]): Promise<RawRun> {
-  let stdout = "";
-  let stderr = "";
-  const outSpy = vi
-    .spyOn(process.stdout, "write")
-    .mockImplementation((chunk: unknown) => {
-      stdout += String(chunk);
-      return true;
-    });
-  const errSpy = vi
-    .spyOn(process.stderr, "write")
-    .mockImplementation((chunk: unknown) => {
-      stderr += String(chunk);
-      return true;
-    });
-  const logSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
-    stdout += `${args.join(" ")}\n`;
-  });
-  const consoleErrSpy = vi
-    .spyOn(console, "error")
-    .mockImplementation((...args) => {
-      stderr += `${args.join(" ")}\n`;
-    });
-  try {
-    return { code: await main(argv), stdout, stderr };
-  } finally {
-    outSpy.mockRestore();
-    errSpy.mockRestore();
-    logSpy.mockRestore();
-    consoleErrSpy.mockRestore();
-  }
-}
-
 /** The tsconfig a scratch project gets when a suite supplies none: enough
  * for tsc to describe the program (lakatos forces strict itself). Excludes
  * the run root so generated artifacts never join the program. */
-export const DEFAULT_TSCONFIG = JSON.stringify({
+const DEFAULT_TSCONFIG = JSON.stringify({
   compilerOptions: { target: "es2022", module: "nodenext", types: [] },
   include: ["**/*.ts"],
   exclude: [".lakatos"],
@@ -96,39 +29,10 @@ function ensureTsconfig(dir: string): void {
   if (!fs.existsSync(dest)) fs.writeFileSync(dest, DEFAULT_TSCONFIG, "utf8");
 }
 
-/**
- * The run directory the CLI announced on stderr. Tests read it the way a
- * user does rather than recomputing it from the envelope's startedAt: a run
- * whose name was taken steps to the next free one, so the two can differ.
- */
-export function announcedRunDir(stderr: string[]): string {
-  const m = /into (.+)[/\\](?:pabst|thales)\/$/m.exec(stderr.join("\n"));
-  if (m === null)
-    throw new Error(`no run directory announced in: ${stderr.join("\n")}`);
-  return m[1]!;
-}
-
-/**
- * Run main() and unwrap the single-envelope contract: the expected exit
- * code (0 unless the run is meant to find counterexamples), exactly one
- * stdout line, and that line a schema-valid envelope.
- */
-export async function runForEnvelope(
-  argv: string[],
-  expectedCode = 0,
-): Promise<Envelope> {
-  const run = await runMain(argv);
-  expect(run.code, run.stderr.join("\n")).toBe(expectedCode);
-  expect(run.stdout).toHaveLength(1);
-  const env = JSON.parse(run.stdout[0]!) as Envelope;
-  expectValidEnvelope(env);
-  return env;
-}
-
 /** A bin's `main`, the shape the pabst and thales bins both export. */
 export type BinMain = (argv: string[]) => Promise<number>;
 
-/** `runMain`, against the bin whose `main` is given. */
+/** Run a bin's main() with both console streams captured. */
 export async function runBin(main: BinMain, argv: string[]): Promise<MainRun> {
   const stdout: string[] = [];
   const stderr: string[] = [];
@@ -146,7 +50,10 @@ export async function runBin(main: BinMain, argv: string[]): Promise<MainRun> {
   }
 }
 
-/** `runForEnvelope`, against the bin whose `main` is given. */
+/**
+ * Run a bin's main() and unwrap the single-envelope contract: the expected
+ * exit code, exactly one stdout line, and that line a schema-valid envelope.
+ */
 export async function runBinForEnvelope(
   main: BinMain,
   argv: string[],

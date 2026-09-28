@@ -28,7 +28,6 @@ const PACKAGES: { dir: string; forbidden: string[] }[] = [
     dir: "pabst/tests",
     forbidden: ["src", "tests", "core", "lemma", "engines", "tarski", "thales"],
   },
-  { dir: "src", forbidden: ["core", "lemma", "pabst"] },
   {
     dir: "thales/frontend/src",
     forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "tarski"],
@@ -114,9 +113,9 @@ describe("import layering", () => {
     expect(Object.keys(pkg.exports)).toEqual(["."]);
     const rootTsconfig = JSON.parse(
       readFileSync(path.join(root, "tsconfig.json"), "utf8"),
-    ) as { references: { path: string }[]; include: string[] };
+    ) as { references: { path: string }[]; include?: string[] };
     expect(rootTsconfig.references.map((r) => r.path)).toContain("./lemma");
-    expect(rootTsconfig.include).not.toContain("lemma/src");
+    expect(rootTsconfig.include).toBeUndefined();
   });
 
   it("pabst names no workspace package but core, lemma, and itself", () => {
@@ -236,9 +235,15 @@ describe("import layering", () => {
     ]);
     const rootTsconfig = JSON.parse(
       readFileSync(path.join(root, "tsconfig.json"), "utf8"),
-    ) as { references: { path: string }[]; include: string[] };
+    ) as {
+      references: { path: string }[];
+      files?: string[];
+      include?: string[];
+    };
     expect(rootTsconfig.references.map((r) => r.path)).toContain("./thales");
-    expect(rootTsconfig.include).toEqual(["src"]);
+    expect(rootTsconfig.files).toEqual([]);
+    expect(rootTsconfig.include).toBeUndefined();
+    expect(existsSync(path.join(root, "src"))).toBe(false);
     expect(existsSync(path.join(root, "engines"))).toBe(false);
     expect(existsSync(path.join(root, "schemas"))).toBe(false);
   });
