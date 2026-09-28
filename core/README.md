@@ -14,5 +14,5 @@ annotation language, no engine.
 - `run-dir` — claiming a timestamped directory under `.lakatos/` for a
   run's artifacts.
 
-Install it with `npm install @lakatos/core`, and import by subpath: `@lakatos/core/envelope`, `/szs`, `/interrupt`,
-`/run-dir`.
+Install it with `npm install @lakatos/core`, and import by subpath:
+`@lakatos/core/envelope`, `/szs`, `/interrupt`, `/run-dir`.

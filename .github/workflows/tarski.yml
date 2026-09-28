@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - "tarski/**"
+      # thales-exe's gated suites run in this workflow's runner job.
+      - "thales/frontend/src/exe.ts"
+      - "thales/frontend/src/exe-cli.ts"
+      - "thales/tests/exe-e2e.test.ts"
+      - "thales/tests/exe-fixtures.test.ts"
       - ".github/workflows/tarski.yml"
   # No path filter: this job is a required check on main, and a required
   # check that never reports reads as pending forever, not as skipped. The

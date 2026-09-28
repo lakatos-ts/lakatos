@@ -39,7 +39,7 @@ describe("ensureBinary", () => {
     expect(r).toEqual({
       kind: "no-project",
       message:
-        "the tarski evaluator is not part of this installation; run it from a lakatos checkout",
+        "the tarski evaluator is not part of this installation; it needs a lakatos checkout with the Lean toolchain",
     });
     // Nothing was spawned: there was nowhere to spawn it.
     expect(calls).toHaveLength(0);

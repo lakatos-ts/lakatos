@@ -1,21 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import { runExeRaw, useTempProject } from "./helpers/cli.js";
 import { RUN_ROOT } from "@lakatos/core/run-dir";
-import type { BinaryResult } from "@lakatos/tarski";
+import { type BinaryResult, findTarskiRoot } from "@lakatos/tarski";
 
 // The evaluator is mocked at the package seam, and only its *build* is:
-// `runDocument` stays real, so the spawn path, the argv, and the exit-code classification are all exercised
-// against `fake-tarski.mjs` — a stand-in that obeys a marker literal in
-// the document it is handed. The real binary is exercised under
+// `runDocument` stays real, so the spawn path, the argv, and the
+// exit-code classification are all exercised against tarski's
+// `fake-tarski.mjs` — a stand-in that obeys a marker literal in the
+// document it is handed. The real binary is exercised under
 // LAKATOS_TARSKI_E2E in `exe-e2e.test.ts`.
-const FAKE = fileURLToPath(
-  new URL(
-    "../../tarski/frontend/tests/fixtures/fake-tarski.mjs",
-    import.meta.url,
-  ),
+const FAKE = path.join(
+  findTarskiRoot()!,
+  "frontend/tests/fixtures/fake-tarski.mjs",
 );
 
 vi.mock("@lakatos/tarski", async (importOriginal) => ({

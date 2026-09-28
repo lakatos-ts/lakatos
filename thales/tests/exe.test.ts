@@ -3,11 +3,14 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { executeSource, type ExeDeps } from "../frontend/src/exe.js";
-import type { SpawnOutcome } from "@lakatos/tarski";
+import { pathToFileURL } from "node:url";
+import { findTarskiRoot, type SpawnOutcome } from "@lakatos/tarski";
 import { schemaValidator } from "./helpers/schema-validator.js";
 
 const validate = schemaValidator(
-  new URL("../../tarski/schemas/tarski-estree.schema.json", import.meta.url),
+  pathToFileURL(
+    path.join(findTarskiRoot()!, "schemas/tarski-estree.schema.json"),
+  ),
   "the ESTree document exe handed the evaluator",
 );
 
