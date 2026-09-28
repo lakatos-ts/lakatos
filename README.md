@@ -38,13 +38,13 @@ README says how to install and use it on its own.
 - [`@lakatos/thales`](thales/) — proof. The `thales` bin renders
   annotated TypeScript as plain Lean 4 and attempts a proof per property;
   `thales-exe` runs one TypeScript file on the tarski evaluator, behind
-  the same typecheck gate. Both run from a lakatos checkout with the Lean
-  toolchain ([elan](https://github.com/leanprover/elan)):
+  the same typecheck gate. Both need a lakatos checkout with the Lean
+  toolchain ([elan](https://github.com/leanprover/elan)), built once with
+  `npm install && npm run build`, and run from your project's directory:
 
   ```bash
-  npm install && npm run build
-  node thales/dist/cli.js src/foo.ts
-  node thales/dist/exe-cli.js src/foo.ts
+  node path/to/lakatos/thales/dist/cli.js src/foo.ts
+  node path/to/lakatos/thales/dist/exe-cli.js src/foo.ts
   ```
 
 - [`@lakatos/tarski`](tarski/) — the JavaScript semantics: the Lean

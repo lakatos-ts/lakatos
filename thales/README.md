@@ -39,11 +39,13 @@ mention the old compiler's vocabulary predate the rewrite).
 Thales runs from a lakatos checkout with the Lean toolchain
 ([elan](https://github.com/leanprover/elan)): `lake` builds the Lean side
 from this directory, which requires the JS-semantics library in
-`../tarski`. From the checkout's root, after `npm install && npm run build`:
+`../tarski`. Build the checkout once with `npm install && npm run build`
+at its root, then run thales from your project's directory, where its
+`tsconfig.json` is:
 
 ```bash
-node thales/dist/cli.js                     # discover sources, prove, print a JSON report
-node thales/dist/cli.js <files-or-globs>    # same, on an explicit file list
+node path/to/lakatos/thales/dist/cli.js                   # discover sources, prove, print a JSON report
+node path/to/lakatos/thales/dist/cli.js <files-or-globs>  # same, on an explicit file list
 ```
 
 (npm links the `thales` bin before the build creates its target, so in a
@@ -75,7 +77,7 @@ const { code, envelope } = await prove(["src/**/*.ts"]);
 ## Running a file: `thales-exe`
 
 ```bash
-node thales/dist/exe-cli.js <file.ts>
+node path/to/lakatos/thales/dist/exe-cli.js <file.ts>
 ```
 
 `thales-exe` runs one TypeScript file on the tarski evaluator, the Lean

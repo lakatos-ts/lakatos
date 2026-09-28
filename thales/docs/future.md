@@ -32,13 +32,10 @@ Thales is one engine in a small constellation, each part with one job:
 - [Lemma](../../lemma/spec/) is the specification language the tools
   share (see "The spec dialect" below).
 
-The dependency arrows point one way: lakatos depends on both engines,
-the way Vite depends on esbuild or Prisma depends on its query
-engines; the engines never depend on each other. Thales never invokes
-pabst. All three live in one repository — the lakatos monorepo — as
-components of one product, cut from the same commit with one version
-number; Thales remains usable directly by anyone who wants the
-engine without the frontend.
+The dependency arrows point one way: the engines depend on the shared
+packages and never on each other. Thales never invokes pabst. All of
+them live in one repository — the lakatos monorepo — cut from the same
+commit, and each is usable on its own.
 
 ## The verdict ladder
 
