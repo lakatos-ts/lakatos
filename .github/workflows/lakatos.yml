@@ -9,7 +9,7 @@ on:
       - "lemma/**"
       - "pabst/**"
       - "thales/frontend/**"
-      - "thales/tests/fixtures/**"
+      - "thales/tests/**"
       - "tarski/frontend/**"
       - "tarski/Test/Tarski/fixtures/**"
       - "tarski/test262/**"

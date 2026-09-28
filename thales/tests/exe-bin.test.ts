@@ -6,8 +6,8 @@ describe("the thales-exe bin", () => {
     const r = await runExeRaw(["--help"]);
     expect(r.code).toBe(0);
     expect(r.stdout).toMatch(/^usage: thales-exe <file\.ts>/);
-    expect(r.stdout).toContain(
-      "checked against the\nevaluator per declaration",
+    expect(r.stdout.replace(/\s+/g, " ")).toContain(
+      "a proof's model is checked against the evaluator per declaration",
     );
     expect(r.stdout).toContain("refute runs on Node");
   });

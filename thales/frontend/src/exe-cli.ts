@@ -27,9 +27,9 @@ artifacts land in .lakatos/<run>/tarski/. needs a lakatos checkout with
 the Lean toolchain. the file may be a glob, as long as it names one file.
 
 thales-exe accepts exactly the programs thales accepts (the same
-typecheck gate). a proof's model is checked against the
-evaluator per declaration (the envelope's model field says whether, and
-why not), and refute runs on Node, not on this evaluator.
+typecheck gate). a proof's model is checked against the evaluator per
+declaration (the envelope's model field says whether, and why not), and
+refute runs on Node, not on this evaluator.
 
 every run type checks the whole project first, under the project's own
 tsconfig.json with lakatos's required options (strict) forced on top. a

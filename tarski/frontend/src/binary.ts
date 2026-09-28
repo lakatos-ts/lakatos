@@ -64,7 +64,7 @@ export function ensureBinary(
     return {
       kind: "no-project",
       message:
-        "the tarski evaluator is not part of this installation; run it from a lakatos checkout",
+        "the tarski evaluator is not part of this installation; it needs a lakatos checkout with the Lean toolchain",
     };
   }
   const build = spawn("lake", ["build", "tarski"], {
