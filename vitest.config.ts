@@ -164,16 +164,18 @@ export default defineConfig({
         // guard runs only when spawned and carries its own ignore.
         // Ratcheted again 2026-09-27: the prove spine moved from the CLI into
         // thales's own package, where the bin's two rethrows each got a test.
+        // Ratcheted 2026-09-28: the root CLI went; its exe command moved into
+        // thales as thales-exe, whose two rethrows each got a test too.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
         // worktree under .claude/ silently reports every loaded file instead
         // — different denominator, different numbers.
         autoUpdate: true,
-        statements: 99.69,
-        branches: 98.99,
+        statements: 99.77,
+        branches: 99.12,
         functions: 100,
-        lines: 99.75,
+        lines: 99.83,
       },
     },
   },
