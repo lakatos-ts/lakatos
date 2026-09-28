@@ -57,7 +57,7 @@ private def closure : Program :=
           (.throwStmt (.new (.ident "RangeError") [.strLit "neg"])) none,
         .returnStmt (some (.ident "a")) ] ]
 
-/-- The model `lakatos prove` would prove against: the guard, the throw's
+/-- The model `thales` would prove against: the guard, the throw's
 kind, and the returned value, and nothing about the heap. -/
 private def model (a : JsNumber) : JsM JsNumber :=
   if Float.lt a 0.0 then .error (.error "RangeError") else .ok a

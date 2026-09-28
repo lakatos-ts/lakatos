@@ -23,15 +23,14 @@ available guarantee:
 
 Thales is one engine in a small constellation, each part with one job:
 
-- [lakatos](https://github.com/jessealama/lakatos) is the user-facing
-  frontend. Its flagship command, `lakatos check`, runs the
-  proofs-and-refutations loop: try to refute, then try to prove,
-  report the strongest verdict earned.
+- [lakatos](../../README.md) is the umbrella: five sibling tools that
+  share one annotation language and one result envelope. Refute first,
+  then prove, and keep the strongest verdict earned.
 - [pabst](../../pabst/) is the refutation engine: properties become
   fast-check runs hunting for counterexamples.
 - Thales is the proof engine.
-- [Lemma](../../lemma/spec/) is the specification language the other
-  three share (see "The spec dialect" below).
+- [Lemma](../../lemma/spec/) is the specification language the tools
+  share (see "The spec dialect" below).
 
 The dependency arrows point one way: lakatos depends on both engines,
 the way Vite depends on esbuild or Prisma depends on its query
@@ -57,8 +56,8 @@ Specs are checked automatically on every run, like types. There is no
    arithmetic, structural recursion over algebraic data — and we widen
    that class deliberately, not speculatively.
 3. **Neither.** Thales reports "unable to prove" as a non-fatal
-   diagnostic. The spec is not an error and nothing is blocked; under
-   `lakatos check` the property simply retains its tested status.
+   diagnostic. The spec is not an error and nothing is blocked; the
+   property simply retains the status pabst gave it.
 
 A counterexample discovered at any rung is always an error. Tactic
 weakness degrades a verdict; it never punishes the user.

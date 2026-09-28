@@ -519,7 +519,7 @@ and an absent `IsHTMLDDA` to read as `undefined`. -/
 #guard (Heap.initial.read printCellRef).bind (·.value) == some (.obj printRef)
 #guard (Heap.initial.read hostCellRef).bind (·.value) == some (.obj hostRef)
 
-/-! `console` is not one of test262's: it is `lakatos exe`'s, the binding
+/-! `console` is not one of test262's: it is `thales-exe`'s, the binding
 an ordinary program writes through. It carries `log` and nothing else,
 and `log` writes to the same `%PrintLog%` `print` does. -/
 

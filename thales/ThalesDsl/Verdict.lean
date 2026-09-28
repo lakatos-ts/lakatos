@@ -40,7 +40,7 @@ inductive WitnessValue where
   deriving Repr, BEq, DecidableEq
 
 /-- One per-annotation result, printed as a single JSON line on stdout.
-This is the contract between `#thales_prove` and the lakatos CLI. -/
+This is the contract between `#thales_prove` and thales's frontend. -/
 structure Verdict where
   identity : Identity
   szs : Szs

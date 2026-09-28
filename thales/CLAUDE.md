@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-Thales is lakatos's proof tool, the workspace package `@lakatos/thales`: the `thales` bin and the `prove` API, which `lakatos prove` also calls. Annotated TypeScript is emitted as plain Lean 4, Lean attempts to prove each `@ensures` property against a model of each function, and one SZS verdict per annotation comes back to the tool as a JSON line.
+Thales is lakatos's proof tool, the workspace package `@lakatos/thales`: the `thales` bin and the `prove` API, plus the `thales-exe` bin, which runs one TypeScript file on the tarski evaluator behind the same typecheck gate. Annotated TypeScript is emitted as plain Lean 4, Lean attempts to prove each `@ensures` property against a model of each function, and one SZS verdict per annotation comes back to the tool as a JSON line.
 
 Two halves in two languages:
 
-- **`frontend/` (TypeScript)** — the emitter and the tool. `tsconfig.json` here builds `frontend/src` to `dist/` (the bin is `dist/cli.js`); it is built, typechecked, and tested from the repo root. Start at `frontend/src/emission.ts` (tsc AST → per-declaration JSON, and the classification of what it cannot map) and `frontend/src/run.ts` (lake/lean orchestration, verdict-line parsing).
+- **`frontend/` (TypeScript)** — the emitter and the tool. `tsconfig.json` here builds `frontend/src` to `dist/` (the bins are `dist/cli.js` and `dist/exe-cli.js`); it is built, typechecked, and tested from the repo root. Start at `frontend/src/emission.ts` (tsc AST → per-declaration JSON, and the classification of what it cannot map) and `frontend/src/run.ts` (lake/lean orchestration, verdict-line parsing).
 - **`ThalesDsl/` (Lean 4)** — the prover: the `ThalesDsl` and `ThalesEmit` lake libraries plus the `thales-emit` executable, built on the JS-semantics library in the shared `tarski/` package at the repo root (`require tarski from "../tarski"`; read `tarski/CLAUDE.md` before touching it); artifacts are run with `lake env lean`. `ThalesEmit/` is the renderer behind `thales-emit`. Start at `ThalesDsl/Prove.lean` (the tactic ladder) and `tarski/Js/Runtime.lean` (the semantic domain). Toolchain pinned in `tarski/lean-toolchain`, symlinked here as `lean-toolchain`.
 
 Annotation parsing is not here: discovery, extraction, and prefix/formula parsing live in `lemma/`; the Lean side never sees Lemma syntax.
@@ -96,7 +96,7 @@ The status set lives in exactly two places: the `Szs` inductive here and `SZS_ST
 
 - `Test/ThalesDsl/`, `Test/ThalesEmit/` — Lean unit tests, one directory per library; `AstTest.lean` is one guard per AST constructor plus the round trip that makes the rendered term the decoder's output and not a second reading of the JSON; there is a `ValidateTest.lean` in each, the closer's behaviour in the first and the emitter's choice of command in the second, while the model lines themselves are pinned by `tests/fixtures/validate.lean` through `check:verdict-channel`; the library's own tests are `tarski/Test/Js/`, built by `lake build TarskiTest` from `tarski/`. Location follows ownership: a `ThalesDsl` import under `tarski/Test/Js/` is a boundary violation by inspection.
 - `frontend/tests/` — vitest, from the repo root; `run.test.ts` uses the injectable spawn, no real Lean needed.
-- `tests/*.test.ts` — the bin's suites, driving `main` from `frontend/src/cli.ts` with the engine mocked at `frontend/src/run.js`, plus the gated e2e and corpus. The prove-and-refute parity checks live at the repo root (`tests/prove-refute-parity.test.ts`), since thales never depends on pabst.
+- `tests/*.test.ts` — the bins' suites, driving `main` from `frontend/src/cli.ts` (and `exe-cli.ts` for `thales-exe`) with the engine mocked at `frontend/src/run.js`, plus the gated e2e and corpus. The prove-and-refute parity checks live at the repo root (`tests/prove-refute-parity.test.ts`), since thales never depends on pabst.
 - `tests/conformance/` — `.ts` fixtures bucketed by the SZS status every annotation in them must receive, run end to end by `tests/verdict-corpus.test.ts` (gated like the prove e2e). Its README has the bucket conventions.
 - CI: `.github/workflows/thales.yml` runs lake build, the Lean tests, both check scripts (envelopes over the full manifest), and the gated e2e + corpus.
 

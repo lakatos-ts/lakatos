@@ -43,7 +43,7 @@ function marker(node) {
   return undefined;
 }
 
-// `exec` is `lakatos exe`'s spelling of `run`: the same contract without
+// `exec` is `thales-exe`'s spelling of `run`: the same contract without
 // the completion-value line, which no marker in this tree produces.
 const [command, file] = process.argv.slice(2);
 if ((command !== "run" && command !== "exec") || file === undefined) {

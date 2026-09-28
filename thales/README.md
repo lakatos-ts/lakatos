@@ -72,6 +72,24 @@ const { code, envelope } = await prove(["src/**/*.ts"]);
 `prove` runs from the current directory, like the bin; pass
 `{ io: { note, emit, raw } }` to take its stderr and the envelope yourself.
 
+## Running a file: `thales-exe`
+
+```bash
+node thales/dist/exe-cli.js <file.ts>
+```
+
+`thales-exe` runs one TypeScript file on the tarski evaluator, the Lean
+definitions thales proves against. `console.log` goes to stdout; an
+uncaught throw's class and message go to stderr with exit 1. It needs the
+same lakatos checkout and Lean toolchain as `thales`, and it accepts
+exactly the programs `thales` accepts: the same typecheck gate, with the
+same refusals (exit 2).
+
+Its honesty limits are the proofs' own. A proof's model is checked against
+the evaluator per declaration, and the envelope's `model` field says
+whether it was and why not; refute (pabst) runs on Node, not on this
+evaluator.
+
 ## Building
 
 ```bash

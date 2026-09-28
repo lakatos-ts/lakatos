@@ -1,5 +1,5 @@
 "use strict";
-// The class fixtures `lakatos prove` proves `Theorem`s over, stripped of
+// The class fixtures `thales` proves `Theorem`s over, stripped of
 // their type annotations and their `export`s, with each `@ensures`
 // instantiated at one witness. The two constructor parameter defaults
 // are here as they are written there, so this is the text the proofs are

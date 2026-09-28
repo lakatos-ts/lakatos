@@ -7,7 +7,7 @@ import Tarski.Format
 /-! The evaluator: a definitional interpreter over `EvalM`.
 
 Every primitive operation delegates to the `Js` library — the same
-definitions `lakatos prove` proves against — and the evaluator adds only
+definitions `thales` proves against — and the evaluator adds only
 dispatch. Nothing here is `partial` in Lean's sense: the recursion is
 defined by `partial_fixpoint`, so the equations are theorems and a
 non-terminating program is `none`, not an axiom.
@@ -3535,7 +3535,7 @@ def callNative (f : NativeFn) (thisArg : Value) (args : List Value) : EvalM Valu
       ("'caller', 'callee', and 'arguments' properties may not be accessed on " ++
         "strict mode functions or the arguments objects for calls to them")
   | .consoleLog => do
-    -- `lakatos exe`'s output binding, and `print`'s twin: it writes to
+    -- `thales-exe`'s output binding, and `print`'s twin: it writes to
     -- the same log, so a program that mixes the two gets one sequence in
     -- program order. Every argument goes through ToString and the parts
     -- are joined by one space; no argument at all is one empty line,

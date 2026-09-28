@@ -1,6 +1,6 @@
 # Thales
 
-Thales is lakatos's proof engine: a TypeScript frontend emits plain Lean 4 for `@ensures`-annotated functions, and Lean attempts to prove each property, reporting one SZS verdict per annotation. The user-visible surface is `lakatos prove`; thales itself ships no CLI.
+Thales is lakatos's proof engine: a TypeScript frontend emits plain Lean 4 for `@ensures`-annotated functions, and Lean attempts to prove each property, reporting one SZS verdict per annotation. The user-visible surface is the `thales` bin, and `thales-exe` runs one file on the tarski evaluator.
 
 The vocabulary below is for the rewritten engine. The previous compiler's vocabulary (refinement types, prelude library types, TH#### subset diagnostics, the conformance harness) was retired with it; treat any occurrence in older notes as historical.
 

@@ -68,7 +68,7 @@ export function runTests(
       kind: "no-results",
       status: 1,
       stdout: "",
-      stderr: `lakatos: cannot clear stale results file ${resultsFile}: ${e instanceof Error ? e.message : String(e)}\n`,
+      stderr: `pabst: cannot clear stale results file ${resultsFile}: ${e instanceof Error ? e.message : String(e)}\n`,
     };
   }
   const targets = Array.isArray(target) ? target : [target];
