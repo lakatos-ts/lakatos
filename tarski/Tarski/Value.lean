@@ -378,7 +378,7 @@ inductive NativeFn where
   `%PrintLog%` and the binary writes the log out after the run. -/
   | print
   /-- `console.log`, the second host output binding and the one
-  `lakatos exe` forwards to stdout. `print`'s twin: ToString of **every**
+  `thales-exe` forwards to stdout. `print`'s twin: ToString of **every**
   argument, joined by one space, appended as one line to `%PrintLog%`, so
   a run's output is a single sequence in program order however it was
   written. Two differences from Node, both named in the README as limits

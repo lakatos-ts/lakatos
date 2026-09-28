@@ -55,7 +55,8 @@ build on it, one from each side of the proofs-and-refutations dialectic:
   engine**: compiles the annotated code to Lean and attempts to prove each
   property for all inputs.
 
-The lakatos frontend at the repository root runs both.
+The two engines are separate tools, `pabst` and `thales`, and they agree on
+identities and verdicts wherever both reach an annotation.
 
 ## The name
 

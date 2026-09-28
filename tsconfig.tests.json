@@ -8,7 +8,6 @@
     "declaration": false
   },
   "include": [
-    "src",
     "core/src",
     "lemma/src",
     "pabst/src",

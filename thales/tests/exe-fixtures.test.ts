@@ -9,13 +9,13 @@ import {
   rmSync,
 } from "node:fs";
 import * as path from "node:path";
-import { executeSource, type ExeDeps } from "../src/exe.js";
+import { executeSource, type ExeDeps } from "../frontend/src/exe.js";
 import { ensureBinary, findTarskiRoot } from "@lakatos/tarski";
 
-// Every `@ensures` fixture in the repo, run under `lakatos exe` and under
+// Every `@ensures` fixture in the repo, run under `thales-exe` and under
 // Node, with the two compared. This is what says the evaluator is an
 // evaluator rather than a plausible-looking one: the same programs
-// `lakatos prove` proves theorems about, executed, with an engine as the
+// `thales` proves theorems about, executed, with an engine as the
 // control.
 //
 // It needs the real binary, so it runs where `test262-e2e.test.ts` runs —

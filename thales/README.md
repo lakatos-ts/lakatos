@@ -39,11 +39,13 @@ mention the old compiler's vocabulary predate the rewrite).
 Thales runs from a lakatos checkout with the Lean toolchain
 ([elan](https://github.com/leanprover/elan)): `lake` builds the Lean side
 from this directory, which requires the JS-semantics library in
-`../tarski`. From the checkout's root, after `npm install && npm run build`:
+`../tarski`. Build the checkout once with `npm install && npm run build`
+at its root, then run thales from your project's directory, where its
+`tsconfig.json` is:
 
 ```bash
-node thales/dist/cli.js                     # discover sources, prove, print a JSON report
-node thales/dist/cli.js <files-or-globs>    # same, on an explicit file list
+node path/to/lakatos/thales/dist/cli.js                   # discover sources, prove, print a JSON report
+node path/to/lakatos/thales/dist/cli.js <files-or-globs>  # same, on an explicit file list
 ```
 
 (npm links the `thales` bin before the build creates its target, so in a
@@ -71,6 +73,24 @@ const { code, envelope } = await prove(["src/**/*.ts"]);
 
 `prove` runs from the current directory, like the bin; pass
 `{ io: { note, emit, raw } }` to take its stderr and the envelope yourself.
+
+## Running a file: `thales-exe`
+
+```bash
+node path/to/lakatos/thales/dist/exe-cli.js <file.ts>
+```
+
+`thales-exe` runs one TypeScript file on the tarski evaluator, the Lean
+definitions thales proves against. `console.log` goes to stdout; an
+uncaught throw's class and message go to stderr with exit 1. It needs the
+same lakatos checkout and Lean toolchain as `thales`, and it accepts
+exactly the programs `thales` accepts: the same typecheck gate, with the
+same refusals (exit 2).
+
+Its honesty limits are the proofs' own. A proof's model is checked against
+the evaluator per declaration, and the envelope's `model` field says
+whether it was and why not; refute (pabst) runs on Node, not on this
+evaluator.
 
 ## Building
 

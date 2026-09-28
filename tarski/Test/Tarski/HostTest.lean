@@ -7,7 +7,7 @@ of a name that is not bound, and what an uncaught throw is reported as.
 `print` has no IO to do. It appends ToString of its argument to
 `%PrintLog%`, an intrinsic array, and `Tarski/Main.lean` writes the log
 out once the run is over; `printed` below is what the binary would put on
-stdout. `console.log` is the second output binding, `lakatos exe`'s
+stdout. `console.log` is the second output binding, `thales-exe`'s
 rather than test262's, and it writes to the same log — which is why a
 program mixing the two still has one stdout in program order. `$262` exists and is empty: every hook the epic puts out of scope
 is refused by the decoder (`DecodeTest`), so what is left is an object
@@ -73,7 +73,7 @@ completion value is `undefined`, which is what `print` answers. -/
 
 /-! ## `console.log`
 
-`lakatos exe`'s output binding (#386), and `print`'s twin: it writes to
+`thales-exe`'s output binding (#386), and `print`'s twin: it writes to
 the *same* log, so a program that mixes the two gets one sequence in
 program order. Unlike `print` it takes **every** argument through
 ToString and joins the parts with one space.

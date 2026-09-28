@@ -9,7 +9,7 @@ One ESTree document in — the JSON `schemas/tarski-estree.schema.json`
 fixes, as the parser bridge produces it — one line out: the script's
 completion value, or nothing when no statement produced one.
 
-`exec` is what `lakatos exe` calls, and its one difference from `run` is
+`exec` is what `thales-exe` calls, and its one difference from `run` is
 that it prints **no** completion value: a program run for its effects
 answers nothing a user asked for, and `node file.js` prints none either.
 Everything else — the print log, the uncaught report, the exit codes — is

@@ -7,7 +7,6 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Everything outside lemma/ — lemma's own tests may reach for internals. */
 const TREES = [
-  "src",
   "tests",
   "pabst/src",
   "pabst/tests",

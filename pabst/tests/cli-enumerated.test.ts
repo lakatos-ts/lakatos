@@ -12,7 +12,7 @@ const SMALL = [
   "",
 ].join("\n");
 
-describe("lakatos refute walks a small domain in full", () => {
+describe("pabst walks a small domain in full", () => {
   useRepoScratchDir(
     path.join(repoRoot, ".lakatos", "refute-enumerated"),
     (dir) => {

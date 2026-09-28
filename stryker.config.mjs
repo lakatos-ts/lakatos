@@ -4,16 +4,11 @@ export default {
   commandRunner: {
     command: "./node_modules/.bin/vitest run --bail 1",
   },
-  mutate: [
-    "src/**/*.ts",
-    "core/src/**/*.ts",
-    "pabst/src/**/*.ts",
-    "!**/*.d.ts",
-  ],
+  mutate: ["core/src/**/*.ts", "pabst/src/**/*.ts", "!**/*.d.ts"],
   ignorePatterns: [".lakatos", "coverage", "reports", "thales"],
   concurrency: 8,
   timeoutFactor: 3,
   timeoutMS: 60000,
-  disableTypeChecks: "{src,core/src,pabst/src}/**/*.ts",
+  disableTypeChecks: "{core/src,pabst/src}/**/*.ts",
   reporters: ["clear-text", "html", "progress"],
 };

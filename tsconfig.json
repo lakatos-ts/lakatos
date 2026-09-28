@@ -4,7 +4,7 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["src"],
+  "files": [],
   "references": [
     { "path": "./core" },
     { "path": "./lemma" },

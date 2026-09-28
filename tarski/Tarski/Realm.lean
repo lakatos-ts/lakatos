@@ -151,7 +151,7 @@ suite asks of a host that does not provide it. There is still no global
 properties *are* these cells is a change to `Env` and `hoistVars` that no
 part of the intrinsics' surface needs.
 
-`console` is not test262's; it is `lakatos exe`'s, the binding an
+`console` is not test262's; it is `thales-exe`'s, the binding an
 ordinary program writes its output through. Its `log` appends to the
 *same* `%PrintLog%` `print` does, so a run's stdout is one sequence in
 program order however the two were mixed, and it holds no other member:
@@ -730,7 +730,7 @@ def arraySpeciesGetterRef : Ref := 185
 @[reducible] def Obj.builtin (f : NativeFn) (name : String) (length : Nat) : Obj :=
   Obj.builtinWith f name length []
 
-/-- `console`, the host object `lakatos exe` writes through. -/
+/-- `console`, the host object `thales-exe` writes through. -/
 def consoleRef : Ref := 60
 
 /-- `console.log`. -/
@@ -1262,7 +1262,7 @@ def Heap.initial : Heap where
          properties :=
            [ ("length", Property.constant (Value.ofNat 0)),
              ("name", Property.constant (.prim (.str ""))) ] },
-       -- 60: console, `lakatos exe`'s host binding. `log` and nothing
+       -- 60: console, `thales-exe`'s host binding. `log` and nothing
        -- else; a method like any other, and `log` a built-in like any
        -- other, `Function.prototype`-linked with its `length` and `name`.
        { proto := some 15, properties := [("log", Property.method (.obj 61))] },

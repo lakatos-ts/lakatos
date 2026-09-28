@@ -3,7 +3,7 @@ import Tarski.Simp
 /-! The correspondence projection: an evaluator outcome read in the
 model's terms.
 
-`lakatos prove` proves a property of a *model* — a `JsM α` built out of
+`thales` proves a property of a *model* — a `JsM α` built out of
 the `Js` library. The evaluator answers something else entirely: an
 `Option (Except Completion (Option Value) × Heap)`, a run that may not
 terminate, may end abruptly, and carries a whole heap with it. This

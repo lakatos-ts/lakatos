@@ -6,7 +6,7 @@ import { clearRunDirs, seedRefuteProject } from "./helpers/refute-project.js";
 
 const repoRoot = process.cwd();
 
-// README usage claims about the seed: `lakatos refute` echoes the seed it
+// README usage claims about the seed: `pabst` echoes the seed it
 // used, and passing that seed back reproduces the run. The generated tests
 // import "@lakatos/pabst/runtime" via the workspace link, so these must
 // run inside the repo tree (a gitignored scratch dir under .lakatos/), and

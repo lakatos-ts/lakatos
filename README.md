@@ -4,76 +4,76 @@ Proofs and refutations for TypeScript.
 
 You state a property of a function in a JSDoc annotation. Lakatos tries to
 **refute** it — thousands of generated inputs hunting for a counterexample —
-and then tries to **prove** it, for all inputs, with a theorem prover. You
-get the strongest verdict your property has earned:
+and tries to **prove** it, for all inputs, with a theorem prover.
 
-```
-$ lakatos check src/foo.ts
-foo # nonzero      REFUTED    counterexample: x = -1n, y = 0
-bar # involutive   PROVED
-baz # monotone     TESTED     10,000 runs, no counterexample; not proved
+```ts
+/**
+ * @ensures{nonzero} forall (x: bigint) (y: number) {
+ *   Number.isInteger(y) ==> foo(x, y) !== 0
+ * }
+ */
+export function foo(x: bigint, y: number): number {
+  return Number(x % 2n) + (y % 2) + 1;
+}
 ```
 
 The name is from Imre Lakatos's _Proofs and Refutations_: mathematics
 advances by conjectures, attempted proofs, and counterexamples that force
-the conjecture to be repaired. That loop is exactly what this tool runs.
+the conjecture to be repaired. That loop is what these tools run.
 
-## Status
+## The tools
 
-Both engines work end to end. `lakatos refute` scrapes `@ensures`
-annotations, generates fast-check property tests, runs them, and prints a
-per-annotation JSON report. `lakatos prove` emits a `.lean`
-artifact per file under the run directory, runs it through the Lean engine
-(`lake env lean`), and assembles the same per-annotation envelope from the
-prover's verdicts; it requires the Lean toolchain (elan/lake) on PATH and,
-for now, a lakatos checkout — the npm package does not yet ship the Lean
-engine. `lakatos exe <file.ts>` strips one file's types with tsc, runs it
-on the tarski evaluator — the same Lean semantics the proofs are stated
-over — forwards `console.log` to stdout, and reports an uncaught throw as
-`Uncaught <class>: <message>` on stderr with exit 1; it accepts exactly
-the programs `prove` accepts and needs the same Lean toolchain and
-checkout. `lakatos check` is a stub: it scrapes the same annotations,
-reports each one `NotTried`, and exits 1. The rest of this README
-describes the committed design.
+Lakatos is five sibling npm packages under the `@lakatos` scope. Each one's
+README says how to install and use it on its own.
 
-Every invocation writes its artifacts into its own directory under
-`.lakatos/`, named for the run's start time in UTC — the same instant the
-report carries as `startedAt`. Nothing is ever overwritten and nothing is
-ever pruned: add `.lakatos/` to your `.gitignore` and delete it when you
-want the space back.
+- [`@lakatos/pabst`](pabst/) — refutation. The `pabst` bin compiles each
+  `@ensures` property to [fast-check](https://fast-check.dev/) runs and
+  reports a counterexample when it finds one:
 
-## Usage
+  ```bash
+  npm install --save-dev @lakatos/pabst
+  npx pabst src/foo.ts
+  ```
 
-```
-$ lakatos refute src/foo.ts
-lakatos: generated 1 property across 1 file(s) into .lakatos/2026-08-17T12-53-06.896Z/pabst/
-{
-  "version": "0.1.0",
-  "startedAt": "2026-08-17T12:53:06.896Z",
-  "cwd": "/path/to/project",
-  "seed": 4226542574,
-  "generated": 1,
-  "passed": 0,
-  "failed": 1,
-  "annotations": [
-    {
-      "file": "src/foo.ts",
-      "function": "isZero",
-      "property": "wrong",
-      "szs": "CounterSatisfiable",
-      "kind": "falsified",
-      "counterexample": {
-        "x": 1
-      }
-    }
-  ]
-}
-$ echo $?
-1
-```
+- [`@lakatos/thales`](thales/) — proof. The `thales` bin renders
+  annotated TypeScript as plain Lean 4 and attempts a proof per property;
+  `thales-exe` runs one TypeScript file on the tarski evaluator, behind
+  the same typecheck gate. Both need a lakatos checkout with the Lean
+  toolchain ([elan](https://github.com/leanprover/elan)), built once with
+  `npm install && npm run build`, and run from your project's directory:
 
-The report (schema: `core/schemas/envelope.schema.json`) lists every scraped
-annotation with an [SZS ontology](https://tptp.org/UserDocs/SZSOntology/)
+  ```bash
+  node path/to/lakatos/thales/dist/cli.js src/foo.ts
+  node path/to/lakatos/thales/dist/exe-cli.js src/foo.ts
+  ```
+
+- [`@lakatos/tarski`](tarski/) — the JavaScript semantics: the Lean
+  library the proofs are stated against, an evaluator over the same
+  definitions, the TypeScript parser bridge to it, and the
+  `tarski-test262` bin.
+- [`@lakatos/lemma`](lemma/) — the Lemma annotation language: its
+  [spec](lemma/spec/), and the discovery, extraction, parsing, and
+  typecheck gate both engines share.
+- [`@lakatos/core`](core/) — the shared runtime: the result envelope and
+  its schema, the SZS vocabulary, interrupt handling, and run directories.
+
+Properties are written in [Lemma](lemma/spec/), a little specification
+language embedded in JSDoc; annotated files remain ordinary TypeScript
+accepted by `tsc --strict`. Both engines type check the whole project
+first, under its own `tsconfig.json` with strict forced on top, and refuse
+a program that does not compile.
+
+Every run writes its artifacts into its own directory under `.lakatos/`,
+named for the run's start time in UTC — the same instant the report
+carries as `startedAt`. Nothing is overwritten and nothing is pruned: add
+`.lakatos/` to your `.gitignore` and delete it when you want the space
+back.
+
+## The result envelope
+
+Every pabst and thales run prints one JSON envelope on stdout (schema:
+[`core/schemas/envelope.schema.json`](core/schemas/envelope.schema.json)),
+listing every scraped annotation with an [SZS ontology](https://tptp.org/UserDocs/SZSOntology/)
 status:
 
 | Outcome                                                            | SZS status           |
@@ -84,11 +84,11 @@ status:
 | generation exhausted / passed / gave up                            | `GaveUp`             |
 | engine ran out of budget (prover attempt, refuter walk)            | `Timeout`            |
 | annotation depends on unmappable code                              | `Inappropriate`      |
-| not attempted (stubs, unhealthy runs)                              | `NotTried`           |
+| not attempted (unsupported ranges, unhealthy runs)                 | `NotTried`           |
 | malformed annotation input                                         | `InputError`         |
 | run interrupted before evaluating it                               | `User`               |
 
-`refute` walks a domain of at most 1,000 tuples in full instead of sampling
+`pabst` walks a domain of at most 1,000 tuples in full instead of sampling
 it, so a clean pass over such a domain is a `Theorem` with
 `kind: "enumerated"` and `cases`, the number of tuples evaluated; a walk
 that outruns its wall-clock budget is a `Timeout` with `kind: "budget"`.
@@ -121,8 +121,8 @@ annotations already resolved keep the status they earned, and the run
 exits 2. This holds for a signal that arrives while an engine is running
 — the vitest of a refute, the lake or Lean of a prove — which is where a
 run spends nearly all of its time. Outside that window, and for SIGKILL
-anywhere, lakatos dies as any process does and prints nothing: not a
-contract lakatos can keep, so it does not claim to.
+anywhere, the tool dies as any process does and prints nothing: not a
+contract a tool can keep, so none claims to.
 
 `InputError` marks an annotation whose input is malformed at extraction
 — a duplicate property name (all claimants of the ambiguous identity
@@ -133,79 +133,20 @@ carries the diagnostic, and the run exits 2. Subjects without a proper
 name still get entries under best-effort labels (`<anonymous>#m`,
 `Box#<computed>`), with the diagnostic saying what is unsupported.
 
-Commands: `lakatos refute`, `lakatos prove`, and `lakatos exe` (work
-today), `lakatos check` (stub). All but `exe` take
-`[files-or-globs...]`; with no files,
-sources are the files `tsconfig.json` would compile. Every run type checks
-the whole project first, under the project's own `tsconfig.json` with
-lakatos's required strict options forced on top; a program that does not
-compile is refused (every annotation reports `InputError`, exit 2). A run
-without a `tsconfig.json` is refused the same way, as is any named file the
-tsconfig's program leaves out: lakatos never analyzes code tsc has not
-accepted. `--seed <n>` applies to refute only: passing a report's `seed`
-back reproduces its run. `exe` takes exactly one file and runs it: no
-program arguments, no module graph, no report.
-
-Exit codes: `0` — clean run; `1` — counterexamples found, or a stubbed
-command; `2` — usage or user error, or an engine failure, including an unhealthy or
-interrupted run. For `exe` they read as a runtime's: `0` the program ran,
-`1` it ended in an uncaught throw, `2` it was refused — by the typecheck
-gate, by the evaluator naming a syntax node it does not know, or because
-the Lean toolchain is not here.
-
-## Layout
-
-Everything is one repository, an npm workspace:
-
-- `src/` — the lakatos CLI frontend (the npm package at the repo root).
-- [`core/`](core/) — `@lakatos/core`: what every tool shares at
-  runtime — the result envelope and its JSON Schema, the SZS status
-  vocabulary, interrupt handling, and run-directory claiming.
-- [`lemma/`](lemma/) — `@lakatos/lemma`: the Lemma annotation
-  language — its [spec](lemma/spec/) (grammar, prose semantics, and
-  conformance fixtures) and the implementation both engines share
-  (discovery, `@ensures` extraction, parsing, the typecheck gate).
-- [`thales/`](thales/) — `@lakatos/thales`, the proof tool and its
-  `thales` bin: an emitter
-  that renders annotated TypeScript as plain Lean 4, with a graded
-  automatic discharge ladder (exhaustive checking on bounded domains,
-  then symbolic tactics, then an honest "unable to prove").
-- [`pabst/`](pabst/) — `@lakatos/pabst`, the refutation tool and its
-  `pabst` bin: compiles
-  properties to [fast-check](https://fast-check.dev/) runs.
-- [`tarski/`](tarski/) — `@lakatos/tarski` and its `tarski-test262`
-  bin, the JS semantics: the Lean library the proof
-  engine proves against (`number` as binary64, the operations Lean lacks,
-  the value domain, and their kernel-checked theory) and, over the same
-  definitions, an evaluator for a growing fragment of JavaScript, with a
-  TypeScript parser bridge whose ESTree JSON is the seam between the two.
+Exit codes: `0` — nothing refuted; `1` — a counterexample found; `2` —
+usage or input error, or an engine failure, including an unhealthy or
+interrupted run.
 
 ## Architecture
 
-Lakatos is a thin frontend over two engines, one per side of the dialectic:
-
 ```
-                 lakatos  (CLI, npm)
-                /        \
-        refute /          \ prove
-              v            v
-        pabst           thales
-        (TypeScript;    (Lean 4; today: elan/lake
-         fast-check)     on PATH — see Status)
+          lemma (annotations)   core (envelope, SZS, run dirs)
+                 \                /
+         pabst (refute)      thales (prove) ── tarski (JS semantics)
 ```
 
-The engines never depend on each other. The committed design is that
-neither requires you to install Lean: the Lean engine will ship as a
-prebuilt per-platform bundle that lakatos fetches once, Playwright-style,
-built from this repository's own releases — frontend and engine cut from
-the same commit, so there is no engine version to pin and no skew to
-manage. Today that bundle does not exist yet: `lakatos prove` needs the
-Lean toolchain (elan/lake) on PATH and a lakatos checkout, per Status
-above.
-
-Properties are written in [Lemma](lemma/spec/), a little specification language
-embedded in JSDoc — annotated files remain ordinary TypeScript accepted by
-`tsc --strict`.
+The engines never depend on each other; both may depend on `core`,
+`lemma`, and `tarski`, which depend on no engine.
 
 What a `PROVED` verdict rests on — per declaration, the envelope's
 `model` field says whether the prover's model was proved equal to the
@@ -213,47 +154,14 @@ evaluator's run of it, and why not — and the limits that remain are
 stated in the spec's
 [What a Theorem rests on](lemma/spec/semantics.md#what-a-theorem-rests-on).
 
-## Commands
+## Layout
 
-- **`lakatos check <file>`** — the flagship: refute first (fast — catches
-  false properties in seconds), then prove, then report one graded verdict
-  per property.
-- `lakatos prove <file>` — proof engine only.
-- `lakatos refute <file>` — refutation engine only. Note the semantics:
-  the command names the _attempt_; finding no counterexample is success
-  (exit 0), like any test run.
-- `lakatos exe <file>` — run one file on the evaluator the proofs share
-  their primitives with, so you can watch a program the prover reasons
-  about actually run. Two limits are worth stating in place, and both are
-  the ones
-  [What a Theorem rests on](lemma/spec/semantics.md#what-a-theorem-rests-on)
-  spells out: a proof's model is checked against the evaluator one
-  declaration at a time, and where that check did not go through only the
-  _primitives_ are shared (the envelope's `model` field says which);
-  and `refute` runs on Node, not on this evaluator, so `exe` and `refute`
-  can disagree exactly where the model and V8 do. The evaluator's own
-  output formatting is its own third limit: `console.log` prints ToString
-  of each argument, so an object is `[object Object]` rather than Node's
-  inspection and `-0` prints as `0`.
-
-## Verdicts
-
-This section is the committed design for `lakatos check`, which is still
-a stub; today the JSON report shown under Usage is the only output.
-Human-readable verdicts lead; each carries an
-[SZS ontology](https://tptp.org/UserDocs/SZSOntology/) status as
-metadata, shared with both engines' own output:
-
-| Verdict            | SZS status           | Meaning                                                                                                                                                                                                                  |
-| ------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| PROVED             | `Theorem`            | Holds for all inputs. Any assumptions (opaque callees, assumed contracts) are listed with the verdict, and the model's status is appended when it is not validated: `PROVED (model unvalidated: '**' is not supported)`. |
-| REFUTED            | `CounterSatisfiable` | A concrete counterexample was found and is reported.                                                                                                                                                                     |
-| TESTED, not proved | `Unknown`            | The refuter found nothing in its sampled runs and the prover gave up; per-engine sub-statuses (`GaveUp`, `Timeout`) say why.                                                                                             |
-
-Exit codes are deliberately boring: `0` — no property refuted; `1` — at
-least one property refuted (or a counterexample found by the prover);
-`2` — input or usage error. "Tested but not proved" exits `0` with a
-diagnostic: an unproved truth is not a failure.
+One repository, an npm workspace. The five packages above live in
+[`core/`](core/), [`lemma/`](lemma/), [`pabst/`](pabst/),
+[`tarski/`](tarski/), and [`thales/`](thales/). The root is private: it
+builds, typechecks, tests, and formats every package, holds CI, and keeps
+the repository-wide tests in `tests/` (layering, the Lemma surface, the
+trust section, and prove-and-refute parity).
 
 ## License
 

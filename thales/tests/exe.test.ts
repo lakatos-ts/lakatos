@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
-import { executeSource, type ExeDeps } from "../src/exe.js";
+import { executeSource, type ExeDeps } from "../frontend/src/exe.js";
 import type { SpawnOutcome } from "@lakatos/tarski";
 import { schemaValidator } from "./helpers/schema-validator.js";
 
 const validate = schemaValidator(
-  new URL("../tarski/schemas/tarski-estree.schema.json", import.meta.url),
+  new URL("../../tarski/schemas/tarski-estree.schema.json", import.meta.url),
   "the ESTree document exe handed the evaluator",
 );
 
@@ -20,7 +20,7 @@ function deps(run: Partial<SpawnOutcome>): ExeDeps {
 }
 
 describe("executeSource", () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "lakatos-exe-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "thales-exe-"));
 
   const run = (source: string, d: ExeDeps, name = "t.ts") =>
     executeSource(source, name, path.join(dir, name), d);

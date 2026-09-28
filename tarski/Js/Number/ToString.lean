@@ -14,7 +14,7 @@ the definition's own acceptance test.
 Radix 10 is exactly specified and is `toDecimalString`. Every other radix the
 specification leaves to the implementation, calling only for "a generalization
 of" the decimal algorithm; `toRadixString` is V8's `DoubleToRadixCString`
-transcribed over exact rational arithmetic, so what `lakatos exe` prints is
+transcribed over exact rational arithmetic, so what `thales-exe` prints is
 what a user comparing against Node sees.
 -/
 

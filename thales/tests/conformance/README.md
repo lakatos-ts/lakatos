@@ -1,6 +1,6 @@
 # Verdict-fixture corpus
 
-End-to-end fixtures for `lakatos prove`. Each `.ts` file is one fixture, and
+End-to-end fixtures for `thales`. Each `.ts` file is one fixture, and
 its bucket is its entire test specification: every `@ensures` annotation in
 the file must receive the bucket's SZS status. There are no sidecar files
 and no inline expectation directives.
@@ -12,10 +12,10 @@ as nodeNext writes them). Only the entry's annotations are graded, and the
 bucket's status applies to them; the dependencies are never run as entries,
 so annotations in them would go unchecked and do not belong there.
 
-The harness is the root `tests/verdict-corpus.test.ts`, gated on
+The harness is `thales/tests/verdict-corpus.test.ts`, gated on
 `LAKATOS_PROVE_E2E=1` like the prove e2e (it needs the Lean toolchain and is
 minutes-slow). It copies the corpus into a scratch project, runs
-`lakatos prove` once over every fixture, and diffs each annotation's status
+`thales` once over every fixture, and diffs each annotation's status
 against its bucket. Only the SZS status is bucket-checked; reason text is
 the business of the e2e and unit suites.
 

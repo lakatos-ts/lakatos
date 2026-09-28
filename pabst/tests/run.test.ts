@@ -91,6 +91,7 @@ describe("runTests", () => {
     if (result.kind !== "no-results") return;
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain(RESULTS);
+    expect(result.stderr).toMatch(/^pabst: cannot clear stale results file /);
   });
 
   it("launches lakatos's own vitest under this node, not npx", () => {

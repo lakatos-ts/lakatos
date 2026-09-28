@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The parser bridge as a command: one JavaScript file in, one ESTree
-// document out. This is a development entry point — `lakatos exe` is the
+// document out. This is a development entry point — `thales-exe` is the
 // user-facing command, and it is not this package's `bin`.
 
 import { readFileSync, writeFileSync } from "node:fs";

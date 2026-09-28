@@ -6,6 +6,7 @@ import * as os from "node:os";
 
 const root = process.cwd();
 const cliJs = path.join(root, "thales", "dist", "cli.js");
+const exeCliJs = path.join(root, "thales", "dist", "exe-cli.js");
 
 // npm exposes the bin as a symlink (node_modules/.bin/thales ->
 // thales/dist/cli.js), so these run the built bin the way an installed copy
@@ -26,6 +27,28 @@ describe("thales/dist/cli.js as an installed bin", () => {
         encoding: "utf8",
       });
       expect(r.stdout).toMatch(/^usage: thales/);
+      expect(r.status).toBe(0);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("thales/dist/exe-cli.js as an installed bin", () => {
+  it("starts with an env-node shebang", () => {
+    const firstLine = fs.readFileSync(exeCliJs, "utf8").split("\n", 1)[0];
+    expect(firstLine).toBe("#!/usr/bin/env node");
+  });
+
+  it("runs main() when invoked through a .bin-style symlink", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "thales-exe-bin-"));
+    const link = path.join(dir, "thales-exe");
+    fs.symlinkSync(exeCliJs, link);
+    try {
+      const r = spawnSync(process.execPath, [link, "--help"], {
+        encoding: "utf8",
+      });
+      expect(r.stdout).toMatch(/^usage: thales-exe/);
       expect(r.status).toBe(0);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });

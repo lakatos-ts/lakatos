@@ -67,7 +67,6 @@ export default defineConfig({
       // code drags the baseline down instead of hiding from the ratchet.
       all: true,
       include: [
-        "src/**/*.ts",
         "core/src/**/*.ts",
         "lemma/src/**/*.ts",
         "pabst/src/**/*.ts",
@@ -131,7 +130,8 @@ export default defineConfig({
         // arm reached by a test for all of them. The one ignore added
         // with them is a dot access's name, which tsc types as an
         // identifier or a private name and nothing else.
-        // Ratcheted 2026-09-14: `lakatos exe` joined it — `src/exe.ts` and
+        // Ratcheted 2026-09-14: the exe command joined it — its pipeline
+        // (now `thales/frontend/src/exe.ts`) and
         // `tarski/frontend/src/binary.ts`, both fully covered, including
         // the arms a spawn that never started reaches (both streams null
         // beside an error).
@@ -164,16 +164,18 @@ export default defineConfig({
         // guard runs only when spawned and carries its own ignore.
         // Ratcheted again 2026-09-27: the prove spine moved from the CLI into
         // thales's own package, where the bin's two rethrows each got a test.
+        // Ratcheted 2026-09-28: the root CLI went; its exe command moved into
+        // thales as thales-exe, whose two rethrows each got a test too.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
         // worktree under .claude/ silently reports every loaded file instead
         // — different denominator, different numbers.
         autoUpdate: true,
-        statements: 99.69,
-        branches: 98.99,
+        statements: 99.77,
+        branches: 99.12,
         functions: 100,
-        lines: 99.75,
+        lines: 99.83,
       },
     },
   },

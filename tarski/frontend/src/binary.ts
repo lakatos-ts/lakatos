@@ -1,7 +1,7 @@
 // The evaluator binary as a dependency: locate it, build it, run one
 // document through it.
 //
-// This is `lakatos exe`'s side of the seam, and it lives in tarski's own
+// This is `thales-exe`'s side of the seam, and it lives in tarski's own
 // tree rather than beside thales's `run.ts` because the layering forbids
 // tarski from importing an engine. The two are deliberately alike — one
 // `lake build` under a timeout, ENOENT read as a missing toolchain, a
@@ -64,7 +64,7 @@ export function ensureBinary(
     return {
       kind: "no-project",
       message:
-        "the tarski evaluator is not part of this installation; run exe from a lakatos checkout",
+        "the tarski evaluator is not part of this installation; run it from a lakatos checkout",
     };
   }
   const build = spawn("lake", ["build", "tarski"], {
