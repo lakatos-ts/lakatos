@@ -1,9 +1,8 @@
 // Where the runner's pieces are, given only where this module is.
 //
-// The lake package is found by walking up from this file, the way thales's
-// `findEngineRoot` finds its own: an installed copy and a checkout put
-// `dist/` in different places, and neither can be named relative to the
-// other.
+// The lake package is found by walking up from this file: an installed copy
+// and a checkout put `dist/` in different places, and neither can be named
+// relative to the other.
 
 import { existsSync } from "node:fs";
 import path from "node:path";

@@ -52,9 +52,9 @@ function isEnoent(e: Error | undefined): boolean {
  * would evaluate some other semantics than the one this tree defines.
  *
  * The caller resolves `root` — `findTarskiRoot()` is what every real one
- * passes — as `runEmission` does with `findEngineRoot`, and for the same
- * reason: a default parameter is chosen whenever the argument is
- * `undefined`, which is exactly the case this function has to answer for.
+ * passes — rather than a default parameter, because a default is chosen
+ * whenever the argument is `undefined`, which is exactly the case this
+ * function has to answer for.
  */
 export function ensureBinary(
   root: string | undefined,
