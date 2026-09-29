@@ -92,6 +92,10 @@ the evaluator per declaration, and the envelope's `model` field says
 whether it was and why not; refute (pabst) runs on Node, not on this
 evaluator.
 
+Its output is the evaluator's, not Node's. `console.log` prints the
+ToString of each argument, so an object prints as `[object Object]` rather
+than Node's inspection, and `-0` prints as `0`.
+
 ## Building
 
 ```bash
