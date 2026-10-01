@@ -299,6 +299,195 @@ describe("closures that do not close", () => {
       ),
     ).toBeUndefined();
   });
+
+  test("a global a dependency uses is not captured by the entry's declaration", () => {
+    const dep = [
+      "export function mag(x: number): number {",
+      "  return Math.abs(x);",
+      "}",
+      "",
+    ].join("\n");
+    const main = (local: string) =>
+      [
+        'import { mag } from "./dep.mjs";',
+        `const ${local} = 2;`,
+        "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+        "export function top(x: number): number {",
+        `  return mag(x) + ${local};`,
+        "}",
+        "",
+      ].join("\n");
+    const top = (local: string) =>
+      astOf(
+        emitModule(main(local), "main.mts", reader({ "dep.mts": dep })).emission
+          .declarations,
+        "top",
+      );
+    expect(top("scale")).toBeDefined();
+    // In dep, `Math` is the global. One script holding the entry's
+    // `const Math = 2` would hand `mag` the entry's binding instead.
+    expect(top("Math")).toBeUndefined();
+  });
+
+  test("an import a dependency degraded is not captured by the entry's declaration", () => {
+    const dep = [
+      'import { clamp } from "clamp-pkg";',
+      "export function safe(x: number): number {",
+      "  return clamp(x);",
+      "}",
+      "",
+    ].join("\n");
+    const main = (local: string) =>
+      [
+        'import { safe } from "./dep.mjs";',
+        `function ${local}(x: number): number {`,
+        "  return x;",
+        "}",
+        "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+        "export function top(x: number): number {",
+        `  return safe.length + ${local}(x);`,
+        "}",
+        "",
+      ].join("\n");
+    const top = (local: string) =>
+      astOf(
+        emitModule(main(local), "main.mts", reader({ "dep.mts": dep })).emission
+          .declarations,
+        "top",
+      );
+    // `safe.length` reaches `safe`'s statement without calling it, so
+    // `top` still models while its closure carries `safe`.
+    expect(top("ident")).toBeDefined();
+    expect(top("clamp")).toBeUndefined();
+  });
+
+  test("every name a selected statement declares counts, not only the one it was selected for", () => {
+    const dep = [
+      "function helper(x: number): number {",
+      "  return x + 1;",
+      "}",
+      "export function step(x: number): number {",
+      "  return helper(x);",
+      "}",
+      "",
+    ].join("\n");
+    const main = (second: string) =>
+      [
+        'import { step } from "./dep.mjs";',
+        `const a = 1, ${second} = 2;`,
+        "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+        "export function top(x: number): number {",
+        "  return step(x) + a;",
+        "}",
+        "",
+      ].join("\n");
+    const top = (second: string) =>
+      astOf(
+        emitModule(main(second), "main.mts", reader({ "dep.mts": dep }))
+          .emission.declarations,
+        "top",
+      );
+    expect(top("other")).toBeDefined();
+    // Selected for `a`, the statement also declares `helper`, which dep's
+    // selected `function helper` declares too.
+    expect(top("helper")).toBeUndefined();
+  });
+
+  test("a name a dependency declares only as a type stays free in the script", () => {
+    const dep = [
+      "declare function tick(x: number): number;",
+      "export function next(x: number): number {",
+      "  return tick(x);",
+      "}",
+      "",
+    ].join("\n");
+    const main = (local: string) =>
+      [
+        'import { next } from "./dep.mjs";',
+        `function ${local}(x: number): number {`,
+        "  return x;",
+        "}",
+        "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+        "export function top(x: number): number {",
+        `  return next.length + ${local}(x);`,
+        "}",
+        "",
+      ].join("\n");
+    const top = (local: string) =>
+      astOf(
+        emitModule(main(local), "main.mts", reader({ "dep.mts": dep })).emission
+          .declarations,
+        "top",
+      );
+    expect(top("ident")).toBeDefined();
+    // `tick` is erased from dep's script, so in dep it is free; the
+    // entry's `function tick` would bind it.
+    expect(top("tick")).toBeUndefined();
+  });
+
+  test("an import closing a cycle binds the module it closes on", () => {
+    const dep = (imported: string) =>
+      [
+        `import { ${imported} } from "./main.mjs";`,
+        "export function scaled(x: number): number {",
+        "  return b(x) * 2;",
+        "}",
+        "",
+      ].join("\n");
+    const main = [
+      'import { scaled } from "./dep.mjs";',
+      "export function b(x: number): number {",
+      "  return x + 1;",
+      "}",
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+      "export function top(x: number): number {",
+      "  return b(x) + scaled(x);",
+      "}",
+      "",
+    ].join("\n");
+    const top = (imported: string) =>
+      astOf(
+        emitModule(
+          main,
+          "main.mts",
+          reader({ "main.mts": main, "dep.mts": dep(imported) }),
+        ).emission.declarations,
+        "top",
+      );
+    // The walk degrades dep's `b`, but at run time it is the entry's `b`.
+    expect(top("b")).toBeDefined();
+    // Renamed on the edge, dep's `b` is the entry's `top`, not its `b`.
+    expect(top("top as b")).toBeUndefined();
+  });
+
+  test("a parameter spelled like another module's declaration is refused too", () => {
+    // Conservative on purpose: the reference walk counts parameters and
+    // locals, and a lost ast costs a validation, never soundness.
+    const dep = [
+      "export function inc(x: number): number {",
+      "  return x + 1;",
+      "}",
+      "",
+    ].join("\n");
+    const main = (local: string) =>
+      [
+        'import { inc } from "./dep.mjs";',
+        `const ${local} = 5;`,
+        "/** @ensures{p} forall (y: int ∈ [0, 5)) { top(y) >= 0 } */",
+        "export function top(y: number): number {",
+        `  return inc(y) + ${local};`,
+        "}",
+        "",
+      ].join("\n");
+    const top = (local: string) =>
+      astOf(
+        emitModule(main(local), "main.mts", reader({ "dep.mts": dep })).emission
+          .declarations,
+        "top",
+      );
+    expect(top("five")).toBeDefined();
+    expect(top("x")).toBeUndefined();
+  });
 });
 
 describe("what the frontend does not refuse", () => {
@@ -454,7 +643,7 @@ describe("the pieces a closure is built from", () => {
     // could not read that one, so there is no closed script.
     expect(
       closureProgram({ module: "", name: "f" }, [
-        { qualifier: "", program, names },
+        { qualifier: "", program, names, cycles: new Map() },
       ]),
     ).toBeUndefined();
   });
