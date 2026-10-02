@@ -393,6 +393,36 @@ describe("closures that do not close", () => {
     expect(top("helper")).toBeUndefined();
   });
 
+  test("a name a destructuring declarator binds counts too", () => {
+    const dep = [
+      "export function mag(x: number): number {",
+      "  return Math.abs(x);",
+      "}",
+      "",
+    ].join("\n");
+    const main = (second: string) =>
+      [
+        'import { mag } from "./dep.mjs";',
+        `const a = 1, ${second};`,
+        "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+        "export function top(x: number): number {",
+        "  return mag(x) + a;",
+        "}",
+        "",
+      ].join("\n");
+    const top = (second: string) =>
+      astOf(
+        emitModule(main(second), "main.mts", reader({ "dep.mts": dep }))
+          .emission.declarations,
+        "top",
+      );
+    expect(top("[other] = [2]")).toBeDefined();
+    // Selected for `a`, the statement also binds `Math` through a pattern,
+    // which dep reads as the global.
+    expect(top("[Math] = [2]")).toBeUndefined();
+    expect(top("{ Math } = { Math: 2 }")).toBeUndefined();
+  });
+
   test("a name a dependency declares only as a type stays free in the script", () => {
     const dep = [
       "declare function tick(x: number): number;",

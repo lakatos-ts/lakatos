@@ -121,6 +121,14 @@ export function referencedNames(node: unknown): Set<string> {
   return found;
 }
 
+/** Every name a statement binds in the script, binding patterns included:
+ * a pattern is never resolved to, but what it binds can still capture. A
+ * pattern's defaults count too, which can only over-refuse. */
+function boundNames(stmt: Statement): string[] {
+  if (stmt.type !== "VariableDeclaration") return declaredNames(stmt);
+  return stmt.declarations.flatMap((d) => [...referencedNames(d.id)]);
+}
+
 /** A statement selected into a closure, with the module it came from. */
 interface Selection {
   module: number;
@@ -193,9 +201,7 @@ export function closureProgram(
   // Two modules declaring one name make no script: nothing renames them.
   const owner = new Map<string, number>();
   for (const s of selected) {
-    for (const name of declaredNames(
-      modules[s.module]!.program.body[s.index]!,
-    )) {
+    for (const name of boundNames(modules[s.module]!.program.body[s.index]!)) {
       const prev = owner.get(name);
       if (prev !== undefined && prev !== s.module) return undefined;
       owner.set(name, s.module);
