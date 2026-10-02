@@ -13,8 +13,8 @@
 // A closure that cannot be closed has no AST at all. Authoring a
 // `const local = imported;` node to bridge a renamed import is exactly
 // what #480 forbids, so a renamed import, a name two of the closure's
-// modules both declare, a name with no declaring statement, and a module
-// the bridge could not parse each answer `undefined` instead.
+// modules both declare, a name one module uses free that another declares,
+// and a module the bridge could not parse each answer `undefined` instead.
 
 import {
   parseScript,
@@ -26,11 +26,14 @@ import { type ModelRef } from "./module-graph.js";
 
 /** One walked module: the qualifier its models carry (empty for the
  * entry), the bridge's document for its stripped text, and the name map
- * the walk built — a local spelling to the model it names. */
+ * the walk built — a local spelling to the model it names. `cycles` holds
+ * the imports that close a cycle: degraded in `names`, yet bound at run
+ * time to the module still being walked. */
 export interface ModuleScript {
   qualifier: string;
   program: Program;
   names: ReadonlyMap<string, ModelRef>;
+  cycles: ReadonlyMap<string, ModelRef>;
 }
 
 /**
@@ -118,6 +121,14 @@ export function referencedNames(node: unknown): Set<string> {
   return found;
 }
 
+/** Every name a statement binds in the script, binding patterns included:
+ * a pattern is never resolved to, but what it binds can still capture. A
+ * pattern's defaults count too, which can only over-refuse. */
+function boundNames(stmt: Statement): string[] {
+  if (stmt.type !== "VariableDeclaration") return declaredNames(stmt);
+  return stmt.declarations.flatMap((d) => [...referencedNames(d.id)]);
+}
+
 /** A statement selected into a closure, with the module it came from. */
 interface Selection {
   module: number;
@@ -131,8 +142,9 @@ interface Selection {
  * module last, source order within each.
  *
  * `undefined` when no closed script exists: two of the selected statements
- * declare one name, a module the closure reaches was not bridged, or a
- * name it reaches was bound under a different spelling on import.
+ * declare one name, a module the closure reaches was not bridged, a name
+ * it reaches was bound under a different spelling on import, or the script
+ * would bind a name one module uses free to another module's declaration.
  *
  * Two kinds of name are skipped instead, and both are genuinely free in
  * the script the module itself becomes. One resolves to nothing at all — a
@@ -157,7 +169,6 @@ export function closureProgram(
   const selected: Selection[] = [];
   const seen = new Set<string>();
   const queue: ModelRef[] = [decl];
-  const declaredBy = new Map<string, string>();
 
   while (queue.length > 0) {
     const ref = queue.shift()!;
@@ -173,11 +184,6 @@ export function closureProgram(
     // A name its own module's script does not declare either: erased with
     // the types, and free in both.
     if (index === -1) continue;
-    // Two modules of one closure declaring `helper` would make one script
-    // with two `helper`s. Nothing renames them, so there is no script.
-    const declaring = declaredBy.get(ref.name);
-    if (declaring !== undefined && declaring !== ref.module) return undefined;
-    declaredBy.set(ref.name, ref.module);
     if (!selected.some((s) => s.module === at && s.index === index))
       selected.push({ module: at, index });
     for (const name of referencedNames(module.program.body[index])) {
@@ -188,6 +194,33 @@ export function closureProgram(
       // would reference a binding the script does not have.
       if (to.name !== name) return undefined;
       queue.push(to);
+    }
+  }
+
+  // Which module's selected statement declares each name in the script.
+  // Two modules declaring one name make no script: nothing renames them.
+  const owner = new Map<string, number>();
+  for (const s of selected) {
+    for (const name of boundNames(modules[s.module]!.program.body[s.index]!)) {
+      const prev = owner.get(name);
+      if (prev !== undefined && prev !== s.module) return undefined;
+      owner.set(name, s.module);
+    }
+  }
+  // The script must bind every name as the statement's own module does: to
+  // that module's selected declaration, or to nothing when the name is free
+  // there (a global, a degraded import, an erased type, a local).
+  for (const s of selected) {
+    const module = modules[s.module]!;
+    for (const name of referencedNames(module.program.body[s.index])) {
+      const bound = owner.get(name);
+      if (bound === undefined) continue;
+      const to = module.names.get(name) ?? module.cycles.get(name);
+      const expected =
+        to === undefined || to.name !== name
+          ? undefined
+          : modules.findIndex((m) => m.qualifier === to.module);
+      if (bound !== expected) return undefined;
     }
   }
 

@@ -4491,9 +4491,9 @@ interface EmitClosure {
   entryDir: string;
   /** Modules already walked, by absolute path, with their name maps. */
   done: Map<string, ReadonlyMap<string, ModelRef>>;
-  /** Modules whose walk has not finished: an import reaching back into
-   * one closes a cycle. */
-  active: Set<string>;
+  /** Modules whose walk has not finished, with their qualifiers: an
+   * import reaching back into one closes a cycle. */
+  active: Map<string, string>;
   declarations: EmitDecl[];
   mapped: Map<string, FnSig>;
   failed: Map<string, FailedDecl>;
@@ -4644,12 +4644,13 @@ function inlineEmitModule(
 ): ReadonlyMap<string, ModelRef> {
   const done = c.done.get(target.file);
   if (done !== undefined) return done;
-  c.active.add(target.file);
+  const qualifier = moduleQualifier(c.entryDir, target.file);
+  c.active.set(target.file, qualifier);
   const names = walkEmitModule(
     target.file,
     target.file,
     target.text,
-    moduleQualifier(c.entryDir, target.file),
+    qualifier,
     c,
   );
   c.active.delete(target.file);
@@ -4668,6 +4669,7 @@ function bindEmitImport(
   stmt: ts.ImportDeclaration,
   from: string,
   names: Map<string, ModelRef>,
+  cycles: Map<string, ModelRef>,
   qualifier: string,
   sf: ts.SourceFile,
   c: EmitClosure,
@@ -4691,14 +4693,19 @@ function bindEmitImport(
   const target = ts.isStringLiteral(specifier)
     ? resolveImport(specifier.text, from, c.reader)
     : undefined;
+  const cycle = target && c.active.get(target.file);
   const exported =
-    target === undefined || c.active.has(target.file)
+    target === undefined || cycle !== undefined
       ? undefined
       : inlineEmitModule(target, c);
   for (const el of bindings.elements) {
-    const to = exported?.get((el.propertyName ?? el.name).text);
+    const imported = (el.propertyName ?? el.name).text;
+    const to = exported?.get(imported);
     if (to === undefined) degrade(el.name);
     else names.set(el.name.text, to);
+    // The model degrades a cycle's edge, but the script still binds it.
+    if (cycle !== undefined)
+      cycles.set(el.name.text, { module: cycle, name: imported });
   }
 }
 
@@ -4715,13 +4722,14 @@ function walkEmitModule(
 ): ReadonlyMap<string, ModelRef> {
   const sf = ts.createSourceFile(label, text, ts.ScriptTarget.Latest, true);
   const names = new Map<string, ModelRef>();
+  const cycles = new Map<string, ModelRef>();
   const key = (name: string) => modelKey({ module: qualifier, name });
   // Bindings first, and dependencies with them: a call may precede the
   // declaration it names, and every dependency's declarations must be
   // registered before this module's bodies are walked.
   for (const stmt of sf.statements) {
     if (ts.isImportDeclaration(stmt)) {
-      bindEmitImport(stmt, file, names, qualifier, sf, c);
+      bindEmitImport(stmt, file, names, cycles, qualifier, sf, c);
     } else {
       for (const name of declaredNames(stmt)) {
         names.set(name, { module: qualifier, name });
@@ -4836,7 +4844,8 @@ function walkEmitModule(
   // a declaration carries is a selection of these statements, never a node
   // this file wrote.
   const program = bridgeModule(text, label);
-  if (program !== undefined) c.scripts.push({ qualifier, program, names });
+  if (program !== undefined)
+    c.scripts.push({ qualifier, program, names, cycles });
   return names;
 }
 
@@ -4972,7 +4981,7 @@ export function emitModule(
     reader,
     entryDir: path.dirname(entry),
     done: new Map(),
-    active: new Set([entry]),
+    active: new Map([[entry, ""]]),
     declarations: [],
     mapped: new Map(),
     failed: new Map(),
