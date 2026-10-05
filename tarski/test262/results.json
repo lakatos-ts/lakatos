@@ -20,9 +20,9 @@
       }
     },
     "test/built-ins/AggregateError": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 25,
+      "pass": 20,
+      "fail": 3,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -34,9 +34,9 @@
       }
     },
     "test/built-ins/Array": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 2958,
+      "pass": 2579,
+      "fail": 271,
+      "unsupported": 108,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -49,8 +49,8 @@
     },
     "test/built-ins/ArrayBuffer": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 221,
+      "fail": 201,
+      "unsupported": 20,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -62,9 +62,9 @@
       }
     },
     "test/built-ins/ArrayIteratorPrototype": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 19,
+      "pass": 9,
+      "fail": 9,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -77,8 +77,8 @@
     },
     "test/built-ins/AsyncDisposableStack": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 75,
+      "fail": 68,
+      "unsupported": 7,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -104,9 +104,9 @@
       }
     },
     "test/built-ins/AsyncFunction": {
-      "pass": 0,
+      "pass": 1,
       "fail": 0,
-      "unsupported": 18,
+      "unsupported": 17,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -161,8 +161,8 @@
     },
     "test/built-ins/Atomics": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 324,
+      "fail": 187,
+      "unsupported": 137,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -175,8 +175,8 @@
     },
     "test/built-ins/BigInt": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 77,
+      "fail": 34,
+      "unsupported": 43,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -188,9 +188,9 @@
       }
     },
     "test/built-ins/Boolean": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 51,
+      "pass": 43,
+      "fail": 5,
+      "unsupported": 3,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -203,8 +203,8 @@
     },
     "test/built-ins/DataView": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 561,
+      "fail": 453,
+      "unsupported": 108,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -217,8 +217,8 @@
     },
     "test/built-ins/Date": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 594,
+      "fail": 585,
+      "unsupported": 9,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -231,8 +231,8 @@
     },
     "test/built-ins/DisposableStack": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 93,
+      "fail": 91,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -244,9 +244,9 @@
       }
     },
     "test/built-ins/Error": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 93,
+      "pass": 50,
+      "fail": 35,
+      "unsupported": 8,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -259,8 +259,8 @@
     },
     "test/built-ins/FinalizationRegistry": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 47,
+      "fail": 46,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -272,9 +272,9 @@
       }
     },
     "test/built-ins/Function": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 421,
+      "pass": 159,
+      "fail": 50,
+      "unsupported": 212,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -314,9 +314,9 @@
       }
     },
     "test/built-ins/Infinity": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 4,
+      "pass": 1,
+      "fail": 3,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -328,9 +328,9 @@
       }
     },
     "test/built-ins/Iterator": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 654,
+      "pass": 4,
+      "fail": 441,
+      "unsupported": 209,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -342,9 +342,9 @@
       }
     },
     "test/built-ins/JSON": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 165,
+      "pass": 116,
+      "fail": 40,
+      "unsupported": 9,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -357,8 +357,8 @@
     },
     "test/built-ins/Map": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 203,
+      "fail": 198,
+      "unsupported": 5,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -371,8 +371,8 @@
     },
     "test/built-ins/MapIteratorPrototype": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 11,
+      "fail": 11,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -384,9 +384,9 @@
       }
     },
     "test/built-ins/Math": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 327,
+      "pass": 143,
+      "fail": 182,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -398,9 +398,9 @@
       }
     },
     "test/built-ins/NaN": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 4,
+      "pass": 2,
+      "fail": 2,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -412,9 +412,9 @@
       }
     },
     "test/built-ins/NativeErrors": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 94,
+      "pass": 76,
+      "fail": 12,
+      "unsupported": 6,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -426,9 +426,9 @@
       }
     },
     "test/built-ins/Number": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 340,
+      "pass": 325,
+      "fail": 10,
+      "unsupported": 5,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -440,9 +440,9 @@
       }
     },
     "test/built-ins/Object": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 3400,
+      "pass": 2955,
+      "fail": 394,
+      "unsupported": 51,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -455,8 +455,8 @@
     },
     "test/built-ins/Promise": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 316,
+      "fail": 307,
+      "unsupported": 9,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -469,8 +469,8 @@
     },
     "test/built-ins/Proxy": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 299,
+      "fail": 254,
+      "unsupported": 45,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -483,8 +483,8 @@
     },
     "test/built-ins/Reflect": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 153,
+      "fail": 152,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -497,8 +497,8 @@
     },
     "test/built-ins/RegExp": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 1686,
+      "fail": 445,
+      "unsupported": 1241,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -525,8 +525,8 @@
     },
     "test/built-ins/Set": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 382,
+      "fail": 323,
+      "unsupported": 59,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -539,8 +539,8 @@
     },
     "test/built-ins/SetIteratorPrototype": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 11,
+      "fail": 11,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -553,8 +553,8 @@
     },
     "test/built-ins/ShadowRealm": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 60,
+      "fail": 57,
+      "unsupported": 3,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -567,8 +567,8 @@
     },
     "test/built-ins/SharedArrayBuffer": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 104,
+      "fail": 101,
+      "unsupported": 3,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -580,9 +580,9 @@
       }
     },
     "test/built-ins/String": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 1220,
+      "pass": 940,
+      "fail": 132,
+      "unsupported": 148,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -594,9 +594,9 @@
       }
     },
     "test/built-ins/StringIteratorPrototype": {
-      "pass": 0,
+      "pass": 7,
       "fail": 0,
-      "unsupported": 7,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -609,8 +609,8 @@
     },
     "test/built-ins/SuppressedError": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 22,
+      "fail": 20,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -622,9 +622,9 @@
       }
     },
     "test/built-ins/Symbol": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 96,
+      "pass": 68,
+      "fail": 9,
+      "unsupported": 19,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -637,8 +637,8 @@
     },
     "test/built-ins/Temporal": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 4605,
+      "fail": 2280,
+      "unsupported": 2325,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -650,9 +650,9 @@
       }
     },
     "test/built-ins/ThrowTypeError": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 14,
+      "pass": 10,
+      "fail": 3,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -665,8 +665,8 @@
     },
     "test/built-ins/TypedArray": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 1438,
+      "fail": 932,
+      "unsupported": 506,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -679,8 +679,8 @@
     },
     "test/built-ins/TypedArrayConstructors": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 722,
+      "fail": 549,
+      "unsupported": 173,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -693,8 +693,8 @@
     },
     "test/built-ins/Uint8Array": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 70,
+      "fail": 66,
+      "unsupported": 4,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -707,8 +707,8 @@
     },
     "test/built-ins/WeakMap": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 141,
+      "fail": 139,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -721,8 +721,8 @@
     },
     "test/built-ins/WeakRef": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 29,
+      "fail": 28,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -735,8 +735,8 @@
     },
     "test/built-ins/WeakSet": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 85,
+      "fail": 84,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -749,8 +749,8 @@
     },
     "test/built-ins/decodeURI": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 55,
+      "fail": 27,
+      "unsupported": 28,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -763,8 +763,8 @@
     },
     "test/built-ins/decodeURIComponent": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 56,
+      "fail": 28,
+      "unsupported": 28,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -777,8 +777,8 @@
     },
     "test/built-ins/encodeURI": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 31,
+      "fail": 20,
+      "unsupported": 11,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -791,8 +791,8 @@
     },
     "test/built-ins/encodeURIComponent": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 31,
+      "fail": 20,
+      "unsupported": 11,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -805,8 +805,8 @@
     },
     "test/built-ins/eval": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 10,
+      "fail": 10,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -818,9 +818,9 @@
       }
     },
     "test/built-ins/global": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 29,
+      "pass": 14,
+      "fail": 14,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -833,8 +833,8 @@
     },
     "test/built-ins/isFinite": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 15,
+      "fail": 15,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -847,8 +847,8 @@
     },
     "test/built-ins/isNaN": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 15,
+      "fail": 15,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -860,9 +860,9 @@
       }
     },
     "test/built-ins/parseFloat": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 54,
+      "pass": 51,
+      "fail": 2,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -874,9 +874,9 @@
       }
     },
     "test/built-ins/parseInt": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 55,
+      "pass": 52,
+      "fail": 2,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -888,9 +888,9 @@
       }
     },
     "test/built-ins/undefined": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 5,
+      "pass": 1,
+      "fail": 4,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -902,9 +902,9 @@
       }
     },
     "test/language/arguments-object": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 145,
+      "pass": 68,
+      "fail": 2,
+      "unsupported": 75,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -916,9 +916,9 @@
       }
     },
     "test/language/asi": {
-      "pass": 0,
+      "pass": 65,
       "fail": 0,
-      "unsupported": 67,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -930,9 +930,9 @@
       }
     },
     "test/language/block-scope": {
-      "pass": 0,
+      "pass": 43,
       "fail": 0,
-      "unsupported": 43,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -944,9 +944,9 @@
       }
     },
     "test/language/comments": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 21,
+      "pass": 12,
+      "fail": 6,
+      "unsupported": 3,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -958,9 +958,9 @@
       }
     },
     "test/language/computed-property-names": {
-      "pass": 0,
+      "pass": 16,
       "fail": 0,
-      "unsupported": 48,
+      "unsupported": 32,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -972,9 +972,9 @@
       }
     },
     "test/language/destructuring": {
-      "pass": 0,
+      "pass": 15,
       "fail": 0,
-      "unsupported": 18,
+      "unsupported": 3,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1000,9 +1000,9 @@
       }
     },
     "test/language/eval-code": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 123,
+      "pass": 5,
+      "fail": 64,
+      "unsupported": 54,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1014,9 +1014,9 @@
       }
     },
     "test/language/expressions": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 6404,
+      "pass": 2541,
+      "fail": 311,
+      "unsupported": 3552,
       "timeout": 0,
       "harnessError": 3,
       "notRun": {
@@ -1028,9 +1028,9 @@
       }
     },
     "test/language/function-code": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 108,
+      "pass": 93,
+      "fail": 6,
+      "unsupported": 9,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1042,9 +1042,9 @@
       }
     },
     "test/language/future-reserved-words": {
-      "pass": 0,
+      "pass": 22,
       "fail": 0,
-      "unsupported": 22,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1056,9 +1056,9 @@
       }
     },
     "test/language/global-code": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 23,
+      "pass": 5,
+      "fail": 6,
+      "unsupported": 12,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1070,9 +1070,9 @@
       }
     },
     "test/language/identifier-resolution": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 8,
+      "pass": 4,
+      "fail": 4,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1084,9 +1084,9 @@
       }
     },
     "test/language/identifiers": {
-      "pass": 0,
+      "pass": 136,
       "fail": 0,
-      "unsupported": 136,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 16,
       "notRun": {
@@ -1112,9 +1112,9 @@
       }
     },
     "test/language/line-terminators": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 24,
+      "pass": 15,
+      "fail": 7,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1126,9 +1126,9 @@
       }
     },
     "test/language/literals": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 210,
+      "pass": 134,
+      "fail": 29,
+      "unsupported": 47,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1140,9 +1140,9 @@
       }
     },
     "test/language/module-code": {
-      "pass": 0,
+      "pass": 1,
       "fail": 0,
-      "unsupported": 1,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1168,9 +1168,9 @@
       }
     },
     "test/language/reserved-words": {
-      "pass": 0,
+      "pass": 14,
       "fail": 0,
-      "unsupported": 14,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1182,9 +1182,9 @@
       }
     },
     "test/language/rest-parameters": {
-      "pass": 0,
+      "pass": 10,
       "fail": 0,
-      "unsupported": 10,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1196,9 +1196,9 @@
       }
     },
     "test/language/source-text": {
-      "pass": 0,
+      "pass": 1,
       "fail": 0,
-      "unsupported": 1,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1210,9 +1210,9 @@
       }
     },
     "test/language/statementList": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 80,
+      "pass": 28,
+      "fail": 40,
+      "unsupported": 12,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1224,9 +1224,9 @@
       }
     },
     "test/language/statements": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 4958,
+      "pass": 2271,
+      "fail": 298,
+      "unsupported": 2389,
       "timeout": 0,
       "harnessError": 3,
       "notRun": {
@@ -1238,9 +1238,9 @@
       }
     },
     "test/language/types": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 93,
+      "pass": 74,
+      "fail": 8,
+      "unsupported": 11,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1252,9 +1252,9 @@
       }
     },
     "test/language/white-space": {
-      "pass": 0,
-      "fail": 0,
-      "unsupported": 61,
+      "pass": 20,
+      "fail": 16,
+      "unsupported": 25,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -1267,9 +1267,9 @@
     }
   },
   "totals": {
-    "pass": 0,
-    "fail": 0,
-    "unsupported": 35355,
+    "pass": 13219,
+    "fail": 10177,
+    "unsupported": 11959,
     "timeout": 0,
     "harnessError": 22,
     "notRun": {
@@ -1286,6 +1286,60 @@
     "intl402": 3357
   },
   "unsupported": {
-    "SwitchStatement": 35355
+    "RegularExpressionLiteral": 3032,
+    "BigIntLiteral": 1493,
+    "MethodDefinition generator": 1444,
+    "MethodDefinition private": 936,
+    "FunctionExpression generator": 917,
+    "FunctionDeclaration generator": 743,
+    "Function constructor": 384,
+    "ComputedPropertyName": 371,
+    "BinaryExpression ,": 344,
+    "$262.detachArrayBuffer": 300,
+    "MethodDefinition async": 217,
+    "Property generator": 201,
+    "$262.createRealm": 163,
+    "FunctionExpression async": 137,
+    "FunctionDeclaration async": 123,
+    "AssignmentExpression >>>=": 109,
+    "BinaryExpression ==": 90,
+    "MetaProperty": 74,
+    "BinaryExpression !=": 72,
+    "ImportKeyword": 72,
+    "$262.agent": 59,
+    "Property async": 52,
+    "BinaryExpression <<": 46,
+    "BinaryExpression >>>": 44,
+    "BinaryExpression &": 38,
+    "BinaryExpression >>": 37,
+    "ClassStaticBlockDeclaration": 37,
+    "AssignmentExpression |=": 29,
+    "BinaryExpression |": 29,
+    "MethodDefinition numeric key": 29,
+    "AssignmentExpression &=": 28,
+    "AssignmentExpression <<=": 28,
+    "AssignmentExpression >>=": 28,
+    "AssignmentExpression ^=": 28,
+    "BinaryExpression ^": 28,
+    "ArrowFunctionExpression async": 27,
+    "LogicalExpression ??": 22,
+    "AssignmentExpression &&=": 17,
+    "AssignmentExpression ??=": 17,
+    "AssignmentExpression super target": 17,
+    "AssignmentExpression ||=": 17,
+    "UnaryExpression ~": 17,
+    "$262.evalScript": 12,
+    "Decorator": 12,
+    "PropertyAccessExpression": 11,
+    "PrivateIdentifier": 5,
+    "CallExpression": 4,
+    "ElementAccessExpression": 4,
+    "PropertyDefinition numeric key": 4,
+    "UnaryExpression delete super": 4,
+    "AccessorKeyword": 2,
+    "AssignmentExpression **=": 2,
+    "AssignmentExpression target": 1,
+    "DebuggerStatement": 1,
+    "WithStatement": 1
   }
 }
