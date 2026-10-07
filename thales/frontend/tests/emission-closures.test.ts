@@ -525,6 +525,85 @@ describe("emission import closures", () => {
     ]);
   });
 
+  test("swapped exports each bind their partner", () => {
+    const dep = [
+      "function a(x: number): number {",
+      "  return x + 1;",
+      "}",
+      "function b(x: number): number {",
+      "  return x + 2;",
+      "}",
+      "export { a as b, b as a };",
+      "",
+    ].join("\n");
+    const main = [
+      'import { b } from "./dep.mjs";',
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) > 0 } */",
+      "export function top(x: number): number {",
+      "  return b(x);",
+      "}",
+      "",
+    ].join("\n");
+    const { emission } = emitModule(
+      main,
+      "main.mts",
+      reader({ "dep.mts": dep }),
+    );
+    const top = withoutAst(
+      emission.declarations.find(
+        (d) => d.kind !== "residual" && d.name === "top",
+      )!,
+    );
+    expect(JSON.stringify(top)).toContain('"callee":"a"');
+  });
+
+  test("an aliased export with no same-spelled local binds", () => {
+    const helper = HELPER + "export { double as twofold };\n";
+    const src = TWICE.replace(
+      'import { double } from "./helper.mjs";',
+      'import { twofold } from "./helper.mjs";',
+    ).replace(/double\(x\)/g, "twofold(x)");
+    const { emission, classified } = emitModule(
+      src,
+      "main.mts",
+      reader({ "helper.mts": helper }),
+    );
+    expect(classified).toEqual([]);
+    expect(JSON.stringify(emission)).toContain('"callee":"double"');
+    expect(JSON.stringify(emission)).not.toContain("ImportDeclaration");
+  });
+
+  test("an import of a declared but unexported name degrades", () => {
+    const helper = HELPER.replace("export function", "function");
+    expect(
+      residualConstructs(TWICE, "main.mts", reader({ "helper.mts": helper })),
+    ).toEqual([
+      expect.stringContaining("ImportDeclaration"),
+      expect.stringContaining("ImportDeclaration"),
+    ]);
+  });
+
+  test("a re-export of a binding the module could not bind degrades", () => {
+    // The default import degrades in `middle`, so its export has nothing
+    // to name.
+    const middle = [
+      'import double from "./helper.mjs";',
+      "export { double };",
+      "",
+    ].join("\n");
+    const src = TWICE.replace('"./helper.mjs"', '"./middle.mjs"');
+    expect(
+      residualConstructs(
+        src,
+        "main.mts",
+        reader({ "middle.mts": middle, "helper.mts": HELPER }),
+      ),
+    ).toEqual([
+      expect.stringContaining("ImportDeclaration"),
+      expect.stringContaining("ImportDeclaration"),
+    ]);
+  });
+
   test("a bare specifier still degrades its bindings", () => {
     const src = TWICE.replace('"./helper.mjs"', '"lodash"');
     expect(residualConstructs(src, "main.mts", reader({}))).toEqual([
