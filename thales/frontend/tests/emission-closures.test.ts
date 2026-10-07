@@ -456,6 +456,75 @@ describe("emission import closures", () => {
     expect(JSON.stringify(emission)).toContain('"callee":"double"');
   });
 
+  test("an aliased export binds the declaration it names, not a same-spelled local", () => {
+    const dep = (local: string) =>
+      [
+        "function inner(x: number): number {",
+        "  return x + 1;",
+        "}",
+        `function ${local}(x: number): number {`,
+        "  return -1;",
+        "}",
+        "export { inner as b };",
+        "",
+      ].join("\n");
+    const src = [
+      'import { b } from "./dep.mjs";',
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) > 0 } */",
+      "export function top(x: number): number {",
+      "  return b(x);",
+      "}",
+      "",
+    ].join("\n");
+    for (const local of ["b", "other"]) {
+      const { emission, classified } = emitModule(
+        src,
+        "main.mts",
+        reader({ "dep.mts": dep(local) }),
+      );
+      expect(classified).toEqual([]);
+      const top = emission.declarations.find((d) => declName(d) === "top");
+      // The export name `b` is `inner`; a local `b` lives in another
+      // namespace and is never exported.
+      expect(JSON.stringify(top)).toContain(
+        '"callee":"inner","module":"dep.mts"',
+      );
+    }
+  });
+
+  test("a re-exported import resolves to the module that declares it", () => {
+    const relay = [
+      'import { double } from "./helper.mjs";',
+      "export { double };",
+      "",
+    ].join("\n");
+    const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+    const { emission, classified } = emitModule(
+      src,
+      "main.mts",
+      reader({ "relay.mts": relay, "helper.mts": HELPER }),
+    );
+    expect(classified).toEqual([]);
+    expect(JSON.stringify(emission)).toContain(
+      '"callee":"double","module":"helper.mts"',
+    );
+  });
+
+  test("a re-export from another module degrades its importer's binding", () => {
+    const relay = 'export { double } from "./helper.mjs";\n';
+    const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+    expect(
+      residualConstructs(
+        src,
+        "main.mts",
+        reader({ "relay.mts": relay, "helper.mts": HELPER }),
+      ),
+    ).toEqual([
+      expect.stringContaining("ImportDeclaration"),
+      expect.stringContaining("ImportDeclaration"),
+    ]);
+  });
+
   test("a bare specifier still degrades its bindings", () => {
     const src = TWICE.replace('"./helper.mjs"', '"lodash"');
     expect(residualConstructs(src, "main.mts", reader({}))).toEqual([

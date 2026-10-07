@@ -4494,6 +4494,10 @@ interface EmitClosure {
   /** Modules whose walk has not finished, with their qualifiers: an
    * import reaching back into one closes a cycle. */
   active: Map<string, string>;
+  /** Each walked module's export names, by absolute path, to the local
+   * spelling each one exports. Set before the module's imports are
+   * walked, so a cycle's edge can read it. */
+  exports: Map<string, ReadonlyMap<string, string>>;
   declarations: EmitDecl[];
   mapped: Map<string, FnSig>;
   failed: Map<string, FailedDecl>;
@@ -4637,6 +4641,32 @@ function declaredNames(stmt: ts.Statement): string[] {
   return name !== undefined && ts.isIdentifier(name) ? [name.text] : [];
 }
 
+/** A module's export names, each to the local spelling it exports: an
+ * `export` modifier, or `export { a as b }` without a specifier. A
+ * re-export from another module is absent, so importing through one
+ * degrades. Anything tsc refuses to import is not filtered here. */
+function exportTable(sf: ts.SourceFile): Map<string, string> {
+  const table = new Map<string, string>();
+  for (const stmt of sf.statements) {
+    if (ts.isExportDeclaration(stmt)) {
+      const clause = stmt.exportClause;
+      /* v8 ignore start -- without a specifier the clause is always a
+         named list: `export *` and `export * as ns` need one. */
+      if (stmt.moduleSpecifier !== undefined || !clause) continue;
+      if (!ts.isNamedExports(clause)) continue;
+      /* v8 ignore stop */
+      for (const el of clause.elements)
+        table.set(el.name.text, (el.propertyName ?? el.name).text);
+      continue;
+    }
+    const exported = (ts.getModifiers(stmt as ts.HasModifiers) ?? []).some(
+      (m) => m.kind === ts.SyntaxKind.ExportKeyword,
+    );
+    if (exported) for (const name of declaredNames(stmt)) table.set(name, name);
+  }
+  return table;
+}
+
 /** Walk `target` if it is not already in, and answer its name map. */
 function inlineEmitModule(
   target: { file: string; text: string },
@@ -4698,14 +4728,17 @@ function bindEmitImport(
     target === undefined || cycle !== undefined
       ? undefined
       : inlineEmitModule(target, c);
+  const table = target && c.exports.get(target.file);
   for (const el of bindings.elements) {
-    const imported = (el.propertyName ?? el.name).text;
-    const to = exported?.get(imported);
+    // An export name and a local spelling live in separate namespaces:
+    // `export { inner as b }` beside a local `b` exports `inner`.
+    const local = table?.get((el.propertyName ?? el.name).text);
+    const to = local === undefined ? undefined : exported?.get(local);
     if (to === undefined) degrade(el.name);
     else names.set(el.name.text, to);
     // The model degrades a cycle's edge, but the script still binds it.
-    if (cycle !== undefined)
-      cycles.set(el.name.text, { module: cycle, name: imported });
+    if (cycle !== undefined && local !== undefined)
+      cycles.set(el.name.text, { module: cycle, name: local });
   }
 }
 
@@ -4722,6 +4755,7 @@ function walkEmitModule(
 ): ReadonlyMap<string, ModelRef> {
   const sf = ts.createSourceFile(label, text, ts.ScriptTarget.Latest, true);
   const names = new Map<string, ModelRef>();
+  c.exports.set(file, exportTable(sf));
   const cycles = new Map<string, ModelRef>();
   const key = (name: string) => modelKey({ module: qualifier, name });
   // Bindings first, and dependencies with them: a call may precede the
@@ -4982,6 +5016,7 @@ export function emitModule(
     entryDir: path.dirname(entry),
     done: new Map(),
     active: new Map([[entry, ""]]),
+    exports: new Map(),
     declarations: [],
     mapped: new Map(),
     failed: new Map(),
