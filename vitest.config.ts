@@ -173,7 +173,7 @@ export default defineConfig({
         // — different denominator, different numbers.
         autoUpdate: true,
         statements: 99.77,
-        branches: 99.12,
+        branches: 99.13,
         functions: 100,
         lines: 99.83,
       },

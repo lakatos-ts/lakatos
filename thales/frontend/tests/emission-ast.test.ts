@@ -490,6 +490,44 @@ describe("closures that do not close", () => {
     expect(top("top as b")).toBeUndefined();
   });
 
+  test("an import closing a cycle binds the declaration an aliased export names", () => {
+    const dep = [
+      'import { b } from "./main.mjs";',
+      "export function scaled(x: number): number {",
+      "  return b(x) * 2;",
+      "}",
+      "",
+    ].join("\n");
+    const main = (exported: string) =>
+      [
+        'import { scaled } from "./dep.mjs";',
+        "function inner(x: number): number {",
+        "  return x + 1;",
+        "}",
+        "function b(x: number): number {",
+        "  return -1;",
+        "}",
+        exported,
+        "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+        "export function top(x: number): number {",
+        "  return b(x) + scaled(x);",
+        "}",
+        "",
+      ].join("\n");
+    const top = (exported: string) =>
+      astOf(
+        emitModule(
+          main(exported),
+          "main.mts",
+          reader({ "main.mts": main(exported), "dep.mts": dep }),
+        ).emission.declarations,
+        "top",
+      );
+    expect(top("export { b };")).toBeDefined();
+    // dep's `b` is the entry's `inner`; the script would hand it `b`.
+    expect(top("export { inner as b };")).toBeUndefined();
+  });
+
   test("a parameter spelled like another module's declaration is refused too", () => {
     // Conservative on purpose: the reference walk counts parameters and
     // locals, and a lost ast costs a validation, never soundness.
