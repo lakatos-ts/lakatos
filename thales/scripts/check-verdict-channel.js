@@ -110,6 +110,9 @@ const FIXTURES = [
       ["sq", "CounterSatisfiable", /false/, { x: 0 }],
       ["comm", "CounterSatisfiable", /false/, { a: 0, b: 1 }],
       ["bump", "GaveUp", /^the property is false on its bounded domain$/],
+      // The evaluation rung's witness is searched compiled: the last
+      // element, at a budget the elaborator's reduction could not afford.
+      ["bump", "CounterSatisfiable", /false/, { x: 99 }],
       // Falsity outlives the witness search that ran out of budget: the
       // counterexample is gone, the verdict is not, and it is not a Timeout.
       ["bump", "GaveUp", /^the property is false on its bounded domain$/],

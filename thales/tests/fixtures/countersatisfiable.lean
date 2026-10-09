@@ -45,15 +45,30 @@ def TsModel.comm (a _b : JsNumber) : JsM JsNumber := do
 #thales_prove "cs.ts" "bump" "atZero" :=
   TsModel.bump 0 = pure 0
 
--- A witness the budget cannot afford is still the same GaveUp, never a
--- Timeout: falsity is established by the second sweep of the domain and the
--- search that would name x = 99 is a third. The budget is tuned to fit two
--- sweeps and not three — heartbeats count allocations, not seconds, so the
--- window is machine-independent, but a toolchain bump can shift it.
+-- A budget the kernel cannot afford: decide starves, the symbolic rungs
+-- have nothing, and evaluation refutes compiled. The witness is searched
+-- compiled as well, so the last element is named at a budget where the
+-- elaborator's own reduction ran out long before reaching it.
 set_option thales.heartbeats 3400 in
 #thales_prove "cs.ts" "bump" "belowHundred" :=
   ballIco 0 100 fun x =>
     ((do
           return Float.lt (← TsModel.bump (Float.ofInt x)) 100) :
+        JsM Bool) =
+      pure true
+
+-- A witness the budget cannot afford is still the same GaveUp, never a
+-- Timeout. The kernel path is the one whose search runs in the elaborator:
+-- the domain is put past the evaluation cap so the compiled tier stands
+-- down, and the budget fits the kernel's refutation and the reduction that
+-- reads it back but not the search that would name x = 9. Heartbeats count
+-- allocations, not seconds, so the window is machine-independent, but a
+-- toolchain bump can shift it.
+set_option thales.maxEvaluatedElements 5 in
+set_option thales.heartbeats 24000 in
+#thales_prove "cs.ts" "bump" "belowTen" :=
+  ballIco 0 10 fun x =>
+    ((do
+          return Float.lt (← TsModel.bump (Float.ofInt x)) 10) :
         JsM Bool) =
       pure true
