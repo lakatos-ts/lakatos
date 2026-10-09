@@ -160,8 +160,8 @@
       "function": "dbl",
       "property": "doubling",
       "szs": "Theorem",
-      "reason": "proved by a decision procedure over the bounded domain, admitted as TsProof.thm_4093250893427029346_2; the result is trusted from evaluation rather than checked by the kernel",
-      "axioms": ["Lean.ofReduceBool"],
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_4093250893427029346_2",
+      "axioms": [],
       "model": {
         "status": "unvalidated",
         "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
@@ -197,8 +197,8 @@
       "function": "halve",
       "property": "halving",
       "szs": "Theorem",
-      "reason": "proved by a decision procedure over the bounded domain, admitted as TsProof.thm_9616240672117534591_2; the result is trusted from evaluation rather than checked by the kernel",
-      "axioms": ["Lean.ofReduceBool"],
+      "reason": "proved by generic proof search, kernel-checked as TsProof.thm_9616240672117534591_2",
+      "axioms": [],
       "model": {
         "status": "unvalidated",
         "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"

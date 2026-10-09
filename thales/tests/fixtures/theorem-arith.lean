@@ -70,11 +70,23 @@ def TsModel.dbl (x : JsNumber) : JsM JsNumber := do
   ballIco 0 40 fun x =>
     TsModel.dbl (Float.ofInt x) = pure (Float.ofInt x * 2)
 
--- A domain far too large for the kernel tier to enumerate. The native tier
--- closes it in well under a second.
+-- A domain far too large for the kernel tier to enumerate, and an instance
+-- of the library's safe-integer facts, so the search rung proves it
+-- kernel-checked before evaluation would.
 #thales_prove "coerce.ts" "dbl" "doublesWide" :=
   ballIco 0 20000 fun x =>
     TsModel.dbl (Float.ofInt x) = pure (Float.ofInt x * 2)
+
+-- The same domain, and a computation the library has no lemma for:
+-- `Math.fround` of an integer below 2^24 is that integer. Evaluation, the
+-- last rung, closes it in well under a second.
+@[js_norm, grind]
+def TsModel.narrow (x : JsNumber) : JsM JsNumber := do
+  return Number.FloatOps.tsFround x
+
+#thales_prove "coerce.ts" "narrow" "narrowsWide" :=
+  ballIco 0 20000 fun x =>
+    TsModel.narrow (Float.ofInt x) = pure (Float.ofInt x)
 
 -- Nested ∀-properties (binders introduced by separate foralls).
 #thales_prove "arith.ts" "add" "commutesNested" :=

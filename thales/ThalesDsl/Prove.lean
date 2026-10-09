@@ -205,10 +205,11 @@ def attemptDecide (identity : Identity) (p : Expr)
     if ← isKernelTimeout ex then throw ex
     return (← diagnoseDecideFailure identity p names searchStx)
 
-/-- Rung 1b: the same goal, evaluated by the compiler rather than the
-kernel. Vanilla Lean has no Float theory, so evaluation over the finite
-domain is the only route, and the kernel's is too slow past a few hundred
-elements. Falsity is reported directly here, so no instance reduction is
+/-- Rung 4, the last resort for a bounded claim: the same goal, evaluated
+by the compiler rather than the kernel. A bounded property that is a
+computation rather than an instance of a lemma has no other route once
+the kernel's decide is too slow and the symbolic rungs have nothing to
+say. Falsity is reported directly here, so no instance reduction is
 needed to tell a false property from a stuck one. -/
 def attemptNativeDecide (identity : Identity) (p : Expr)
     (searchStx : TSyntax `term) (names : List String) :
@@ -593,36 +594,29 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
     | .error v => return v
   -- Each rung runs under its own fresh window: the kernel overshoots a
   -- shared window by a large factor before its own counter fires, which
-  -- would let an early rung's blowout starve the ones after it. Four rungs
-  -- now. A bounded run splits the budget evenly across the two decide tiers
-  -- and the two symbolic ones; an unbounded run has no decide tier to fund,
-  -- and the two symbolic rungs are not the same kind of work — the generic
-  -- rung normalizes, which costs what the goal's size costs, while the grind
-  -- rung searches, which is where a wide goal spends — so the search takes
-  -- what the decide tiers would have had. Every share floors at 1, since a
-  -- zero budget reads as unlimited.
+  -- would let an early rung's blowout starve the ones after it. Four rungs:
+  -- kernel decide, the generic rung, the grind rung, and compiled evaluation
+  -- last. A symbolic proof is kernel-checked and does not depend on the
+  -- bound, so it is the better proof whenever it exists; evaluation is what
+  -- is left for a bounded claim the library has no lemma for. A bounded run
+  -- splits the budget evenly across the four; an unbounded run has no
+  -- decide or evaluation tier to fund, and the two symbolic rungs are not
+  -- the same kind of work — the generic rung normalizes, which costs what
+  -- the goal's size costs, while the grind rung searches, which is where a
+  -- wide goal spends — so the search takes what those tiers would have had.
+  -- Every share floors at 1, since a zero budget reads as unlimited.
   let quarter := max (budget / 4) 1
   let half := max (budget / 2) 1
   let decideShare := quarter
   let genericShare := quarter
   let grindShare := if allBounded then quarter else half + quarter
+  let evalShare := quarter
   let mut starved := false
   if allBounded then
     let (outcome, rungStarved) ←
       runRung (withHeartbeats decideShare (attemptDecide identity p searchStx names))
     if let some (some v) := outcome then return v
-    -- Kernel starvation is no longer the annotation's Timeout: the
-    -- evaluation tier gets the same goal, and it is orders of magnitude
-    -- faster. It runs compiled, though, so no budget can interrupt it once
-    -- started; a domain past the cap is left to the symbolic rungs, and the
-    -- starved kernel tier still reports the attempt as budget-bound.
-    let mut nStarved := false
-    if domainSize ≤ evalCap then
-      let (nOutcome, s) ←
-        runRung (withHeartbeats decideShare (attemptNativeDecide identity p searchStx names))
-      if let some (some v) := nOutcome then return v
-      nStarved := s
-    if rungStarved || nStarved then starved := true
+    if rungStarved then starved := true
   let (outcome, rungStarved) ←
     runRung (withHeartbeats genericShare (attemptGeneric identity p))
   if rungStarved then starved := true
@@ -641,6 +635,17 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
   let v ← match grindOutcome with
     | some v => pure v
     | none => residualGaveUp identity residual
+  -- Kernel starvation is not the annotation's Timeout while evaluation can
+  -- still settle the goal: it is orders of magnitude faster than the kernel.
+  -- It runs compiled, though, so no budget can interrupt it once started,
+  -- and a domain past the cap stays with what the symbolic rungs said. A
+  -- goal the search rung settled, proved or refused through a residual
+  -- site, is not evaluated: only one it gave up on, or starved on, is.
+  if allBounded && domainSize ≤ evalCap && (grindOutcome.isNone || v.szs == .GaveUp) then
+    let (nOutcome, nStarved) ←
+      runRung (withHeartbeats evalShare (attemptNativeDecide identity p searchStx names))
+    if let some (some v) := nOutcome then return v
+    if nStarved then starved := true
   return ladderVerdict identity budget starved v
 
 end ThalesDsl
