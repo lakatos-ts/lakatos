@@ -1,4 +1,6 @@
 #!/usr/bin/env fish
+# Paused: beads (bd) is not in use as of 2026-10-09. This script stays so the
+# worker loop can be brought back; running it needs a working bd store.
 # One worker loop over the beads of an epic: claim the next ready bead whose
 # label matches the role, run `claude -p` on the matching prompt, repeat.
 #

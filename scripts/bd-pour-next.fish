@@ -1,4 +1,6 @@
 #!/usr/bin/env fish
+# Paused: beads (bd) is not in use as of 2026-10-09. This script stays so the
+# worker loop can be brought back; running it needs a working bd store.
 # Pour a planned-task molecule for every child of GitHub epic #376 that is
 # open, labelled ready-for-agent, has no open GitHub blocker, and has no bead
 # with external-ref gh-N yet. Each molecule is reparented under the session

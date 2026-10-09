@@ -16,31 +16,12 @@ Every TypeScript part — `core/`, `lemma/`, `pabst/`, `tarski/frontend/`, `thal
 
 GitHub Issues on `lakatos-ts/lakatos` is the tracker: bugs, features, triage, and everything a PR or design record refers to by number. Conventions: `thales/docs/agents/issue-tracker.md`; triage labels: `thales/docs/agents/triage-labels.md`.
 
-Beads (`bd`, below) is agent-local task tracking within a session, not a second issue tracker: a bead is a step toward an issue, never a substitute for filing one.
-
 ## Docs
 
 Design records spanning more than one component go in `docs/design/`; a single engine's notes stay under that engine (`thales/docs/`). Records are dated and are not updated to track the code.
 
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
+## Task tracking
 
-## Beads (agent task tracking)
+Beads (`bd`) is paused as of 2026-10-09. Do not run `bd`, pour molecules, or follow the `bd prime` hook output; the `.beads/` data and formulas, `scripts/bd-*`, and `scripts/prompts/` stay in place so the loop can be brought back. Track a session's steps in the conversation; anything that outlives the session is a GitHub issue.
 
-`bd` tracks an agent's in-session tasks and handoffs. Run `bd prime` for the command reference.
-
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
-```
-
-- Use `bd` instead of TodoWrite, TaskCreate, or markdown TODO lists for task tracking; anything that outlives the session goes to GitHub Issues.
-- Persistent memory stays in Claude Code's own memory files; do not use `bd remember` for it.
-- Every task bead is poured from the `reviewed-task` formula (`bd mol pour reviewed-task --var "title=..."`, or `bd mol bond <epic> reviewed-task --var ...` under an epic), so a separate review bead blocks on the work and nothing counts as done until the review closes. The reviewer closes the molecule root after its own bead; epics are reviewed and closed by hand.
-- `planned-task` is `reviewed-task` with a plan step in front (plan → implement → review): the plan step writes the implementation plan into the implement bead's design field. It is the formula for GitHub epic #376's children.
-- Worker loops: `scripts/bd-worker.fish plan|review|implement` claims the next ready bead with that label under the session epic and runs `claude -p` on `scripts/prompts/<label>.md`; run one review loop, one implement loop, and as many plan loops as the fan-out needs; `scripts/bd-pour-next.fish` pours a `planned-task` molecule for each GitHub child that has become unblocked. A red gate on an implement bead files one `repair` bead; a second failure adds a human gate. Only the script creates repair beads.
-- Issues live in a local Dolt DB; sync uses `refs/dolt/data` on the git remote; `.beads/issues.jsonl` is a passive export. Never commit, push, or sync Dolt unless asked.
-- At session end: close finished beads, file GitHub issues for follow-up work, run the local gate if code changed, and report changed files and status before any commit or push.
-
-<!-- END BEADS INTEGRATION -->
+At session end: file GitHub issues for follow-up work, run the local gate if code changed, and report changed files and status before any commit or push.
