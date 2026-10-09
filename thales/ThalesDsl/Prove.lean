@@ -59,11 +59,12 @@ partial def readWitnessList (e : Expr) : Option (List WitnessValue) :=
     return head :: tail
   else none
 
-/-- Evaluates the witness-search term and pairs the values with the binder
-names. Wholly best-effort: every failure degrades to `none` instead of
-escaping, a spent resource limit included. The sole caller runs this after
-falsity is already established, and an established verdict must not be lost
-to the cost of illustrating it. -/
+/-- Reduces the witness-search term in the elaborator and pairs the values
+with the binder names: the kernel-decide path's extractor, where nothing
+has been compiled. Wholly best-effort: every failure degrades to `none`
+instead of escaping, a spent resource limit included. The caller runs this
+after falsity is already established, and an established verdict must not
+be lost to the cost of illustrating it. -/
 def extractWitness (names : List String) (searchStx : TSyntax `term) :
     Term.TermElabM (Option (Array (String × WitnessValue))) :=
   tryCatchRuntimeEx
@@ -80,6 +81,41 @@ def extractWitness (names : List String) (searchStx : TSyntax `term) :
         if let some vals := readWitnessList (r.getArg! 1) then
           if vals.length == names.length then
             return some (names.zip vals).toArray
+      return none
+    catch _ => return none)
+    (fun _ => return none)
+
+/-- Evaluates a closed search term with the compiler. The result crosses the
+interpreter boundary as a runtime value, so nothing is read back from an
+expression. Any failure — codegen, a spent budget, an uncompilable
+constant — is `none`: the callers already hold established falsity, and
+the illustration is best-effort. -/
+unsafe def evalWitnessSearchUnsafe (s : Expr) : MetaM (Option (List WitnessValue)) :=
+  tryCatchRuntimeEx
+    (try
+      let ty := mkApp (mkConst ``Option [levelZero])
+        (mkApp (mkConst ``List [levelZero]) (mkConst ``WitnessValue))
+      Meta.evalExpr (Option (List WitnessValue)) ty s
+    catch _ => return none)
+    (fun _ => return none)
+
+@[implemented_by evalWitnessSearchUnsafe]
+opaque evalWitnessSearch (s : Expr) : MetaM (Option (List WitnessValue))
+
+/-- `extractWitness` for the evaluation rung: the same search term, evaluated
+compiled rather than reduced in the elaborator, so a witness deep in a wide
+range is found at the cost of the scan. The rung already trusts compiled
+evaluation for the verdict, so it is trusted for the illustration too. -/
+def extractWitnessCompiled (names : List String) (searchStx : TSyntax `term) :
+    Term.TermElabM (Option (Array (String × WitnessValue))) :=
+  tryCatchRuntimeEx
+    (try
+      let s ← Term.withoutErrToSorry do
+        let s ← Term.elabTerm (← `(($searchStx : Option (List WitnessValue)))) none
+        Term.synthesizeSyntheticMVarsNoPostponing
+        instantiateMVars s
+      let some vals ← evalWitnessSearch s | return none
+      if vals.length == names.length then return some (names.zip vals).toArray
       return none
     catch _ => return none)
     (fun _ => return none)
@@ -210,7 +246,8 @@ by the compiler rather than the kernel. A bounded property that is a
 computation rather than an instance of a lemma has no other route once
 the kernel's decide is too slow and the symbolic rungs have nothing to
 say. Falsity is reported directly here, so no instance reduction is
-needed to tell a false property from a stuck one. -/
+needed to tell a false property from a stuck one, and the witness is
+searched compiled as well. -/
 def attemptNativeDecide (identity : Identity) (p : Expr)
     (searchStx : TSyntax `term) (names : List String) :
     Term.TermElabM (Option Verdict) := do
@@ -227,7 +264,7 @@ def attemptNativeDecide (identity : Identity) (p : Expr)
   | .notTrue =>
     -- Established falsity is terminal; only the illustration is optional.
     if names.isEmpty then return some falseOnDomain
-    if let some cex ← extractWitness names searchStx then
+    if let some cex ← extractWitnessCompiled names searchStx then
       return some ⟨identity, .CounterSatisfiable,
         "the property is false on its bounded domain", some cex, none⟩
     return some falseOnDomain

@@ -388,12 +388,17 @@
       }
     }
   ],
-  "thales/tests/conformance/gaveup/float-assoc.ts": [
+  "thales/tests/conformance/countersatisfiable/float-assoc.ts": [
     {
       "function": "assoc3",
       "property": "assoc",
-      "szs": "GaveUp",
+      "szs": "CounterSatisfiable",
       "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "a": 9007199254740991,
+        "b": 2,
+        "c": 1
+      },
       "model": {
         "status": "unvalidated",
         "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
@@ -521,6 +526,21 @@
       "reason": "the property is false on its bounded domain",
       "counterexample": {
         "n": 0
+      },
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
+  "thales/tests/conformance/countersatisfiable/last-element.ts": [
+    {
+      "function": "dbl",
+      "property": "below",
+      "szs": "CounterSatisfiable",
+      "reason": "the property is false on its bounded domain",
+      "counterexample": {
+        "x": 19999
       },
       "model": {
         "status": "unvalidated",

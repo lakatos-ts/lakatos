@@ -49,7 +49,7 @@ const EXPRESSION_FIXTURES = [
   `${CONFORMANCE}/countersatisfiable/commutes.ts`,
   `${CONFORMANCE}/countersatisfiable/off-by-one.ts`,
   `${CONFORMANCE}/countersatisfiable/zero-edge.ts`,
-  `${CONFORMANCE}/gaveup/float-assoc.ts`,
+  `${CONFORMANCE}/countersatisfiable/float-assoc.ts`,
   `${CONFORMANCE}/gaveup/nonneg-int-range.ts`,
   `${CONFORMANCE}/gaveup/unbounded-double.ts`,
   `${CONFORMANCE}/gaveup/unbounded-false.ts`,
@@ -61,6 +61,7 @@ const EXPRESSION_FIXTURES = [
   `${CONFORMANCE}/timeout/big-domain.ts`,
   `${CONFORMANCE}/theorem/finite-guard.ts`,
   `${CONFORMANCE}/countersatisfiable/abs-shrinks.ts`,
+  `${CONFORMANCE}/countersatisfiable/last-element.ts`,
 ];
 
 /** The statement slice (#148): statement-bodied fixtures — const and

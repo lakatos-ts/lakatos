@@ -34,13 +34,16 @@ no bucket here.
 - `theorem/` — every annotation proves (`Theorem`). A residual site in a
   branch the property never takes does not stop a proof: the model reaches
   the site only on paths the domain or a guard rules out.
-- `countersatisfiable/` — a false bounded claim: decide establishes falsity
-  and the prover extracts a concrete witness (`CounterSatisfiable`).
+- `countersatisfiable/` — a false bounded claim: kernel decide or compiled
+  evaluation establishes falsity and the prover extracts a concrete witness
+  (`CounterSatisfiable`). The evaluation rung's search is compiled too, so
+  the witness may sit anywhere in the range.
 - `gaveup/` — the proof ladder exhausts (`GaveUp`): an unbounded claim, for
   which there is no finite domain to evaluate and no arithmetic theory to
   reason with, so falsity on an unbounded domain has no counterexample to
-  ship either. Also a bounded claim shown false whose witness the prover
-  could not read back, which ships the falsity without the illustration.
+  ship either. Also a bounded claim the kernel's decide shows false whose
+  witness the elaborator's search could not afford, which ships the
+  falsity without the illustration.
 - `nottried/` — the pipeline degrades the property (`NotTried`): it has
   no structured reading (a half-bounded range the DSL has no binder shape
   for, a connective the reading has no text for: `↔`, or a `→` nested

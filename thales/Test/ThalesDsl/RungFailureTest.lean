@@ -1,4 +1,5 @@
 import ThalesDsl.Prove
+import ThalesDsl.Binders
 
 open ThalesDsl Lean
 
@@ -48,3 +49,27 @@ open Classical in
   let p ← Elab.Term.elabTerm (← `(∀ n : Nat, n < 5 ∨ 5 ≤ n)) (some (mkSort .zero))
   let r ← attemptNativeDecide ⟨"c.ts", "f", "p"⟩ p (← `((none : Option (List WitnessValue)))) []
   return r.isNone
+
+-- The evaluation rung's witness is searched compiled: a witness at the far
+-- end of a wide range costs what the scan costs, not one whnf step per
+-- element.
+/-- info: true -/
+#guard_msgs in
+#eval show Elab.Term.TermElabM Bool from do
+  let s ← Elab.Term.elabTerm (← `(ThalesDsl.findCexIco 0 20000 (fun (x : Int) =>
+    if x < 19999 then (none : Option (List ThalesDsl.WitnessValue)) else some []))) none
+  Elab.Term.synthesizeSyntheticMVarsNoPostponing
+  let r ← evalWitnessSearch (← instantiateMVars s)
+  return r == some [.int 19999]
+
+-- A term the compiler cannot evaluate degrades to `none`: an opaque with no
+-- implementation is the shape a residual site takes.
+noncomputable opaque noImpl : Option (List WitnessValue)
+
+/-- info: true -/
+#guard_msgs in
+#eval show Elab.Term.TermElabM Bool from do
+  let s ← Elab.Term.elabTerm (← `((noImpl : Option (List ThalesDsl.WitnessValue)))) none
+  Elab.Term.synthesizeSyntheticMVarsNoPostponing
+  let r ← evalWitnessSearch (← instantiateMVars s)
+  return r == none
