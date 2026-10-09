@@ -510,19 +510,224 @@ describe("emission import closures", () => {
     );
   });
 
-  test("a re-export from another module degrades its importer's binding", () => {
+  test("a re-export from another module binds the module that declares it", () => {
     const relay = 'export { double } from "./helper.mjs";\n';
     const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+    const { emission, classified } = emitModule(
+      src,
+      "main.mts",
+      reader({ "relay.mts": relay, "helper.mts": HELPER }),
+    );
+    expect(classified).toEqual([]);
+    expect(JSON.stringify(emission)).toContain(
+      '"callee":"double","module":"helper.mts"',
+    );
+    expect(JSON.stringify(emission)).not.toContain("ImportDeclaration");
+  });
+
+  test("a star re-export binds the module that declares the name", () => {
+    const relay = 'export * from "./helper.mjs";\n';
+    const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+    const { emission, classified } = emitModule(
+      src,
+      "main.mts",
+      reader({ "relay.mts": relay, "helper.mts": HELPER }),
+    );
+    expect(classified).toEqual([]);
+    expect(JSON.stringify(emission)).toContain(
+      '"callee":"double","module":"helper.mts"',
+    );
+    expect(JSON.stringify(emission)).not.toContain("ImportDeclaration");
+  });
+
+  test("a renaming re-export binds the declaration it names", () => {
+    const relay = 'export { double as twofold } from "./helper.mjs";\n';
+    const src = TWICE.replace(
+      'import { double } from "./helper.mjs";',
+      'import { twofold } from "./relay.mjs";',
+    ).replace(/double\(x\)/g, "twofold(x)");
+    const { emission, classified } = emitModule(
+      src,
+      "main.mts",
+      reader({ "relay.mts": relay, "helper.mts": HELPER }),
+    );
+    expect(classified).toEqual([]);
+    expect(JSON.stringify(emission)).toContain(
+      '"callee":"double","module":"helper.mts"',
+    );
+    expect(JSON.stringify(emission)).not.toContain("ImportDeclaration");
+  });
+
+  test("a re-export chain binds through every relay", () => {
+    const outer = 'export * from "./inner.mjs";\n';
+    const inner = 'export { double } from "./helper.mjs";\n';
+    const src = TWICE.replace('"./helper.mjs"', '"./outer.mjs"');
+    const { emission, classified } = emitModule(
+      src,
+      "main.mts",
+      reader({ "outer.mts": outer, "inner.mts": inner, "helper.mts": HELPER }),
+    );
+    expect(classified).toEqual([]);
+    expect(JSON.stringify(emission)).toContain(
+      '"callee":"double","module":"helper.mts"',
+    );
+    expect(JSON.stringify(emission)).not.toContain("ImportDeclaration");
+  });
+
+  test("a module's own export shadows the same name from a star re-export", () => {
+    const relay = [
+      'export * from "./helper.mjs";',
+      "export function double(x: number): number {",
+      "  return x + x;",
+      "}",
+      "",
+    ].join("\n");
+    const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+    const { emission, classified } = emitModule(
+      src,
+      "main.mts",
+      reader({ "relay.mts": relay, "helper.mts": HELPER }),
+    );
+    expect(classified).toEqual([]);
+    expect(JSON.stringify(emission)).toContain(
+      '"callee":"double","module":"relay.mts"',
+    );
+  });
+
+  test("a name two star re-exports both provide is not exported", () => {
+    const relay = [
+      'export * from "./helper.mjs";',
+      'export * from "./other.mjs";',
+      "",
+    ].join("\n");
+    const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+    expect(
+      residualConstructs(
+        src,
+        "main.mts",
+        reader({
+          "relay.mts": relay,
+          "helper.mts": HELPER,
+          "other.mts": HELPER,
+        }),
+      ),
+    ).toEqual([
+      expect.stringContaining("ImportDeclaration"),
+      expect.stringContaining("ImportDeclaration"),
+    ]);
+  });
+
+  test("one declaration reached by two star re-exports is still that declaration", () => {
+    const relay = [
+      'export * from "./helper.mjs";',
+      'export * from "./again.mjs";',
+      "",
+    ].join("\n");
+    const again = 'export * from "./helper.mjs";\n';
+    const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+    const { emission, classified } = emitModule(
+      src,
+      "main.mts",
+      reader({ "relay.mts": relay, "again.mts": again, "helper.mts": HELPER }),
+    );
+    expect(classified).toEqual([]);
+    expect(JSON.stringify(emission)).toContain(
+      '"callee":"double","module":"helper.mts"',
+    );
+    expect(JSON.stringify(emission)).not.toContain("ImportDeclaration");
+  });
+
+  test("a star re-export does not provide default", () => {
+    const helper =
+      HELPER.replace("export function", "function") +
+      "export { double as default };\n";
+    const src = (from: string) =>
+      TWICE.replace(
+        'import { double } from "./helper.mjs";',
+        `import { default as double } from "${from}";`,
+      );
+    const files = reader({
+      "relay.mts": 'export * from "./helper.mjs";\n',
+      "helper.mts": helper,
+    });
+    // Named directly, `default` is an export name like any other.
+    expect(residualConstructs(src("./helper.mjs"), "main.mts", files)).toEqual(
+      [],
+    );
+    expect(residualConstructs(src("./relay.mjs"), "main.mts", files)).toEqual([
+      expect.stringContaining("ImportDeclaration"),
+      expect.stringContaining("ImportDeclaration"),
+    ]);
+  });
+
+  test("a namespace re-export stays opaque", () => {
+    const relay = 'export * as helper from "./helper.mjs";\n';
+    const src = [
+      'import { helper } from "./relay.mjs";',
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { call(x) >= 0 } */",
+      "export function call(x: number): number {",
+      "  return helper(x);",
+      "}",
+      "",
+    ].join("\n");
     expect(
       residualConstructs(
         src,
         "main.mts",
         reader({ "relay.mts": relay, "helper.mts": HELPER }),
       ),
+    ).toEqual([expect.stringContaining("ImportDeclaration")]);
+  });
+
+  test("a re-export whose source does not resolve degrades", () => {
+    for (const relay of [
+      'export { double } from "./missing.mjs";\n',
+      'export * from "lodash";\n',
+    ]) {
+      const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+      expect(
+        residualConstructs(src, "main.mts", reader({ "relay.mts": relay })),
+      ).toEqual([
+        expect.stringContaining("ImportDeclaration"),
+        expect.stringContaining("ImportDeclaration"),
+      ]);
+    }
+  });
+
+  test("two star re-exports that reach each other end, and export nothing", () => {
+    const a = 'export * from "./b.mjs";\n';
+    const b = 'export * from "./a.mjs";\n';
+    const src = TWICE.replace('"./helper.mjs"', '"./a.mjs"');
+    expect(
+      residualConstructs(src, "main.mts", reader({ "a.mts": a, "b.mts": b })),
     ).toEqual([
       expect.stringContaining("ImportDeclaration"),
       expect.stringContaining("ImportDeclaration"),
     ]);
+  });
+
+  test("a re-export of the module being walked degrades at the edge", () => {
+    // helper reaches the entry through relay's re-export: a cycle, closed
+    // where relay names the entry.
+    const cyclic = [
+      'import { twice } from "./relay.mjs";',
+      "export function double(x: number): number {",
+      "  return twice(x);",
+      "}",
+      "",
+    ].join("\n");
+    const relay = 'export { twice } from "./main.mjs";\n';
+    const { emission, classified } = emitModule(
+      TWICE,
+      "main.mts",
+      reader({ "main.mts": TWICE, "helper.mts": cyclic, "relay.mts": relay }),
+    );
+    expect(classified).toEqual([]);
+    expect(
+      emission.declarations.flatMap((d) =>
+        d.kind === "residual" ? [[d.owner, d.construct]] : [],
+      ),
+    ).toEqual([["double", expect.stringContaining("ImportDeclaration")]]);
   });
 
   test("swapped exports each bind their partner", () => {

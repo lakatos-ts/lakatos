@@ -286,6 +286,79 @@ describe("closures that do not close", () => {
     expect(astOf(emission.declarations, "top")).toBeUndefined();
   });
 
+  test("a re-export binds the importer to the declaring module's script", () => {
+    const relay = (clause: string) => `export ${clause} from "./helper.mjs";\n`;
+    const src = TWICE.replace('"./helper.mjs"', '"./relay.mjs"');
+    const twice = (clause: string) =>
+      astOf(
+        emitModule(
+          src,
+          "main.mts",
+          reader({ "relay.mts": relay(clause), "helper.mts": HELPER }),
+        ).emission.declarations,
+        "twice",
+      );
+    for (const clause of ["{ double }", "*"]) {
+      expect(twice(clause)).toEqual(
+        script(bridged(src, "main.mts"), [
+          ...picked(HELPER, "helper.mts", ["double"]),
+          ...picked(src, "main.mts", ["twice"]),
+        ]),
+      );
+    }
+  });
+
+  test("a renaming re-export leaves the importer without an ast", () => {
+    const relay = 'export { double as twofold } from "./helper.mjs";\n';
+    const src = TWICE.replace(
+      'import { double } from "./helper.mjs";',
+      'import { twofold } from "./relay.mjs";',
+    ).replace(/double\(x\)/g, "twofold(x)");
+    const { emission } = emitModule(
+      src,
+      "main.mts",
+      reader({ "relay.mts": relay, "helper.mts": HELPER }),
+    );
+    // The importer's `twofold` is helper's `double`; a script naming it
+    // `twofold` would bind nothing.
+    expect(astOf(emission.declarations, "twice")).toBeUndefined();
+    expect(astOf(emission.declarations, "double")).toBeDefined();
+  });
+
+  test("an import closing a cycle through a re-export binds the module it closes on", () => {
+    const dep = [
+      'import { b } from "./relay.mjs";',
+      "export function scaled(x: number): number {",
+      "  return b(x) * 2;",
+      "}",
+      "",
+    ].join("\n");
+    const main = [
+      'import { scaled } from "./dep.mjs";',
+      "export function b(x: number): number {",
+      "  return x + 1;",
+      "}",
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+      "export function top(x: number): number {",
+      "  return b(x) + scaled(x);",
+      "}",
+      "",
+    ].join("\n");
+    const top = (relay: string) =>
+      astOf(
+        emitModule(
+          main,
+          "main.mts",
+          reader({ "main.mts": main, "dep.mts": dep, "relay.mts": relay }),
+        ).emission.declarations,
+        "top",
+      );
+    expect(top('export { b } from "./main.mjs";\n')).toBeDefined();
+    expect(top('export * from "./main.mjs";\n')).toBeDefined();
+    // Renamed on the relay, dep's `b` is the entry's `top`, not its `b`.
+    expect(top('export { top as b } from "./main.mjs";\n')).toBeUndefined();
+  });
+
   test("one name declared by two modules of a closure leaves no ast", () => {
     const dep = [
       "function helper(x: number): number {",

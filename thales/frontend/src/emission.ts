@@ -4494,10 +4494,10 @@ interface EmitClosure {
   /** Modules whose walk has not finished, with their qualifiers: an
    * import reaching back into one closes a cycle. */
   active: Map<string, string>;
-  /** Each walked module's export names, by absolute path, to the local
-   * spelling each one exports. Set before the module's imports are
-   * walked, so a cycle's edge can read it. */
-  exports: Map<string, ReadonlyMap<string, string>>;
+  /** Each module's export statements by absolute path, read as text: a
+   * walked module's before its imports are walked, so a cycle's edge can
+   * read it, and a re-export's source's whether or not it is ever walked. */
+  exports: Map<string, ExportTable>;
   declarations: EmitDecl[];
   mapped: Map<string, FnSig>;
   failed: Map<string, FailedDecl>;
@@ -4641,30 +4641,121 @@ function declaredNames(stmt: ts.Statement): string[] {
   return name !== undefined && ts.isIdentifier(name) ? [name.text] : [];
 }
 
-/** A module's export names, each to the local spelling it exports: an
- * `export` modifier, or `export { a as b }` without a specifier. A
- * re-export from another module is absent, so importing through one
- * degrades. Anything tsc refuses to import is not filtered here. */
-function exportTable(sf: ts.SourceFile): Map<string, string> {
-  const table = new Map<string, string>();
+/** A module's export statements, read without resolving them. `export *
+ * as ns` names a module object the model has no shape for, so it is not
+ * here and an import of it degrades. Anything tsc refuses to import is not
+ * filtered here. */
+interface ExportTable {
+  /** An export name to the local spelling it exports: an `export`
+   * modifier, or `export { a as b }` without a specifier. */
+  own: Map<string, string>;
+  /** `export { a as b } from "s"`: the export name to the name it imports
+   * and where from. */
+  named: Map<string, { name: string; specifier: string }>;
+  /** The specifiers of `export * from "s"`, in source order. */
+  stars: string[];
+}
+
+function exportTable(sf: ts.SourceFile): ExportTable {
+  const table: ExportTable = { own: new Map(), named: new Map(), stars: [] };
   for (const stmt of sf.statements) {
     if (ts.isExportDeclaration(stmt)) {
       const clause = stmt.exportClause;
-      /* v8 ignore start -- without a specifier the clause is always a
-         named list: `export *` and `export * as ns` need one. */
-      if (stmt.moduleSpecifier !== undefined || !clause) continue;
-      if (!ts.isNamedExports(clause)) continue;
+      const specifier = stmt.moduleSpecifier;
+      /* v8 ignore start -- `export *` always has a specifier, and a parsed
+         specifier is always a string literal. */
+      const from =
+        specifier !== undefined && ts.isStringLiteral(specifier)
+          ? specifier.text
+          : undefined;
+      if (clause === undefined) {
+        if (from !== undefined) table.stars.push(from);
+        continue;
+      }
       /* v8 ignore stop */
-      for (const el of clause.elements)
-        table.set(el.name.text, (el.propertyName ?? el.name).text);
+      if (ts.isNamedExports(clause)) {
+        for (const el of clause.elements) {
+          const name = (el.propertyName ?? el.name).text;
+          if (from === undefined) table.own.set(el.name.text, name);
+          else table.named.set(el.name.text, { name, specifier: from });
+        }
+      }
       continue;
     }
     const exported = (ts.getModifiers(stmt as ts.HasModifiers) ?? []).some(
       (m) => m.kind === ts.SyntaxKind.ExportKeyword,
     );
-    if (exported) for (const name of declaredNames(stmt)) table.set(name, name);
+    if (exported)
+      for (const name of declaredNames(stmt)) table.own.set(name, name);
   }
   return table;
+}
+
+/** The export table of a module the walk may never reach: a re-export's
+ * source contributes a binding without being walked. */
+function exportsOf(target: { file: string; text: string }, c: EmitClosure) {
+  let table = c.exports.get(target.file);
+  if (table === undefined) {
+    table = exportTable(
+      ts.createSourceFile(target.file, target.text, ts.ScriptTarget.Latest),
+    );
+    c.exports.set(target.file, table);
+  }
+  return table;
+}
+
+/** The module that declares what `target` exports as `name`, and its local
+ * spelling there: the module's own export, else the one it re-exports by
+ * name, else the one its star re-exports agree on. A name two star
+ * re-exports resolve to different declarations is not exported, nor is
+ * `default` through a star. `seen` is the resolutions in flight or done,
+ * so a re-export cycle resolves to nothing and a second path to the same
+ * declaration is the same declaration, not a second one. */
+function resolveExport(
+  target: { file: string; text: string },
+  name: string,
+  c: EmitClosure,
+  seen: Map<string, ExportBinding | undefined>,
+): ExportBinding | undefined {
+  const key = `${target.file}\0${name}`;
+  if (seen.has(key)) return seen.get(key);
+  seen.set(key, undefined);
+  const bound = resolveExportOnce(target, name, c, seen);
+  seen.set(key, bound);
+  return bound;
+}
+
+interface ExportBinding {
+  file: string;
+  text: string;
+  local: string;
+}
+
+function resolveExportOnce(
+  target: { file: string; text: string },
+  name: string,
+  c: EmitClosure,
+  seen: Map<string, ExportBinding | undefined>,
+): ExportBinding | undefined {
+  const table = exportsOf(target, c);
+  const own = table.own.get(name);
+  if (own !== undefined) return { ...target, local: own };
+  const named = table.named.get(name);
+  if (named !== undefined) {
+    const source = resolveImport(named.specifier, target.file, c.reader);
+    return source && resolveExport(source, named.name, c, seen);
+  }
+  if (name === "default") return undefined;
+  let found: ExportBinding | undefined;
+  for (const specifier of table.stars) {
+    const source = resolveImport(specifier, target.file, c.reader);
+    const bound = source && resolveExport(source, name, c, seen);
+    if (bound === undefined) continue;
+    if (found === undefined) found = bound;
+    else if (found.file !== bound.file || found.local !== bound.local)
+      return undefined;
+  }
+  return found;
 }
 
 /** Walk `target` if it is not already in, and answer its name map. */
@@ -4688,13 +4779,14 @@ function inlineEmitModule(
   return names;
 }
 
-/** Bind the names an import declaration introduces: to the exporting
- * module's models when the specifier resolves, opaquely otherwise — a
- * bare specifier, a relative one that reaches no file, a name that module
- * does not declare, or a specifier reaching a module still being walked,
- * which is an import cycle degrading at the edge that closes it. Default
- * and namespace imports name a module object, which the model has no
- * shape for, so they stay opaque however their specifier resolves. */
+/** Bind the names an import declaration introduces: to the declaring
+ * module's models when the specifier resolves and the name resolves
+ * through that module's exports, opaquely otherwise — a bare specifier, a
+ * relative one that reaches no file, a name no export of that module
+ * provides, or a name declared by a module still being walked, which is an
+ * import cycle degrading at the edge that closes it. Default and namespace
+ * imports name a module object, which the model has no shape for, so they
+ * stay opaque however their specifier resolves. */
 function bindEmitImport(
   stmt: ts.ImportDeclaration,
   from: string,
@@ -4723,22 +4815,28 @@ function bindEmitImport(
   const target = ts.isStringLiteral(specifier)
     ? resolveImport(specifier.text, from, c.reader)
     : undefined;
-  const cycle = target && c.active.get(target.file);
-  const exported =
-    target === undefined || cycle !== undefined
-      ? undefined
-      : inlineEmitModule(target, c);
-  const table = target && c.exports.get(target.file);
+  // The specified module is walked whether or not it declares anything
+  // imported: a dependency is a dependency.
+  if (target !== undefined && !c.active.has(target.file))
+    inlineEmitModule(target, c);
   for (const el of bindings.elements) {
     // An export name and a local spelling live in separate namespaces:
-    // `export { inner as b }` beside a local `b` exports `inner`.
-    const local = table?.get((el.propertyName ?? el.name).text);
-    const to = local === undefined ? undefined : exported?.get(local);
+    // `export { inner as b }` beside a local `b` exports `inner`, and a
+    // re-export's declaration lives in another module altogether.
+    const bound =
+      target &&
+      resolveExport(target, (el.propertyName ?? el.name).text, c, new Map());
+    const cycle = bound && c.active.get(bound.file);
+    const exported =
+      bound === undefined || cycle !== undefined
+        ? undefined
+        : inlineEmitModule(bound, c);
+    const to = bound && exported?.get(bound.local);
     if (to === undefined) degrade(el.name);
     else names.set(el.name.text, to);
     // The model degrades a cycle's edge, but the script still binds it.
-    if (cycle !== undefined && local !== undefined)
-      cycles.set(el.name.text, { module: cycle, name: local });
+    if (bound !== undefined && cycle !== undefined)
+      cycles.set(el.name.text, { module: cycle, name: bound.local });
   }
 }
 

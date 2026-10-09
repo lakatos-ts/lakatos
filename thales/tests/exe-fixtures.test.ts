@@ -87,6 +87,7 @@ const UNSUPPORTED: Record<string, string> = {
     "BinaryExpression &",
   "thales/tests/conformance/theorem/aliased-export/main.ts":
     "ImportDeclaration",
+  "thales/tests/conformance/theorem/barrel-import/main.ts": "ImportDeclaration",
   "thales/tests/conformance/theorem/imported-constants/main.ts":
     "ImportDeclaration",
   "thales/tests/conformance/theorem/imported-scale/main.ts":
