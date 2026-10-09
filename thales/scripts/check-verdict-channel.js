@@ -82,15 +82,17 @@ const FIXTURES = [
         /proved by a decision procedure over the bounded domain, kernel-checked as/,
       ]),
       // Integer binder values coerced into a binary64 body: narrow enough
-      // for the kernel to enumerate, then wide enough that only evaluation
-      // can. The trust wording is read off each proof's axioms.
+      // for the kernel to enumerate, then too wide for it but an instance
+      // of a library fact, then too wide and a computation only evaluation
+      // can settle. The trust wording is read off each proof's axioms.
       [
         "dbl",
         "Theorem",
         /proved by a decision procedure over the bounded domain, kernel-checked as/,
       ],
+      ["dbl", "Theorem", /proved by generic proof search, kernel-checked as/],
       [
-        "dbl",
+        "narrow",
         "Theorem",
         /trusted from evaluation rather than checked by the kernel/,
       ],
