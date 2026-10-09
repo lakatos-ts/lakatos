@@ -2075,6 +2075,19 @@
       }
     }
   ],
+  "thales/tests/conformance/theorem/barrel-import/main.ts": [
+    {
+      "function": "through",
+      "property": "affine",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_11380893333858098035",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
   "thales/tests/conformance/inappropriate/bare-import/main.ts": [
     {
       "function": "grow",
