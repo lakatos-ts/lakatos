@@ -120,7 +120,7 @@ const FIXTURES = [
       // element of a range the elaborator's reduction could not reach,
       // alone, across two binders, and behind a guard.
       ["dbl", "CounterSatisfiable", /false/, { x: 19999 }],
-      ["sum", "CounterSatisfiable", /false/, { a: 199, b: 199 }],
+      ["sum", "CounterSatisfiable", /false/, { a: 199, b: 99 }],
       ["dbl", "CounterSatisfiable", /false/, { x: 19999 }],
     ],
   },

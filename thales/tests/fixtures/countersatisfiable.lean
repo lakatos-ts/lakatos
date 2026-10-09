@@ -91,7 +91,9 @@ set_option thales.heartbeats 40000 in
         JsM Bool) =
       pure true
 
--- Two binders, the witness at the last assignment of both.
+-- Two binders, the witness at the last assignment of both. The ranges
+-- differ so the witness is asymmetric: a swapped binder order would ship
+-- the wrong values rather than the same ones.
 @[js_norm, grind]
 def TsModel.sum (a b : JsNumber) : JsM JsNumber := do
   return a + b
@@ -99,9 +101,9 @@ def TsModel.sum (a b : JsNumber) : JsM JsNumber := do
 set_option thales.heartbeats 40000 in
 #thales_prove "late.ts" "sum" "below" :=
   ballIco 0 200 fun a =>
-    ballIco 0 200 fun b =>
+    ballIco 0 100 fun b =>
       ((do
-            return Float.lt (← TsModel.sum (Float.ofInt a) (Float.ofInt b)) 398) :
+            return Float.lt (← TsModel.sum (Float.ofInt a) (Float.ofInt b)) 298) :
           JsM Bool) =
         pure true
 
