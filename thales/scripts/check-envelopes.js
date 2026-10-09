@@ -185,11 +185,12 @@ const DEGRADATION_FIXTURES = [
 ];
 
 /** The import slice: the closure fixtures the switchover carved out — a
- * followed closure, one through an aliased export, and the two edges that
- * stay opaque. */
+ * followed closure, one through an aliased export, one through a barrel's
+ * re-exports, and the two edges that stay opaque. */
 const IMPORT_FIXTURES = [
   `${CONFORMANCE}/theorem/imported-scale/main.ts`,
   `${CONFORMANCE}/theorem/aliased-export/main.ts`,
+  `${CONFORMANCE}/theorem/barrel-import/main.ts`,
   `${CONFORMANCE}/inappropriate/bare-import/main.ts`,
   `${CONFORMANCE}/inappropriate/import-cycle/main.ts`,
 ];
