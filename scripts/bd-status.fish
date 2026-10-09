@@ -1,4 +1,6 @@
 #!/usr/bin/env fish
+# Paused: beads (bd) is not in use as of 2026-10-09. This script stays so the
+# worker loop can be brought back; running it needs a working bd store.
 # One line per thing worth knowing about the session epic's beads, most
 # urgent first: who is waiting on a human, who is working, what is ready
 # and unclaimed, what is blocked and by what, and whether the GitHub epic

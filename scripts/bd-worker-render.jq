@@ -1,3 +1,5 @@
+# Paused: beads (bd) is not in use as of 2026-10-09. This script stays so the
+# worker loop can be brought back; running it needs a working bd store.
 # Render one claude -p stream-json event as a terminal line, or nothing.
 # Input is raw lines (jq -R): non-JSON lines from stderr noise are dropped.
 # The full stream goes to the log file untouched; this is the live view.
