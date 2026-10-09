@@ -257,6 +257,35 @@ describe("closures that do not close", () => {
     expect(astOf(emission.declarations, "double")).toBeDefined();
   });
 
+  test("an aliased export leaves the importer without an ast", () => {
+    const dep = [
+      "function inner(x: number): number {",
+      "  return x + 1;",
+      "}",
+      "function b(x: number): number {",
+      "  return -1;",
+      "}",
+      "export { inner as b };",
+      "",
+    ].join("\n");
+    const main = [
+      'import { b } from "./dep.mjs";',
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) > 0 } */",
+      "export function top(x: number): number {",
+      "  return b(x);",
+      "}",
+      "",
+    ].join("\n");
+    const { emission } = emitModule(
+      main,
+      "main.mts",
+      reader({ "dep.mts": dep }),
+    );
+    // The importer's `b` is dep's `inner`; a script naming it `b` would
+    // run dep's own `b` instead, so there is no script.
+    expect(astOf(emission.declarations, "top")).toBeUndefined();
+  });
+
   test("one name declared by two modules of a closure leaves no ast", () => {
     const dep = [
       "function helper(x: number): number {",
@@ -528,6 +557,35 @@ describe("closures that do not close", () => {
     expect(top("export { inner as b };")).toBeUndefined();
   });
 
+  test("a cycle-closing import of an unexported name binds nothing", () => {
+    const dep = [
+      'import { b } from "./main.mjs";',
+      "export function scaled(x: number): number {",
+      "  return b(x) * 2;",
+      "}",
+      "",
+    ].join("\n");
+    const main = [
+      'import { scaled } from "./dep.mjs";',
+      "function b(x: number): number {",
+      "  return x + 1;",
+      "}",
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { top(x) >= 0 } */",
+      "export function top(x: number): number {",
+      "  return b(x) + scaled(x);",
+      "}",
+      "",
+    ].join("\n");
+    const { emission } = emitModule(
+      main,
+      "main.mts",
+      reader({ "main.mts": main, "dep.mts": dep }),
+    );
+    // The entry does not export `b`, so dep's import links to nothing and
+    // no script that runs the entry's `b` for it is the program.
+    expect(astOf(emission.declarations, "top")).toBeUndefined();
+  });
+
   test("a parameter spelled like another module's declaration is refused too", () => {
     // Conservative on purpose: the reference walk counts parameters and
     // locals, and a lost ast costs a validation, never soundness.
@@ -616,9 +674,18 @@ describe("what a reference is", () => {
   });
 });
 
-/** Every `.ts` the emission store is built from. An empty allowlist makes
- * any future exception visible, which is acceptance criterion 1's frontend
- * half: every emitted declaration carries an ast. */
+/** The declarations of the store's inputs that carry no ast by design, by
+ * file: each closure binds a name to a differently spelled declaration,
+ * and a script would need a renaming the emitter never writes. Naming
+ * each one keeps any other exception visible. */
+const WITHOUT_AST: Record<string, string[]> = {
+  // #570: the importer's `b` is dep's `inner`.
+  "thales/tests/conformance/theorem/aliased-export/main.ts": ["top"],
+};
+
+/** Every `.ts` the emission store is built from: acceptance criterion 1's
+ * frontend half, every emitted declaration carries an ast, but for the
+ * exceptions `WITHOUT_AST` names. */
 function storeInputs(): string[] {
   const roots = ["thales/tests/fixtures", "thales/tests/conformance"];
   const out: string[] = [];
@@ -642,7 +709,7 @@ describe("every emitted declaration carries its AST", () => {
     const without = emission.declarations
       .filter((d) => d.kind !== "residual" && d.ast === undefined)
       .map((d) => (d.kind === "residual" ? "" : d.name));
-    expect(without).toEqual([]);
+    expect(without).toEqual(WITHOUT_AST[file] ?? []);
   });
 });
 

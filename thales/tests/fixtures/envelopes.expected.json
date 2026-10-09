@@ -2062,6 +2062,19 @@
       }
     }
   ],
+  "thales/tests/conformance/theorem/aliased-export/main.ts": [
+    {
+      "function": "top",
+      "property": "positive",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_17592851446090865411",
+      "axioms": [],
+      "model": {
+        "status": "unvalidated",
+        "reason": "the closure of 'top' is not a closed script"
+      }
+    }
+  ],
   "thales/tests/conformance/inappropriate/bare-import/main.ts": [
     {
       "function": "grow",
