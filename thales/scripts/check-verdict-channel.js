@@ -8,6 +8,7 @@
 
 import * as path from "node:path";
 import { checker, engineRoot, frontend } from "./harness.js";
+import { shardOf } from "./shard.js";
 
 const { parseVerdicts, runArtifact } = await frontend("run");
 
@@ -300,12 +301,16 @@ const FIXTURES = [
 
 const { check, done } = checker("verdict-channel");
 
+// Each fixture is its own artifact, so a shard pays no cost the whole run
+// was not already paying per fixture.
+const fixtures = shardOf(FIXTURES, process.env.LAKATOS_VERDICT_SHARD);
+
 for (const {
   file,
   expected,
   models: expectedModels = [],
   diagnostics: allowedDiagnostics,
-} of FIXTURES) {
+} of fixtures) {
   const run = runArtifact(
     engineRoot,
     path.join(engineRoot, "tests", "fixtures", file),
@@ -417,4 +422,8 @@ for (const {
   }
 }
 
-done(`${FIXTURES.length} fixtures`);
+done(
+  fixtures.length === FIXTURES.length
+    ? `${FIXTURES.length} fixtures`
+    : `${fixtures.length} of ${FIXTURES.length} fixtures`,
+);
