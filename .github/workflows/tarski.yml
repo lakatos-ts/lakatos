@@ -127,6 +127,15 @@ jobs:
           out=$(.lake/build/bin/tarski run Test/Tarski/fixtures/class-box.json)
           test "$out" = "true" || { echo "expected true, got $out"; exit 1; }
 
+      # Private methods and accessors: a private method bumping a private
+      # field, a private getter and setter pair, a static private method,
+      # one function object shared across instances, nothing visible to
+      # `Object.keys` or `in`, and the brand check on a foreign object.
+      - name: Run the class-elements script
+        run: |
+          out=$(.lake/build/bin/tarski run Test/Tarski/fixtures/class-elements.json)
+          test "$out" = "true" || { echo "expected true, got $out"; exit 1; }
+
       # The four class fixtures `thales` proves `Theorem`s over,
       # stripped of their types, with each `@ensures` instantiated at one
       # witness. This is the fragment the prover's own tests assume the
