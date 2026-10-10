@@ -59,10 +59,15 @@ jobs:
         run: lake build ThalesDslTest
 
   verdict-channel:
-    name: Verdict channel
+    name: Verdict channel ${{ matrix.shard }}/3
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      # Every shard reports: one failing shard must not hide another's.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -73,6 +78,8 @@ jobs:
 
       - name: Verdict channel
         run: npm run check:verdict-channel
+        env:
+          LAKATOS_VERDICT_SHARD: "${{ matrix.shard }}/3"
 
   envelopes:
     name: Envelope expectations ${{ matrix.shard }}/3
