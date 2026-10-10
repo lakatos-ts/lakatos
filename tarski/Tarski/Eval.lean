@@ -216,6 +216,9 @@ new refusal is written against a list rather than invented.
 | a private name not in scope                        | `SyntaxError`    | `Private field '#{name}' must be declared in an enclosing class` |
 | a private read on an object without the element    | `TypeError`      | `Cannot read private member #{name} from an object whose class did not declare it` |
 | a private write on an object without the element   | `TypeError`      | `Cannot write private member #{name} to an object whose class did not declare it` |
+| a private method written                           | `TypeError`      | `Private method '#{name}' is not writable`                    |
+| a private accessor read with no getter             | `TypeError`      | `'#{name}' was defined without a getter`                      |
+| a private accessor written with no setter          | `TypeError`      | `'#{name}' was defined without a setter`                      |
 | a private field initialized twice                  | `TypeError`      | `Cannot initialize #{name} twice on the same object`          |
 | `arguments.callee` read or written                 | `TypeError`      | `'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them` |
 | a write to a non-writable data property            | `TypeError`      | `Cannot assign to read only property '{key}' of object '#<Object>'` |
@@ -1464,40 +1467,6 @@ def privateName (env : Env) (name : String) : EvalM PrivateName :=
   | none =>
     throwJsError .syntaxError
       s!"Private field '#{name}' must be declared in an enclosing class"
-
-/-- PrivateGet, restricted to fields: the element on the object itself.
-There is no prototype walk — a private element is not a property — so a
-base whose class did not declare the name is a `TypeError`, and so is a
-primitive base. -/
-def readPrivate (env : Env) (base : Value) (name : String) : EvalM Value := do
-  let k ← privateName env name
-  match base with
-  | .obj r =>
-    match (← readObj r).getPrivate k with
-    | some (.field v) => pure v
-    | some _ => pure undefValue
-    | none =>
-      throwJsError .typeError
-        s!"Cannot read private member #{name} from an object whose class did not declare it"
-  | _ =>
-    throwJsError .typeError
-      s!"Cannot read private member #{name} from an object whose class did not declare it"
-
-/-- PrivateSet, restricted to fields. A write never creates an element:
-only field initialization does, which is why a write to an object the
-class did not build is a `TypeError` rather than a new field. -/
-def writePrivate (env : Env) (base : Value) (name : String) (v : Value) : EvalM Unit := do
-  let k ← privateName env name
-  match base with
-  | .obj r =>
-    match (← readObj r).getPrivate k with
-    | some _ => modifyObj r (fun o => o.setPrivate k (.field v))
-    | none =>
-      throwJsError .typeError
-        s!"Cannot write private member #{name} to an object whose class did not declare it"
-  | _ =>
-    throwJsError .typeError
-      s!"Cannot write private member #{name} to an object whose class did not declare it"
 
 /-- PrivateFieldAdd. The element must not already be there: it can be,
 through the return-override trick, and the specification makes that a
@@ -5722,6 +5691,53 @@ def superConstructor (r : Ref) : EvalM (Option Ref) := do
   | none => pure none
   | some parent =>
     if ← isConstructor (.obj parent) then pure (some parent) else pure none
+
+/-- PrivateGet (7.3.31). A field answers its value, a method its function,
+an accessor its getter's answer with the base as receiver. There is no
+prototype walk — a private element is not a property — so a base whose
+class did not declare the name is a `TypeError`, and so is a primitive
+base. -/
+def readPrivate (env : Env) (base : Value) (name : String) : EvalM Value := do
+  let k ← privateName env name
+  match base with
+  | .obj r =>
+    match (← readObj r).getPrivate k with
+    | some (.field v) => pure v
+    | some (.method f) => pure f
+    | some (.accessor (some g) _) => callFunction g base []
+    | some (.accessor none _) =>
+      throwJsError .typeError s!"'#{name}' was defined without a getter"
+    | none =>
+      throwJsError .typeError
+        s!"Cannot read private member #{name} from an object whose class did not declare it"
+  | _ =>
+    throwJsError .typeError
+      s!"Cannot read private member #{name} from an object whose class did not declare it"
+  partial_fixpoint
+
+/-- PrivateSet (7.3.32). A field takes the value, a method refuses, an
+accessor calls its setter with the base as receiver. A write never
+creates an element: only initialization does. -/
+def writePrivate (env : Env) (base : Value) (name : String) (v : Value) : EvalM Unit := do
+  let k ← privateName env name
+  match base with
+  | .obj r =>
+    match (← readObj r).getPrivate k with
+    | some (.field _) => modifyObj r (fun o => o.setPrivate k (.field v))
+    | some (.method _) =>
+      throwJsError .typeError s!"Private method '#{name}' is not writable"
+    | some (.accessor _ (some s)) => do
+      let _ ← callFunction s base [v]
+      pure ()
+    | some (.accessor _ none) =>
+      throwJsError .typeError s!"'#{name}' was defined without a setter"
+    | none =>
+      throwJsError .typeError
+        s!"Cannot write private member #{name} to an object whose class did not declare it"
+  | _ =>
+    throwJsError .typeError
+      s!"Cannot write private member #{name} to an object whose class did not declare it"
+  partial_fixpoint
 
 /-- MakeSuperPropertyReference's first two steps (13.3.7.2): the object
 the read will go through — the home object's *prototype* — and the
