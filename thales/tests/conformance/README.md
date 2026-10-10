@@ -33,10 +33,11 @@ no bucket here.
 
 - `theorem/` — every annotation proves (`Theorem`). A residual site in a
   branch the property never takes does not stop a proof: the model reaches
-  the site only on paths the domain or a guard rules out. A bounded claim
-  under the evaluation cap is a Theorem whenever it is true: kernel-checked
-  when a rung proves it, otherwise admitted on the evaluation's axiom,
-  which the envelope's `axioms` names.
+  the site only on paths the domain or a guard rules out. A true bounded
+  claim under the evaluation cap is a Theorem whenever the budget affords
+  the oracle's own instance synthesis and codegen: kernel-checked when a
+  rung proves it, otherwise admitted on the evaluation's axiom, which the
+  envelope's `axioms` names.
 - `countersatisfiable/` — a false bounded claim: compiled evaluation,
   which runs first on a bounded domain under the evaluation cap,
   establishes falsity and extracts a concrete witness from anywhere in the

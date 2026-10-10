@@ -3,9 +3,12 @@ import ThalesDsl
 open ThalesDsl Lean Js
 
 -- The ladder's cost on a bounded claim only evaluation can settle. Before
--- the oracle, kernel decide starved its quarter of the budget first; with
--- it, the claim is settled before any rung runs and the rungs spend only
--- their reduced windows looking for a better proof.
+-- the oracle, kernel decide starved its quarter of the budget first, and
+-- the kernel overshoots a window by a factor before its own counter
+-- fires, so the ladder spent more than three quarters; with the oracle,
+-- the claim is settled before any rung runs and decide starves on a
+-- sixteenth. The bound sits between the two with room on each side for
+-- the overshoot factor to move.
 
 def TsModel.narrow (x : JsNumber) : JsM JsNumber := do
   return Number.FloatOps.tsFround x
@@ -21,4 +24,4 @@ def TsModel.narrow (x : JsNumber) : JsM JsNumber := do
   -- `withHeartbeats` scales the budget by a thousand; read it back in the
   -- same unit.
   let spent := ((← IO.getNumHeartbeats) - start) / 1000
-  return v.szs == .Theorem && spent < budget / 4
+  return v.szs == .Theorem && spent < budget / 2

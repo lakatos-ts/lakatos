@@ -75,12 +75,12 @@ The semantic domain (`Js.JsM`), binders, the `js_norm` simp set, and the binary6
 
 Each `#thales_prove` prints exactly one line: `thales-verdict:` + compact JSON `{identity, szs, reason, axioms?, counterexample?}`. Stdout is also Lean's diagnostic stream; only sentinel-framed lines are contract. An empty `reason` is a contract violation, contained like any other malformed line.
 
-- `Theorem` — a rung succeeded. `axioms` names the non-standard axioms the proof rests on (empty for kernel-checked; `native_decide`'s per-proof axiom is reported under the stable spelling `Lean.ofReduceBool`). A bounded claim under the evaluation cap that is true is always a Theorem; `axioms` says whether a rung proved it or the evaluation's held proof shipped.
+- `Theorem` — a rung succeeded. `axioms` names the non-standard axioms the proof rests on (empty for kernel-checked; `native_decide`'s per-proof axiom is reported under the stable spelling `Lean.ofReduceBool`). A true bounded claim under the evaluation cap is a Theorem whenever the budget affords the oracle's own instance synthesis and codegen; `axioms` says whether a rung proved it or the evaluation's held proof shipped.
 - `CounterSatisfiable` — false on the bounded domain with a concrete witness (`counterexample`: binder → value). Under the evaluation cap the oracle searches its witness compiled, so a witness anywhere in the range is found; past the cap the kernel-decide rung searches in the elaborator, and falsity established there whose witness the elaborator cannot reach ships without one as `GaveUp` instead: established falsity is never given back for the cost of illustrating it.
 - `GaveUp` — the ladder exhausted; the reason carries the residual goal. A rung that blows `maxRecDepth` has failed, the annotation has not: the ladder falls through.
 - `Inappropriate` — outside the model, not beyond the engine: an unmapped construct, a refused operator, or a path through a residual site (the reason lists the sites' constructs). `Error` stays reserved for the engine breaking, and names the phase that failed.
 - `NotTried` — no structured property (the bare-payload degradation path).
-- `Timeout` — the per-annotation heartbeat budget (`thales.heartbeats`, overridable via `LAKATOS_PROVE_HEARTBEATS`; 0 is not a budget and is ignored). Later annotations still run with fresh budgets. Never for a bounded claim under the evaluation cap whose model is computable: the oracle settles those before any rung can starve.
+- `Timeout` — the per-annotation heartbeat budget (`thales.heartbeats`, overridable via `LAKATOS_PROVE_HEARTBEATS`; 0 is not a budget and is ignored). Later annotations still run with fresh budgets. A bounded claim under the evaluation cap whose model is computable reaches it only when the budget cannot afford the oracle's own instance synthesis and codegen (the timeout bucket's case); otherwise the oracle settles it before any rung can starve.
 
 ### The model channel
 
