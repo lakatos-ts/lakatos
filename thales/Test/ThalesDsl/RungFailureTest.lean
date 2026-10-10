@@ -41,14 +41,54 @@ open ThalesDsl Lean
 
 -- The real call site. A classical instance is decidable enough for `mkDecide`
 -- to build the goal but noncomputable, so codegen fails inside `nativeEqTrue`
--- — the rung reports no verdict instead of taking the ladder down with it.
+-- — the oracle has no answer instead of taking the ladder down with it.
 /-- info: true -/
 #guard_msgs in
 open Classical in
 #eval show Elab.Term.TermElabM Bool from do
   let p ← Elab.Term.elabTerm (← `(∀ n : Nat, n < 5 ∨ 5 ≤ n)) (some (mkSort .zero))
-  let r ← attemptNativeDecide ⟨"c.ts", "f", "p"⟩ p (← `((none : Option (List WitnessValue)))) []
+  let r ← attemptOracle ⟨"c.ts", "f", "p"⟩ p (← `((none : Option (List WitnessValue)))) []
   return r.isNone
+
+-- The ladder hands the rungs a fully elaborated proposition; a pending
+-- instance left in it would reach the kernel as a metavariable.
+def elabProp (stx : TSyntax `term) : Elab.Term.TermElabM Expr := do
+  let p ← Elab.Term.elabTerm stx (some (mkSort .zero))
+  Elab.Term.synthesizeSyntheticMVarsNoPostponing
+  instantiateMVars p
+
+-- A true claim: the oracle holds a proof of the proposition and adds no
+-- theorem to the environment.
+/-- info: true -/
+#guard_msgs in
+#eval show Elab.Term.TermElabM Bool from do
+  let p ← elabProp (← `(∀ n : Nat, n < 5 → n < 6))
+  let before := (← getEnv).contains (freshTheoremName (← getEnv) ⟨"c.ts", "f", "p"⟩)
+  let some (.proved proof) ← attemptOracle ⟨"c.ts", "f", "p"⟩ p
+      (← `((none : Option (List WitnessValue)))) [] | return false
+  let after := (← getEnv).contains (freshTheoremName (← getEnv) ⟨"c.ts", "f", "p"⟩)
+  return !before && !after && (← Meta.isDefEq (← Meta.inferType proof) p)
+
+-- A false claim with a binder: the refutation is final and carries the
+-- compiled witness.
+/-- info: true -/
+#guard_msgs in
+#eval show Elab.Term.TermElabM Bool from do
+  let p ← elabProp (← `(∀ n : Nat, n < 5 → n < 4))
+  let search ← `(ThalesDsl.findCexIco 0 5 (fun (x : Int) =>
+    if x < 4 then (none : Option (List ThalesDsl.WitnessValue)) else some []))
+  let some (.refuted v) ← attemptOracle ⟨"c.ts", "f", "p"⟩ p search ["n"] | return false
+  return v.szs == .CounterSatisfiable && v.counterexample == some #[("n", .int 4)]
+
+-- The held proof, admitted: a Theorem resting on the native axiom.
+/-- info: true -/
+#guard_msgs in
+#eval show Elab.Term.TermElabM Bool from do
+  let p ← elabProp (← `(∀ n : Nat, n < 5 → n < 6))
+  let some (.proved proof) ← attemptOracle ⟨"c.ts", "g", "q"⟩ p
+      (← `((none : Option (List WitnessValue)))) [] | return false
+  let some v ← admitHeldProof ⟨"c.ts", "g", "q"⟩ p proof | return false
+  return v.szs == .Theorem && v.axioms == some #[``Lean.ofReduceBool]
 
 -- The evaluation rung's witness is searched compiled: a witness at the far
 -- end of a wide range costs what the scan costs, not one whnf step per

@@ -241,16 +241,23 @@ def attemptDecide (identity : Identity) (p : Expr)
     if ← isKernelTimeout ex then throw ex
     return (← diagnoseDecideFailure identity p names searchStx)
 
-/-- Rung 4, the last resort for a bounded claim: the same goal, evaluated
-by the compiler rather than the kernel. A bounded property that is a
-computation rather than an instance of a lemma has no other route once
-the kernel's decide is too slow and the symbolic rungs have nothing to
-say. Falsity is reported directly here, so no instance reduction is
-needed to tell a false property from a stuck one, and the witness is
-searched compiled as well. -/
-def attemptNativeDecide (identity : Identity) (p : Expr)
+/-- The oracle's answer on a bounded goal under the evaluation cap. -/
+inductive OracleOutcome where
+  /-- Compiled evaluation found the property false: a final verdict. -/
+  | refuted (v : Verdict)
+  /-- Compiled evaluation found it true: a proof of the proposition
+  resting on the native axiom, held until every better rung has failed. -/
+  | proved (proof : Expr)
+
+/-- The oracle: the bounded goal, evaluated by the compiler rather than
+the kernel, before any rung runs. Falsity is final — no symbolic rung can
+do better than a witness — and the witness is searched compiled as well.
+Truth is held, not added: the theorem is admitted on the native axiom
+only when no rung finds an axiom-free proof. `none` means evaluation
+could not run at all, and the ladder is on its own. -/
+def attemptOracle (identity : Identity) (p : Expr)
     (searchStx : TSyntax `term) (names : List String) :
-    Term.TermElabM (Option Verdict) := do
+    Term.TermElabM (Option OracleOutcome) := do
   let falseOnDomain : Verdict := ⟨identity, .GaveUp,
     "the property is false on its bounded domain", none, none⟩
   let some d ← (try some <$> Meta.mkDecide p catch _ => pure none)
@@ -263,18 +270,24 @@ def attemptNativeDecide (identity : Identity) (p : Expr)
   match result with
   | .notTrue =>
     -- Established falsity is terminal; only the illustration is optional.
-    if names.isEmpty then return some falseOnDomain
+    if names.isEmpty then return some (.refuted falseOnDomain)
     if let some cex ← extractWitnessCompiled names searchStx then
-      return some ⟨identity, .CounterSatisfiable,
-        "the property is false on its bounded domain", some cex, none⟩
-    return some falseOnDomain
+      return some (.refuted ⟨identity, .CounterSatisfiable,
+        "the property is false on its bounded domain", some cex, none⟩)
+    return some (.refuted falseOnDomain)
   | .success prf =>
     let inst := d.appArg!
-    let proof := mkApp3 (mkConst ``of_decide_eq_true) p inst prf
-    let some thmName ← orFallThrough (addTheoremSync identity p proof)
-      | return none
-    return some (← provedVerdict identity
-      "a decision procedure over the bounded domain" thmName)
+    return some (.proved (mkApp3 (mkConst ``of_decide_eq_true) p inst prf))
+
+/-- Admits the oracle's held proof. The kernel checks only the application
+of the native axiom, so this is cheap; a rejection is a fall-through, and
+the symbolic verdict stands. -/
+def admitHeldProof (identity : Identity) (p proof : Expr) :
+    Term.TermElabM (Option Verdict) := do
+  let some thmName ← orFallThrough (addTheoremSync identity p proof)
+    | return none
+  return some (← provedVerdict identity
+    "a decision procedure over the bounded domain" thmName)
 
 /-- Rung 2's outcome: a verdict, or the state rung 3 continues from — the
 root metavariable still linked to the unsolved residual goal. -/
@@ -680,8 +693,12 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
   -- site, is not evaluated: only one it gave up on, or starved on, is.
   if allBounded && domainSize ≤ evalCap && (grindOutcome.isNone || v.szs == .GaveUp) then
     let (nOutcome, nStarved) ←
-      runRung (withHeartbeats evalShare (attemptNativeDecide identity p searchStx names))
-    if let some (some v) := nOutcome then return v
+      runRung (withHeartbeats evalShare (attemptOracle identity p searchStx names))
+    match nOutcome with
+    | some (some (.refuted v)) => return v
+    | some (some (.proved proof)) =>
+      if let some v ← admitHeldProof identity p proof then return v
+    | _ => pure ()
     if nStarved then starved := true
   return ladderVerdict identity budget starved v
 
