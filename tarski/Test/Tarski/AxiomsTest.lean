@@ -610,7 +610,13 @@ private def onlyStandard (n : Name) : CoreM Bool := do
 
 /-- info: true -/
 #guard_msgs in
-#eval onlyStandard ``Tarski.addPrivate
+#eval onlyStandard ``Tarski.addPrivateElement
+/-- info: true -/
+#guard_msgs in
+#eval onlyStandard ``Tarski.mergePrivate
+/-- info: true -/
+#guard_msgs in
+#eval onlyStandard ``Tarski.initPrivateMethods
 
 /-- info: true -/
 #guard_msgs in

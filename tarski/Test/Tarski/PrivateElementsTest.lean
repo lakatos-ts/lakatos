@@ -98,3 +98,98 @@ private def halves : List Stmt :=
 
 #guard outcome (halves ++ [.exprStmt (.call (.member (.new (.ident "S") []) "r") [])])
   == "uncaught: TypeError: '#x' was defined without a getter"
+
+/-! ## Brand, visibility, static, and order -/
+
+/-- ```js
+class B { #m() { return 1; } static probe(o) { return o.#m(); } }
+class C {}
+``` -/
+private def brand : List Stmt :=
+  [ cls "B"
+      [ .method .method false (.«private» "m") [] [.returnStmt (some (.numLit 1.0))],
+        .method .method true "probe" ["o"]
+          [.returnStmt (some (.call (.privateMember (.ident "o") "m") []))] ],
+    cls "C" [] ]
+
+-- An instance of another class fails the brand check.
+#guard outcome (brand ++ [.exprStmt (.call (.member (.ident "B") "probe") [.new (.ident "C") []])])
+  == "uncaught: TypeError: Cannot read private member #m from an object whose class did not declare it"
+
+-- `Object.keys(new B()).length === 0 && !("m" in new B())`: no property.
+#guard outcome
+    (brand ++
+      [ .exprStmt (.logical .and
+          (.binary .strictEq
+            (.member (.call (.member (.ident "Object") "keys") [.new (.ident "B") []]) "length")
+            (.numLit 0.0))
+          (.unary .not (.binary .«in» (.strLit "m") (.new (.ident "B") [])))) ])
+  == "true"
+
+/-- ```js
+class D { static #s() { return 7; } static use() { return D.#s(); } }
+``` -/
+private def staticPrivate : Stmt :=
+  cls "D"
+    [ .method .method true (.«private» "s") [] [.returnStmt (some (.numLit 7.0))],
+      .method .method true "use" []
+        [.returnStmt (some (.call (.privateMember (.ident "D") "s") []))] ]
+
+#guard outcome [staticPrivate, .exprStmt (.call (.member (.ident "D") "use") [])] == "7"
+
+-- The static private method is on the constructor, not on an instance.
+#guard outcome
+    [ staticPrivate,
+      cls "E" [ .method .method true "probe" ["o"] [] ],
+      .exprStmt (.call (.privateMember (.new (.ident "D") []) "s") []) ]
+  == "uncaught: SyntaxError: Private field '#s' must be declared in an enclosing class"
+
+-- `class H { static get #x() { return 4; } static set #x(v) {} static r() { return H.#x; } }`:
+-- a static getter and setter of one name are one element, not a second add.
+#guard outcome
+    [ cls "H"
+        [ .method .getter true (.«private» "x") [] [.returnStmt (some (.numLit 4.0))],
+          .method .setter true (.«private» "x") ["v"] [],
+          .method .method true "r" [] [.returnStmt (some (.privateMember (.ident "H") "x"))] ],
+      .exprStmt (.call (.member (.ident "H") "r") []) ]
+  == "4"
+
+/-- ```js
+class F { #v = this.#m(); #m() { return 3; } get v() { return this.#v; } }
+``` — a field initializer may call a private method: methods go on first. -/
+private def orderClass : Stmt :=
+  cls "F"
+    [ .field false (.«private» "v") (some (.call (.privateMember .this "m") [])),
+      .method .method false (.«private» "m") [] [.returnStmt (some (.numLit 3.0))],
+      .method .getter false "v" [] [.returnStmt (some (.privateMember .this "v"))] ]
+
+#guard outcome [orderClass, .exprStmt (.member (.new (.ident "F") []) "v")] == "3"
+
+/-- ```js
+class Base { constructor(o) { return o; } }
+class Stamp extends Base { #m() {} }
+const o = {}; new Stamp(o); new Stamp(o);
+``` — the return-override trick stamps `#m` once; twice is a `TypeError`. -/
+private def stamp : List Stmt :=
+  [ cls "Base" [ .ctor ["o"] [.returnStmt (some (.ident "o"))] ],
+    .classDecl "Stamp"
+      { name := some "Stamp", superClass := some (.ident "Base"),
+        elements := [ .method .method false (.«private» "m") [] [] ] },
+    letConst "o" (.objectLit []),
+    .exprStmt (.new (.ident "Stamp") [.ident "o"]),
+    .exprStmt (.new (.ident "Stamp") [.ident "o"]) ]
+
+#guard outcome stamp == "uncaught: TypeError: Cannot initialize private methods twice on the same object"
+
+/- ```js
+class P { #m() { return 1; } }
+class Q extends P { probe() { return this.#m(); } }
+``` — `#m` is not in `Q`'s scope: a `SyntaxError` at the use, not a walk. -/
+#guard outcome
+    [ cls "P" [ .method .method false (.«private» "m") [] [.returnStmt (some (.numLit 1.0))] ],
+      .classDecl "Q"
+        { name := some "Q", superClass := some (.ident "P"),
+          elements := [ .method .method false "probe" []
+            [.returnStmt (some (.call (.privateMember .this "m") []))] ] },
+      .exprStmt (.call (.member (.new (.ident "Q") []) "probe") []) ]
+  == "uncaught: SyntaxError: Private field '#m' must be declared in an enclosing class"

@@ -135,7 +135,8 @@ attribute [tarski_eval]
 attribute [tarski_eval]
   evalClass defineMethods initializeInstance initFields initFieldList
   constructClass runConstructor superConstructor bindPrivateNames privateName
-  readPrivate writePrivate addPrivate allocFromConstructor
+  readPrivate writePrivate addPrivateElement mergePrivate initPrivateMethods
+  allocFromConstructor
   ClassDef.constructor? ClassDef.instanceFields ClassDef.staticFields
   ClassDef.privateNames classFields dedupNames firstConstructor privateElementNames
 

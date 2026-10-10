@@ -53,6 +53,15 @@ private def simprocIn (n : Name) : CoreM Bool := do
   ``Tarski.evalArgs, ``Tarski.evalArrayElements, ``Tarski.evalForOfLoop,
   ``Tarski.callIteratorNative].allM unfoldsIn)
 
+-- The class machinery: each walk recurses on a class body or a list
+-- built from one, so each is an ordinary member.
+/-- info: true -/
+#guard_msgs in
+#eval (#[``Tarski.evalClass, ``Tarski.defineMethods, ``Tarski.initializeInstance,
+  ``Tarski.initPrivateMethods, ``Tarski.initFields, ``Tarski.initFieldList,
+  ``Tarski.mergePrivate, ``Tarski.addPrivateElement,
+  ``Tarski.privateElementNames].allM unfoldsIn)
+
 -- Recursion on a loop (`evalWhile`, `evalDoWhile`, `evalFor`, `evalForOf`,
 -- `joinElements`, `listFromArrayLike`, `rawSegments`, `forInNext`, the
 -- three bound-function steps, and the three walks that run until an
