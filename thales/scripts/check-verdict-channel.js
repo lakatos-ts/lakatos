@@ -84,7 +84,8 @@ const FIXTURES = [
       // Integer binder values coerced into a binary64 body: narrow enough
       // for the kernel to enumerate, then too wide for it but an instance
       // of a library fact, then too wide and a computation only evaluation
-      // can settle. The trust wording is read off each proof's axioms.
+      // can settle, admitted on the oracle's held proof. The trust wording
+      // is read off each proof's axioms.
       [
         "dbl",
         "Theorem",
@@ -94,7 +95,7 @@ const FIXTURES = [
       [
         "narrow",
         "Theorem",
-        /trusted from evaluation rather than checked by the kernel/,
+        /admitted as TsProof\.thm_\d+(_\d+)?; the result is trusted from evaluation/,
       ],
       [
         "add",
@@ -212,6 +213,28 @@ const FIXTURES = [
   {
     file: "theorem-rescue.lean",
     expected: [["dbl", "Theorem"]],
+  },
+  {
+    // The oracle. A bounded claim under the cap is evaluated first: true
+    // ships as a Theorem whatever the rungs after it manage, admitted on
+    // the native axiom only when none finds an axiom-free proof; false
+    // ships its witness at once. Past the cap the ladder is what it was.
+    file: "oracle.lean",
+    expected: [
+      [
+        "narrow",
+        "Theorem",
+        /admitted as TsProof\.thm_\d+(_\d+)?; the result is trusted from evaluation/,
+      ],
+      ["narrow", "Timeout", /thales\.heartbeats = 4000\)$/],
+      [
+        "add",
+        "Theorem",
+        /proved by a decision procedure over the bounded domain, kernel-checked as/,
+      ],
+      ["dbl", "Theorem", /proved by generic proof search, kernel-checked as/],
+      ["dbl", "CounterSatisfiable", /false/, { x: 19999 }],
+    ],
   },
   {
     // The class shapes: a structure, its single-assignment constructor in

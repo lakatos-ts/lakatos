@@ -608,6 +608,23 @@ def ladderVerdict (identity : Identity) (budget : Nat) (starved : Bool)
     (v : Verdict) : Verdict :=
   if starved && v.szs == .GaveUp then timeoutVerdict identity budget else v
 
+/-- Kernel decide's window after a true oracle: enough for every proof the
+kernel can afford in practice, small enough that starving on one costs
+nothing a person would notice. Measured on the corpus's slowest
+kernel-decide proof, with headroom. -/
+def decideAfterOracle (budget : Nat) : Nat := max (budget / 16) 1
+
+/-- The ladder's exit. A proof from a better rung ships as it is. Anything
+else gives way to the oracle's held proof when there is one; without one,
+exhaustion plus a residual goal is budget exhaustion rather than a dead
+end. -/
+def settle (identity : Identity) (p : Expr) (budget : Nat) (starved : Bool)
+    (held : Option Expr) (v : Verdict) : Term.TermElabM Verdict := do
+  if v.szs == .Theorem then return v
+  if let some proof := held then
+    if let some v' ← admitHeldProof identity p proof then return v'
+  return ladderVerdict identity budget starved v
+
 /-- Runs one rung, turning either resource limit into a fall-through to the
 next. Budget exhaustion — heartbeats, or the kernel's own timeout — reports
 the rung starved, since a bigger budget might have closed the goal; a blown
@@ -644,27 +661,43 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
     | .error v => return v
   -- Each rung runs under its own fresh window: the kernel overshoots a
   -- shared window by a large factor before its own counter fires, which
-  -- would let an early rung's blowout starve the ones after it. Four rungs:
-  -- kernel decide, the generic rung, the grind rung, and compiled evaluation
-  -- last. A symbolic proof is kernel-checked and does not depend on the
-  -- bound, so it is the better proof whenever it exists; evaluation is what
-  -- is left for a bounded claim the library has no lemma for. A bounded run
-  -- splits the budget evenly across the four; an unbounded run has no
-  -- decide or evaluation tier to fund, and the two symbolic rungs are not
-  -- the same kind of work — the generic rung normalizes, which costs what
-  -- the goal's size costs, while the grind rung searches, which is where a
-  -- wide goal spends — so the search takes what those tiers would have had.
-  -- Every share floors at 1, since a zero budget reads as unlimited.
+  -- would let an early rung's blowout starve the ones after it. Every
+  -- share floors at 1, since a zero budget reads as unlimited.
   let quarter := max (budget / 4) 1
   let half := max (budget / 2) 1
-  let decideShare := quarter
+  let mut starved := false
+  -- A bounded claim under the cap is evaluated first, for its answer
+  -- only. False is final: no rung can do better than a witness. True is
+  -- held: the rungs run for an axiom-free proof and the held one ships
+  -- when none finds it. The window governs instance synthesis and
+  -- codegen; compiled evaluation cannot be interrupted, and the element
+  -- cap is its only bound.
+  let mut held : Option Expr := none
+  if allBounded && domainSize ≤ evalCap then
+    let (outcome, rungStarved) ←
+      runRung (withHeartbeats quarter (attemptOracle identity p searchStx names))
+    match outcome with
+    | some (some (.refuted v)) => return v
+    | some (some (.proved proof)) => held := some proof
+    | _ => pure ()
+    if rungStarved then starved := true
+  -- Kernel decide, the generic rung, grind. A symbolic proof is
+  -- kernel-checked and does not depend on the bound, so it is the better
+  -- proof whenever it exists. After a true oracle the kernel gets a small
+  -- window: what starves it is the model's cost times the range, not the
+  -- range alone, so an attempt that falls through is the only fair test.
+  -- An unbounded run has no decide tier to fund, and the two symbolic
+  -- rungs are not the same kind of work — the generic rung normalizes,
+  -- which costs what the goal's size costs, while the grind rung
+  -- searches, which is where a wide goal spends — so the search takes
+  -- what the decide and evaluation tiers would have had.
+  let decideShare := if held.isSome then decideAfterOracle budget else quarter
   let genericShare := quarter
   let grindShare := if allBounded then quarter else half + quarter
-  let evalShare := quarter
-  let mut starved := false
   if allBounded then
     let (outcome, rungStarved) ←
       runRung (withHeartbeats decideShare (attemptDecide identity p searchStx names))
+    -- The kernel's own refutation outranks the compiler's answer.
     if let some (some v) := outcome then return v
     if rungStarved then starved := true
   let (outcome, rungStarved) ←
@@ -674,7 +707,7 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
   -- limit without leaving a residual — starts over from the original
   -- proposition. One call site either way, so the rung is classified once.
   let (root, goal, residual) ← match outcome with
-    | some (.done v) => return ladderVerdict identity budget starved v
+    | some (.done v) => return ← settle identity p budget starved held v
     | some (.stuck root goal residual) => pure (root, goal, residual)
     | none => do
       let root ← Meta.mkFreshExprMVar p
@@ -685,21 +718,6 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
   let v ← match grindOutcome with
     | some v => pure v
     | none => residualGaveUp identity residual
-  -- Kernel starvation is not the annotation's Timeout while evaluation can
-  -- still settle the goal: it is orders of magnitude faster than the kernel.
-  -- It runs compiled, though, so no budget can interrupt it once started,
-  -- and a domain past the cap stays with what the symbolic rungs said. A
-  -- goal the search rung settled, proved or refused through a residual
-  -- site, is not evaluated: only one it gave up on, or starved on, is.
-  if allBounded && domainSize ≤ evalCap && (grindOutcome.isNone || v.szs == .GaveUp) then
-    let (nOutcome, nStarved) ←
-      runRung (withHeartbeats evalShare (attemptOracle identity p searchStx names))
-    match nOutcome with
-    | some (some (.refuted v)) => return v
-    | some (some (.proved proof)) =>
-      if let some v ← admitHeldProof identity p proof then return v
-    | _ => pure ()
-    if nStarved then starved := true
-  return ladderVerdict identity budget starved v
+  settle identity p budget starved held v
 
 end ThalesDsl
