@@ -548,6 +548,19 @@
       }
     }
   ],
+  "thales/tests/conformance/theorem/fround-exact-wide.ts": [
+    {
+      "function": "narrow",
+      "property": "exact",
+      "szs": "Theorem",
+      "reason": "proved by a decision procedure over the bounded domain, admitted as TsProof.thm_6365461941357770733_2; the result is trusted from evaluation rather than checked by the kernel",
+      "axioms": ["Lean.ofReduceBool"],
+      "model": {
+        "status": "unvalidated",
+        "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
+      }
+    }
+  ],
   "thales/tests/fixtures/statements.ts": [
     {
       "function": "floorAtOne",
@@ -2732,8 +2745,8 @@
       "function": "halvePosInteger",
       "property": "nonNegative",
       "szs": "Theorem",
-      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_4507731685406781079",
-      "axioms": [],
+      "reason": "proved by a decision procedure over the bounded domain, admitted as TsProof.thm_4507731685406781079_2; the result is trusted from evaluation rather than checked by the kernel",
+      "axioms": ["Lean.ofReduceBool"],
       "model": {
         "status": "unvalidated",
         "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"
@@ -2743,8 +2756,8 @@
       "function": "halveNegInteger",
       "property": "nonPositive",
       "szs": "Theorem",
-      "reason": "proved by a decision procedure over the bounded domain, kernel-checked as TsProof.thm_14451024144195811178",
-      "axioms": [],
+      "reason": "proved by a decision procedure over the bounded domain, admitted as TsProof.thm_14451024144195811178_2; the result is trusted from evaluation rather than checked by the kernel",
+      "axioms": ["Lean.ofReduceBool"],
       "model": {
         "status": "unvalidated",
         "reason": "budget: the attempt exceeded thales.validateHeartbeats = 1"

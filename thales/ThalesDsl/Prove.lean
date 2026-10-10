@@ -9,7 +9,7 @@ register_option thales.heartbeats : Nat := {
 
 register_option thales.maxEvaluatedElements : Nat := {
   defValue := 10000000
-  descr := "the largest bounded domain #thales_prove will settle by evaluating the property at every element. Evaluation runs compiled, so the heartbeat budget cannot interrupt it; this cap is what keeps a wide domain from spending an unbounded amount of wall clock. A larger domain falls through to symbolic reasoning instead"
+  descr := "the largest bounded domain #thales_prove will settle by evaluating the property at every element. Evaluation runs compiled, so the heartbeat budget cannot interrupt it; this cap is what keeps a wide domain from spending an unbounded amount of wall clock. A larger domain is left to the kernel and the symbolic rungs"
 }
 
 namespace ThalesDsl
@@ -608,12 +608,16 @@ def ladderVerdict (identity : Identity) (budget : Nat) (starved : Bool)
     (v : Verdict) : Verdict :=
   if starved && v.szs == .GaveUp then timeoutVerdict identity budget else v
 
-/-- Kernel decide's window after a true oracle: enough for every proof the
-kernel can afford in practice, and the smallest such. Measured on the
-corpus: its slowest kernel-decide proof spends about 22000 of these at the
-default budget of 200000, and the kernel's own timeout fires at about
-three and a half times the window, so a sixteenth leaves twice that
-proof's cost before it starves. -/
+/-- Kernel decide's window after a true oracle. The claim is already
+settled, so the kernel's turn is worth only what a kernel-checked proof
+is worth over an admitted one, and a window it starves on is time a
+person waits for nothing. Measured on the corpus at the default budget
+of 200000: the kernel's own timeout fires at about three and a half times
+the window, and all but two kernel-decide proofs spend under 22000, so a
+sixteenth keeps them with twice their cost to spare. The two it gives up
+(a floor or ceiling of a division over a thousand integers, 120000 to
+128000 each) cost more than a starve on a claim the kernel cannot do at
+all. -/
 def decideAfterOracle (budget : Nat) : Nat := max (budget / 16) 1
 
 /-- The ladder's exit. A proof from a better rung ships as it is. Anything
