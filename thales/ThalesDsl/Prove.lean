@@ -102,10 +102,10 @@ unsafe def evalWitnessSearchUnsafe (s : Expr) : MetaM (Option (List WitnessValue
 @[implemented_by evalWitnessSearchUnsafe]
 opaque evalWitnessSearch (s : Expr) : MetaM (Option (List WitnessValue))
 
-/-- `extractWitness` for the evaluation rung: the same search term, evaluated
-compiled rather than reduced in the elaborator, so a witness deep in a wide
-range is found at the cost of the scan. The rung already trusts compiled
-evaluation for the verdict, so it is trusted for the illustration too. -/
+/-- `extractWitness` for the oracle: the same search term, evaluated compiled
+rather than reduced in the elaborator, so a witness deep in a wide range is
+found at the cost of the scan. The oracle already trusts compiled evaluation
+for the verdict, so it is trusted for the illustration too. -/
 def extractWitnessCompiled (names : List String) (searchStx : TSyntax `term) :
     Term.TermElabM (Option (Array (String × WitnessValue))) :=
   tryCatchRuntimeEx
@@ -601,9 +601,9 @@ def timeoutVerdict (identity : Identity) (budget : Nat) : Verdict :=
   ⟨identity, .Timeout,
     s!"the attempt exceeded the per-annotation heartbeat budget (thales.heartbeats = {budget})", none, none⟩
 
-/-- The ladder's exit. A starved rung might have closed the goal given
-budget, so exhaustion plus a residual goal is budget exhaustion rather than
-a dead end. -/
+/-- What `settle` falls back on without a held proof. A starved rung might
+have closed the goal given budget, so exhaustion plus a residual goal is
+budget exhaustion rather than a dead end. -/
 def ladderVerdict (identity : Identity) (budget : Nat) (starved : Bool)
     (v : Verdict) : Verdict :=
   if starved && v.szs == .GaveUp then timeoutVerdict identity budget else v
@@ -696,7 +696,7 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
   -- rungs are not the same kind of work — the generic rung normalizes,
   -- which costs what the goal's size costs, while the grind rung
   -- searches, which is where a wide goal spends — so the search takes
-  -- what the decide and evaluation tiers would have had.
+  -- what the decide tier and the oracle would have had.
   let decideShare := if held.isSome then decideAfterOracle budget else quarter
   let genericShare := quarter
   let grindShare := if allBounded then quarter else half + quarter

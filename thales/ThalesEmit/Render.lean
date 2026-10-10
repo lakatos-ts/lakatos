@@ -570,7 +570,7 @@ def fnCommand (f : EmitFn) : RenderM (TSyntax `command) := do
   let ret ← returnTyTerm f.returns
   -- Dual-tagged: the js_norm closers and the grind rung both unfold a
   -- model by its equations. `noncomputable` is load-bearing on a tainted
-  -- model: a valueless opaque compiles to `pure`, and the evaluation rung
+  -- model: a valueless opaque compiles to `pure`, and compiled evaluation
   -- would prove through it.
   if f.tainted then
     `(@[js_norm, grind] noncomputable def $name $binders* : $ret := do
@@ -592,7 +592,7 @@ def constCommand (c : EmitConstant) : RenderM (TSyntax `command) := do
 
 /-- A residual site's opaque, its construct as the docstring the prover
 reads back into the verdict. `noncomputable` is load-bearing: a valueless
-opaque compiles to `pure`, and the evaluation rung would prove through
+opaque compiles to `pure`, and compiled evaluation would prove through
 it. -/
 def residualCommand (r : EmitResidual) : RenderM (TSyntax `command) := do
   let name ← residualIdent r.module r.owner r.site

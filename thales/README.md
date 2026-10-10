@@ -24,8 +24,8 @@ tradition:
    cannot model it classifies itself, naming the offending construct, so
    nothing unmappable reaches Lean.
 2. **ThalesDsl (Lean).** `#thales_prove` states each annotation's theorem,
-   evaluates a bounded claim first and then runs the proof ladder for a
-   kernel-checked proof (`decide` over bounded domains, then generic
+   evaluates a bounded claim under the evaluation cap first and then runs
+   the proof ladder for a kernel-checked proof (`decide` over bounded domains, then generic
    tactics), and prints one JSON verdict line to stdout.
 3. **The `thales` bin.** Collects the verdict lines and assembles the
    standard per-annotation envelope.
