@@ -609,9 +609,11 @@ def ladderVerdict (identity : Identity) (budget : Nat) (starved : Bool)
   if starved && v.szs == .GaveUp then timeoutVerdict identity budget else v
 
 /-- Kernel decide's window after a true oracle: enough for every proof the
-kernel can afford in practice, small enough that starving on one costs
-nothing a person would notice. Measured on the corpus's slowest
-kernel-decide proof, with headroom. -/
+kernel can afford in practice, and the smallest such. Measured on the
+corpus: its slowest kernel-decide proof spends about 22000 of these at the
+default budget of 200000, and the kernel's own timeout fires at about
+three and a half times the window, so a sixteenth leaves twice that
+proof's cost before it starves. -/
 def decideAfterOracle (budget : Nat) : Nat := max (budget / 16) 1
 
 /-- The ladder's exit. A proof from a better rung ships as it is. Anything
