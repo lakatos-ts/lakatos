@@ -8,7 +8,7 @@
 
 import * as path from "node:path";
 import { checker, engineRoot, frontend } from "./harness.js";
-import { shardOf } from "./shard.js";
+import { shardByWeight } from "./shard.js";
 
 const { parseVerdicts, runArtifact } = await frontend("run");
 
@@ -271,7 +271,12 @@ const FIXTURES = [
     // form, a boolean return, a module constant, and an obligation that
     // does not elaborate. The verdicts beside them are untouched by any
     // of it — an unvalidated model never moves a verdict (D7).
+    //
+    // The kernel's check of each validated correspondence is about twenty
+    // seconds, so this fixture costs what the other twenty-one do put
+    // together; the weight is that ratio, so a shard carries it alone.
     file: "validate.lean",
+    weight: 20,
     expected: [
       ["wrong", "Theorem"],
       ["bad", "NotTried"],
@@ -303,7 +308,11 @@ const { check, done } = checker("verdict-channel");
 
 // Each fixture is its own artifact, so a shard pays no cost the whole run
 // was not already paying per fixture.
-const fixtures = shardOf(FIXTURES, process.env.LAKATOS_VERDICT_SHARD);
+const fixtures = shardByWeight(
+  FIXTURES,
+  process.env.LAKATOS_VERDICT_SHARD,
+  (fixture) => fixture.weight ?? 1,
+);
 
 for (const {
   file,
