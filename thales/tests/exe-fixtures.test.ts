@@ -62,16 +62,17 @@ function corpus(): string[] {
  * Measured, not predicted: a row that moves is either a slice that landed
  * or a regression, and either way it belongs in a diff.
  *
- * Sixteen of the corpus's two hundred and seventy-six. The six
+ * Seventeen of the corpus's two hundred and eighty. The eight
  * `ImportDeclaration` rows are the multi-file fixtures, which `exe`
  * refuses by design — it resolves no module graph. The rest is syntax
  * outside the evaluated fragment: BigInt, a regular expression, `&`,
- * `??`, a computed *class* key, a private accessor, an `async` function,
- * and an `export default class` with no name, which is a class
- * declaration with no `id` once the module syntax is off it. The four
- * fixtures refused for a template literal left this map when #395
- * landed, and the one `Parameter` row — a rest constructor parameter —
- * left it when #394 did.
+ * `??`, a computed *class* key, an `async` function, and an
+ * `export default class` with no name, which is a class declaration with
+ * no `id` once the module syntax is off it. The four fixtures refused
+ * for a template literal left this map when #395 landed, the one
+ * `Parameter` row — a rest constructor parameter — left it when #394
+ * did, and the private-getter row left it when private methods and
+ * accessors did.
  */
 const UNSUPPORTED: Record<string, string> = {
   "pabst/tests/fixtures/e2e/bounded.ts": "BigIntLiteral",
@@ -95,8 +96,6 @@ const UNSUPPORTED: Record<string, string> = {
   "thales/tests/fixtures/tracer.ts": "FunctionDeclaration async",
   "lemma/spec/fixtures/attach/reject/anonymous-class.ts": "ClassDeclaration",
   "lemma/spec/fixtures/attach/reject/computed-name.ts": "ComputedPropertyName",
-  "lemma/spec/fixtures/attach/reject/private-getter.ts":
-    "MethodDefinition private",
   "lemma/spec/fixtures/binder/reject/ctor-param-optional.ts":
     "LogicalExpression ??",
   "lemma/spec/fixtures/island/accept/reexported-import.ts": "ImportDeclaration",
