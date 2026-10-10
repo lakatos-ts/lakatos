@@ -4,8 +4,9 @@ open Js ThalesDsl
 
 set_option autoImplicit false
 
--- False bounded claims: decide establishes falsity synchronously, and the
--- elaborator searches the bounded domain for the first witness.
+-- False bounded claims. Under the evaluation cap the oracle establishes
+-- falsity and searches the domain compiled; past it, decide establishes
+-- falsity and the elaborator searches for the first witness.
 @[js_norm, grind]
 def TsModel.bump (x : JsNumber) : JsM JsNumber := do
   return x + 1

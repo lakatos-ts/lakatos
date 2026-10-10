@@ -90,9 +90,8 @@ def elabProp (stx : TSyntax `term) : Elab.Term.TermElabM Expr := do
   let some v ← admitHeldProof ⟨"c.ts", "g", "q"⟩ p proof | return false
   return v.szs == .Theorem && v.axioms == some #[``Lean.ofReduceBool]
 
--- The evaluation rung's witness is searched compiled: a witness at the far
--- end of a wide range costs what the scan costs, not one whnf step per
--- element.
+-- The oracle's witness is searched compiled: a witness at the far end of
+-- a wide range costs what the scan costs, not one whnf step per element.
 /-- info: true -/
 #guard_msgs in
 #eval show Elab.Term.TermElabM Bool from do
@@ -113,3 +112,14 @@ noncomputable opaque noImpl : Option (List WitnessValue)
   Elab.Term.synthesizeSyntheticMVarsNoPostponing
   let r ← evalWitnessSearch (← instantiateMVars s)
   return r == none
+
+-- A false claim with a binder whose witness search cannot run: the
+-- refutation is final and ships without the illustration, never as a
+-- Timeout and never as an Error.
+/-- info: true -/
+#guard_msgs in
+#eval show Elab.Term.TermElabM Bool from do
+  let p ← elabProp (← `(∀ n : Nat, n < 5 → n < 4))
+  let some (.refuted v) ← attemptOracle ⟨"c.ts", "f", "p"⟩ p
+      (← `((noImpl : Option (List ThalesDsl.WitnessValue)))) ["n"] | return false
+  return v.szs == .GaveUp && v.counterexample.isNone

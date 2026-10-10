@@ -111,15 +111,15 @@ const FIXTURES = [
       ["sq", "CounterSatisfiable", /false/, { x: 0 }],
       ["comm", "CounterSatisfiable", /false/, { a: 0, b: 1 }],
       ["bump", "GaveUp", /^the property is false on its bounded domain$/],
-      // The evaluation rung's witness is searched compiled: the last
-      // element, at a budget the elaborator's reduction could not afford.
+      // The oracle's witness is searched compiled: the last element, at a
+      // budget the elaborator's reduction could not afford.
       ["bump", "CounterSatisfiable", /false/, { x: 99 }],
       // Falsity outlives the witness search that ran out of budget: the
       // counterexample is gone, the verdict is not, and it is not a Timeout.
       ["bump", "GaveUp", /^the property is false on its bounded domain$/],
-      // The evaluation rung's witness is searched compiled: the last
-      // element of a range the elaborator's reduction could not reach,
-      // alone, across two binders, and behind a guard.
+      // The oracle's witness is searched compiled: the last element of a
+      // range the elaborator's reduction could not reach, alone, across
+      // two binders, and behind a guard.
       ["dbl", "CounterSatisfiable", /false/, { x: 19999 }],
       ["sum", "CounterSatisfiable", /false/, { a: 199, b: 99 }],
       ["dbl", "CounterSatisfiable", /false/, { x: 19999 }],

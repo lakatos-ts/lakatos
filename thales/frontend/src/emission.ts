@@ -171,7 +171,7 @@ export interface EmitFunction {
   returns?: "boolean";
   /** Present exactly when the body reaches a residual site, directly or
    * through a callee that does. A valueless opaque compiles to `pure`, so
-   * without this the evaluation rung would prove straight through one. */
+   * without this compiled evaluation would prove straight through one. */
   noncomputable?: true;
   /** The ESTree of the declaration's dependency closure as tarski's bridge
    * produced it, a strict script; absent when no closed script could be
