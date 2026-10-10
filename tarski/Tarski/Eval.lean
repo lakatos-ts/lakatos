@@ -1474,7 +1474,8 @@ def readPrivate (env : Env) (base : Value) (name : String) : EvalM Value := do
   match base with
   | .obj r =>
     match (← readObj r).getPrivate k with
-    | some v => pure v
+    | some (.field v) => pure v
+    | some _ => pure undefValue
     | none =>
       throwJsError .typeError
         s!"Cannot read private member #{name} from an object whose class did not declare it"
@@ -1490,7 +1491,7 @@ def writePrivate (env : Env) (base : Value) (name : String) (v : Value) : EvalM 
   match base with
   | .obj r =>
     match (← readObj r).getPrivate k with
-    | some _ => modifyObj r (fun o => o.setPrivate k v)
+    | some _ => modifyObj r (fun o => o.setPrivate k (.field v))
     | none =>
       throwJsError .typeError
         s!"Cannot write private member #{name} to an object whose class did not declare it"
@@ -1504,7 +1505,7 @@ through the return-override trick, and the specification makes that a
 def addPrivate (target : Ref) (name : String) (k : PrivateName) (v : Value) : EvalM Unit := do
   match (← readObj target).getPrivate k with
   | some _ => throwJsError .typeError s!"Cannot initialize #{name} twice on the same object"
-  | none => modifyObj target (fun o => o.addPrivate k v)
+  | none => modifyObj target (fun o => o.addPrivate k (.field v))
 
 /-- One immutable cell per `#name` the class declares, pushed under the
 spelling `"#name"`. The cell's *reference* is the Private Name; its
