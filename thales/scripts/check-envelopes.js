@@ -62,6 +62,7 @@ const EXPRESSION_FIXTURES = [
   `${CONFORMANCE}/theorem/finite-guard.ts`,
   `${CONFORMANCE}/countersatisfiable/abs-shrinks.ts`,
   `${CONFORMANCE}/countersatisfiable/last-element.ts`,
+  `${CONFORMANCE}/theorem/fround-exact-wide.ts`,
 ];
 
 /** The statement slice (#148): statement-bodied fixtures — const and

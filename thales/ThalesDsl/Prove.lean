@@ -9,7 +9,7 @@ register_option thales.heartbeats : Nat := {
 
 register_option thales.maxEvaluatedElements : Nat := {
   defValue := 10000000
-  descr := "the largest bounded domain #thales_prove will settle by evaluating the property at every element. Evaluation runs compiled, so the heartbeat budget cannot interrupt it; this cap is what keeps a wide domain from spending an unbounded amount of wall clock. A larger domain falls through to symbolic reasoning instead"
+  descr := "the largest bounded domain #thales_prove will settle by evaluating the property at every element. Evaluation runs compiled, so the heartbeat budget cannot interrupt it; this cap is what keeps a wide domain from spending an unbounded amount of wall clock. A larger domain is left to the kernel and the symbolic rungs"
 }
 
 namespace ThalesDsl
@@ -241,16 +241,23 @@ def attemptDecide (identity : Identity) (p : Expr)
     if ← isKernelTimeout ex then throw ex
     return (← diagnoseDecideFailure identity p names searchStx)
 
-/-- Rung 4, the last resort for a bounded claim: the same goal, evaluated
-by the compiler rather than the kernel. A bounded property that is a
-computation rather than an instance of a lemma has no other route once
-the kernel's decide is too slow and the symbolic rungs have nothing to
-say. Falsity is reported directly here, so no instance reduction is
-needed to tell a false property from a stuck one, and the witness is
-searched compiled as well. -/
-def attemptNativeDecide (identity : Identity) (p : Expr)
+/-- The oracle's answer on a bounded goal under the evaluation cap. -/
+inductive OracleOutcome where
+  /-- Compiled evaluation found the property false: a final verdict. -/
+  | refuted (v : Verdict)
+  /-- Compiled evaluation found it true: a proof of the proposition
+  resting on the native axiom, held until every better rung has failed. -/
+  | proved (proof : Expr)
+
+/-- The oracle: the bounded goal, evaluated by the compiler rather than
+the kernel, before any rung runs. Falsity is final — no symbolic rung can
+do better than a witness — and the witness is searched compiled as well.
+Truth is held, not added: the theorem is admitted on the native axiom
+only when no rung finds an axiom-free proof. `none` means evaluation
+could not run at all, and the ladder is on its own. -/
+def attemptOracle (identity : Identity) (p : Expr)
     (searchStx : TSyntax `term) (names : List String) :
-    Term.TermElabM (Option Verdict) := do
+    Term.TermElabM (Option OracleOutcome) := do
   let falseOnDomain : Verdict := ⟨identity, .GaveUp,
     "the property is false on its bounded domain", none, none⟩
   let some d ← (try some <$> Meta.mkDecide p catch _ => pure none)
@@ -263,18 +270,24 @@ def attemptNativeDecide (identity : Identity) (p : Expr)
   match result with
   | .notTrue =>
     -- Established falsity is terminal; only the illustration is optional.
-    if names.isEmpty then return some falseOnDomain
+    if names.isEmpty then return some (.refuted falseOnDomain)
     if let some cex ← extractWitnessCompiled names searchStx then
-      return some ⟨identity, .CounterSatisfiable,
-        "the property is false on its bounded domain", some cex, none⟩
-    return some falseOnDomain
+      return some (.refuted ⟨identity, .CounterSatisfiable,
+        "the property is false on its bounded domain", some cex, none⟩)
+    return some (.refuted falseOnDomain)
   | .success prf =>
     let inst := d.appArg!
-    let proof := mkApp3 (mkConst ``of_decide_eq_true) p inst prf
-    let some thmName ← orFallThrough (addTheoremSync identity p proof)
-      | return none
-    return some (← provedVerdict identity
-      "a decision procedure over the bounded domain" thmName)
+    return some (.proved (mkApp3 (mkConst ``of_decide_eq_true) p inst prf))
+
+/-- Admits the oracle's held proof. The kernel checks only the application
+of the native axiom, so this is cheap; a rejection is a fall-through, and
+the symbolic verdict stands. -/
+def admitHeldProof (identity : Identity) (p proof : Expr) :
+    Term.TermElabM (Option Verdict) := do
+  let some thmName ← orFallThrough (addTheoremSync identity p proof)
+    | return none
+  return some (← provedVerdict identity
+    "a decision procedure over the bounded domain" thmName)
 
 /-- Rung 2's outcome: a verdict, or the state rung 3 continues from — the
 root metavariable still linked to the unsolved residual goal. -/
@@ -595,6 +608,29 @@ def ladderVerdict (identity : Identity) (budget : Nat) (starved : Bool)
     (v : Verdict) : Verdict :=
   if starved && v.szs == .GaveUp then timeoutVerdict identity budget else v
 
+/-- Kernel decide's window after a true oracle. The claim is already
+settled, so the kernel's turn is worth only what a kernel-checked proof
+is worth over an admitted one, and a window it starves on is time a
+person waits for nothing. Measured on the corpus at the default budget
+of 200000: the kernel's own timeout fires at about three and a half times
+the window, and all but two kernel-decide proofs spend under 22000, so a
+sixteenth keeps them with twice their cost to spare. The two it gives up
+(a floor or ceiling of a division over a thousand integers, 120000 to
+128000 each) cost more than a starve on a claim the kernel cannot do at
+all. -/
+def decideAfterOracle (budget : Nat) : Nat := max (budget / 16) 1
+
+/-- The ladder's exit. A proof from a better rung ships as it is. Anything
+else gives way to the oracle's held proof when there is one; without one,
+exhaustion plus a residual goal is budget exhaustion rather than a dead
+end. -/
+def settle (identity : Identity) (p : Expr) (budget : Nat) (starved : Bool)
+    (held : Option Expr) (v : Verdict) : Term.TermElabM Verdict := do
+  if v.szs == .Theorem then return v
+  if let some proof := held then
+    if let some v' ← admitHeldProof identity p proof then return v'
+  return ladderVerdict identity budget starved v
+
 /-- Runs one rung, turning either resource limit into a fall-through to the
 next. Budget exhaustion — heartbeats, or the kernel's own timeout — reports
 the rung starved, since a bigger budget might have closed the goal; a blown
@@ -631,27 +667,43 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
     | .error v => return v
   -- Each rung runs under its own fresh window: the kernel overshoots a
   -- shared window by a large factor before its own counter fires, which
-  -- would let an early rung's blowout starve the ones after it. Four rungs:
-  -- kernel decide, the generic rung, the grind rung, and compiled evaluation
-  -- last. A symbolic proof is kernel-checked and does not depend on the
-  -- bound, so it is the better proof whenever it exists; evaluation is what
-  -- is left for a bounded claim the library has no lemma for. A bounded run
-  -- splits the budget evenly across the four; an unbounded run has no
-  -- decide or evaluation tier to fund, and the two symbolic rungs are not
-  -- the same kind of work — the generic rung normalizes, which costs what
-  -- the goal's size costs, while the grind rung searches, which is where a
-  -- wide goal spends — so the search takes what those tiers would have had.
-  -- Every share floors at 1, since a zero budget reads as unlimited.
+  -- would let an early rung's blowout starve the ones after it. Every
+  -- share floors at 1, since a zero budget reads as unlimited.
   let quarter := max (budget / 4) 1
   let half := max (budget / 2) 1
-  let decideShare := quarter
+  let mut starved := false
+  -- A bounded claim under the cap is evaluated first, for its answer
+  -- only. False is final: no rung can do better than a witness. True is
+  -- held: the rungs run for an axiom-free proof and the held one ships
+  -- when none finds it. The window governs instance synthesis and
+  -- codegen; compiled evaluation cannot be interrupted, and the element
+  -- cap is its only bound.
+  let mut held : Option Expr := none
+  if allBounded && domainSize ≤ evalCap then
+    let (outcome, rungStarved) ←
+      runRung (withHeartbeats quarter (attemptOracle identity p searchStx names))
+    match outcome with
+    | some (some (.refuted v)) => return v
+    | some (some (.proved proof)) => held := some proof
+    | _ => pure ()
+    if rungStarved then starved := true
+  -- Kernel decide, the generic rung, grind. A symbolic proof is
+  -- kernel-checked and does not depend on the bound, so it is the better
+  -- proof whenever it exists. After a true oracle the kernel gets a small
+  -- window: what starves it is the model's cost times the range, not the
+  -- range alone, so an attempt that falls through is the only fair test.
+  -- An unbounded run has no decide tier to fund, and the two symbolic
+  -- rungs are not the same kind of work — the generic rung normalizes,
+  -- which costs what the goal's size costs, while the grind rung
+  -- searches, which is where a wide goal spends — so the search takes
+  -- what the decide and evaluation tiers would have had.
+  let decideShare := if held.isSome then decideAfterOracle budget else quarter
   let genericShare := quarter
   let grindShare := if allBounded then quarter else half + quarter
-  let evalShare := quarter
-  let mut starved := false
   if allBounded then
     let (outcome, rungStarved) ←
       runRung (withHeartbeats decideShare (attemptDecide identity p searchStx names))
+    -- The kernel's own refutation outranks the compiler's answer.
     if let some (some v) := outcome then return v
     if rungStarved then starved := true
   let (outcome, rungStarved) ←
@@ -661,7 +713,7 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
   -- limit without leaving a residual — starts over from the original
   -- proposition. One call site either way, so the rung is classified once.
   let (root, goal, residual) ← match outcome with
-    | some (.done v) => return ladderVerdict identity budget starved v
+    | some (.done v) => return ← settle identity p budget starved held v
     | some (.stuck root goal residual) => pure (root, goal, residual)
     | none => do
       let root ← Meta.mkFreshExprMVar p
@@ -672,17 +724,6 @@ def attemptLadder (identity : Identity) (propStx : TSyntax `term)
   let v ← match grindOutcome with
     | some v => pure v
     | none => residualGaveUp identity residual
-  -- Kernel starvation is not the annotation's Timeout while evaluation can
-  -- still settle the goal: it is orders of magnitude faster than the kernel.
-  -- It runs compiled, though, so no budget can interrupt it once started,
-  -- and a domain past the cap stays with what the symbolic rungs said. A
-  -- goal the search rung settled, proved or refused through a residual
-  -- site, is not evaluated: only one it gave up on, or starved on, is.
-  if allBounded && domainSize ≤ evalCap && (grindOutcome.isNone || v.szs == .GaveUp) then
-    let (nOutcome, nStarved) ←
-      runRung (withHeartbeats evalShare (attemptNativeDecide identity p searchStx names))
-    if let some (some v) := nOutcome then return v
-    if nStarved then starved := true
-  return ladderVerdict identity budget starved v
+  settle identity p budget starved held v
 
 end ThalesDsl

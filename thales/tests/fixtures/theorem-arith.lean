@@ -78,8 +78,9 @@ def TsModel.dbl (x : JsNumber) : JsM JsNumber := do
     TsModel.dbl (Float.ofInt x) = pure (Float.ofInt x * 2)
 
 -- The same domain, and a computation the library has no lemma for:
--- `Math.fround` of an integer below 2^24 is that integer. Evaluation, the
--- last rung, closes it in well under a second.
+-- `Math.fround` of an integer below 2^24 is that integer. The oracle settles
+-- it in well under a second, and the held proof ships once the rungs have
+-- failed to do better.
 @[js_norm, grind]
 def TsModel.narrow (x : JsNumber) : JsM JsNumber := do
   return Number.FloatOps.tsFround x
