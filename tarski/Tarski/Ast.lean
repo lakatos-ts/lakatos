@@ -45,7 +45,7 @@ which is #384's shape, and widening it is not this file's business.
 public and private instance fields, methods, getters and setters,
 `static` members, `extends`, and `super`. What a class may spell and this
 AST may not is refused by name in `Tarski/Decode.lean` — a computed key,
-a private method or accessor, a static block, an `accessor` field, a
+a static block, an `accessor` field, a
 decorator, `new.target`, `#x in o`, and `super.x = v` — because each is
 real syntax with semantics of its own rather than a shorthand for
 something here. Later slices add constructors; they do not reshape the
@@ -164,6 +164,10 @@ inductive ClassKey where
   /-- A `PrivateIdentifier` key; `name` is ESTree's, without the `#`. -/
   | «private» (name : String)
 deriving Repr, DecidableEq, Inhabited
+
+/-- A plain name is a public key, so a test spells `.method .getter false "v" …`
+as before. -/
+instance : Coe String ClassKey := ⟨.«public»⟩
 
 /-- Which of the three things a `MethodDefinition` defines. A `method`
 is a data property on the home object; a `getter` and a `setter` are the
@@ -549,17 +553,17 @@ structure ClassField where
   /-- ESTree `PropertyDefinition.value`. -/
   value : Option Expr
 
-/-- One element of a `ClassBody`. A private *method* or accessor is not
-here: the decoder refuses it, so the AST cannot spell one, and a private
-key therefore only ever reaches a field. -/
+/-- One element of a `ClassBody`. A private key on a method or accessor
+names a private element — a function or an accessor pair the instance
+carries beside its fields — rather than a property. -/
 inductive ClassElement where
   /-- ESTree `MethodDefinition` with `kind: "constructor"`. At most one
   is meaningful; a second is an early error, which this epic does not
   check, so the first one wins. -/
   | ctor (params : List Param) (body : List Stmt)
   /-- ESTree `MethodDefinition` with `kind` `"method"`, `"get"`, or
-  `"set"` and an `Identifier` or string `Literal` key. -/
-  | method (kind : MethodKind) (isStatic : Bool) (name : String)
+  `"set"`. -/
+  | method (kind : MethodKind) (isStatic : Bool) (key : ClassKey)
       (params : List Param) (body : List Stmt)
   /-- ESTree `PropertyDefinition`. -/
   | field (isStatic : Bool) (key : ClassKey) (value : Option Expr)
@@ -753,12 +757,13 @@ constructor object once the class is built. -/
 def ClassDef.staticFields (d : ClassDef) : List ClassField :=
   classFields true d.elements
 
-/-- Every `#name` a class body's fields are keyed by, in source order
-and with repeats still in. -/
-def privateFieldNames : List ClassElement → List String
+/-- Every `#name` a class body declares, in source order and with
+repeats still in: fields, methods, and accessor halves alike. -/
+def privateElementNames : List ClassElement → List String
   | [] => []
-  | .field _ (.«private» n) _ :: rest => n :: privateFieldNames rest
-  | _ :: rest => privateFieldNames rest
+  | .field _ (.«private» n) _ :: rest => n :: privateElementNames rest
+  | .method _ _ (.«private» n) _ _ :: rest => n :: privateElementNames rest
+  | _ :: rest => privateElementNames rest
 
 /-- Drop repeats, keeping the first occurrence. `seen` is what has
 already been kept, which is what makes this structural on the list. -/
@@ -772,7 +777,7 @@ order. One cell per name is allocated when the class is evaluated, and
 that cell *is* the Private Name — two evaluations of one class text
 therefore declare different names, as the specification requires. -/
 def ClassDef.privateNames (d : ClassDef) : List String :=
-  dedupNames [] (privateFieldNames d.elements)
+  dedupNames [] (privateElementNames d.elements)
 
 /-- ESTree `Program` with `sourceType: "script"`, its `"use strict"`
 directive already consumed by the decoder. -/

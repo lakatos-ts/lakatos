@@ -1531,7 +1531,7 @@ and for the same reason: a method's body is closed over here, never run,
 so nothing this does can reach user code. -/
 def defineMethods (env : Env) (F proto : Ref) : List ClassElement → EvalM Unit
   | [] => pure ()
-  | .method kind isStatic name params body :: rest => do
+  | .method kind isStatic (.«public» name) params body :: rest => do
     let target := if isStatic then F else proto
     let fname := match kind with
       | .method => name
@@ -1544,6 +1544,7 @@ def defineMethods (env : Env) (F proto : Ref) : List ClassElement → EvalM Unit
       | .getter => o.defineAccessorHalf name (some f) none false true
       | .setter => o.defineAccessorHalf name none (some f) false true)
     defineMethods env F proto rest
+  | .method _ _ (.«private» _) _ _ :: rest => defineMethods env F proto rest
   | _ :: rest => defineMethods env F proto rest
 
 /-- GetTemplateObject (13.2.8.4). The realm's `[[TemplateMap]]` is

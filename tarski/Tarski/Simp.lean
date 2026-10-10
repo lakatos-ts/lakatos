@@ -137,7 +137,7 @@ attribute [tarski_eval]
   constructClass runConstructor superConstructor bindPrivateNames privateName
   readPrivate writePrivate addPrivate allocFromConstructor
   ClassDef.constructor? ClassDef.instanceFields ClassDef.staticFields
-  ClassDef.privateNames classFields dedupNames firstConstructor privateFieldNames
+  ClassDef.privateNames classFields dedupNames firstConstructor privateElementNames
 
 -- Property reads and writes, own-property depth only: the two prototype
 -- steps are guarded simprocs below. The property protocol's own

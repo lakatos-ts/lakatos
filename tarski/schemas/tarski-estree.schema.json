@@ -947,7 +947,7 @@
     },
 
     "MethodDefinition": {
-      "description": "A class body's constructor, method, getter, or setter. The Lean decoder refuses a private key — a private method is a non-writable element rather than a property — and a numeric key, and an `async` or generator member; the bridge emits all three so that the refusal names them rather than the class. `computed` is always false, a computed key arriving as `Unsupported` in the member's place. A `static constructor` is an ordinary static method of that name, so it arrives with `kind: \"method\"`.",
+      "description": "A class body's constructor, method, getter, or setter. A private key is in the slice — a private method is an element the instance carries rather than a property. The Lean decoder refuses a numeric key and an `async` or generator member; the bridge emits both so that the refusal names them rather than the class. `computed` is always false, a computed key arriving as `Unsupported` in the member's place. A `static constructor` is an ordinary static method of that name, so it arrives with `kind: \"method\"`.",
       "type": "object",
       "properties": {
         "type": { "const": "MethodDefinition" },
@@ -962,7 +962,7 @@
     },
 
     "PropertyDefinition": {
-      "description": "A class field. `value` is null for a field declared without an initializer, which still defines the property, holding `undefined`. A private key is in the slice here, unlike on a method.",
+      "description": "A class field. `value` is null for a field declared without an initializer, which still defines the property, holding `undefined`. A private key is in the slice here.",
       "type": "object",
       "properties": {
         "type": { "const": "PropertyDefinition" },
