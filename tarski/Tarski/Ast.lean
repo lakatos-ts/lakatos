@@ -38,8 +38,8 @@ site number the decoder assigns so that the template object can be cached
 per Parse Node. So is every object-literal member but spread: a
 shorthand, a computed key, a numeric key, a method, a getter, a setter,
 and `__proto__:`, all of them `PropDef`s over a `PropKey`. A computed
-*class* key is still refused by name — the class AST's key is a `String`,
-which is #384's shape, and widening it is not this file's business.
+*class* key is still refused by name — a method's or a field's key is a
+`ClassKey`, a public spelling or a private name, which is #384's shape, and widening it is not this file's business.
 
 **Classes are here**: declarations and expressions, a constructor,
 public and private instance fields, methods, getters and setters,

@@ -72,7 +72,7 @@ def TsModel.Counter.ast : Tarski.Program :=
         elements :=
           [.field false (.«public» "n") none,
             .ctor ["n"] [.exprStmt (.assign (.member .this "n") (.ident "n"))],
-            .method .method false "bump" ["by"]
+            .method .method false (.«public» "bump") ["by"]
               [.ifStmt (.binary .strictEq (.ident "by") .undefLit)
                   (.block [.returnStmt (some (.binary .add (.member .this "n") (.numLit 1)))]) none,
                 .returnStmt (some (.binary .add (.member .this "n") (.ident "by")))]] }]

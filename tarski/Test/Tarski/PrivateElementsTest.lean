@@ -127,22 +127,49 @@ private def brand : List Stmt :=
   == "true"
 
 /-- ```js
-class D { static #s() { return 7; } static use() { return D.#s(); } }
+class P { #m() { return 1; } static t(o) { return o.#m(); } }
+class Q extends P { constructor() { super(); } }
+``` -/
+private def inherited : List Stmt :=
+  [ cls "P"
+      [ .method .method false (.«private» "m") [] [.returnStmt (some (.numLit 1.0))],
+        .method .method true "t" ["o"]
+          [.returnStmt (some (.call (.privateMember (.ident "o") "m") []))] ],
+    .classDecl "Q"
+      { name := some "Q", superClass := some (.ident "P"),
+        elements := [ .ctor [] [.exprStmt (.superCall [])] ] } ]
+
+-- `P.t(Object.create(new P()))`: the prototype has `#m`, the object does not.
+#guard outcome
+    (inherited ++
+      [ .exprStmt (.call (.member (.ident "P") "t")
+          [.call (.member (.ident "Object") "create") [.new (.ident "P") []]]) ])
+  == "uncaught: TypeError: Cannot read private member #m from an object whose class did not declare it"
+
+-- `P.t(new Q())`: an explicit `super()` installs the inherited brand.
+#guard outcome (inherited ++ [.exprStmt (.call (.member (.ident "P") "t") [.new (.ident "Q") []])])
+  == "1"
+
+/-- ```js
+class D {
+  static #s() { return 7; }
+  static use() { return D.#s(); }
+  static p(o) { return o.#s(); }
+}
 ``` -/
 private def staticPrivate : Stmt :=
   cls "D"
     [ .method .method true (.«private» "s") [] [.returnStmt (some (.numLit 7.0))],
       .method .method true "use" []
-        [.returnStmt (some (.call (.privateMember (.ident "D") "s") []))] ]
+        [.returnStmt (some (.call (.privateMember (.ident "D") "s") []))],
+      .method .method true "p" ["o"]
+        [.returnStmt (some (.call (.privateMember (.ident "o") "s") []))] ]
 
 #guard outcome [staticPrivate, .exprStmt (.call (.member (.ident "D") "use") [])] == "7"
 
--- The static private method is on the constructor, not on an instance.
-#guard outcome
-    [ staticPrivate,
-      cls "E" [ .method .method true "probe" ["o"] [] ],
-      .exprStmt (.call (.privateMember (.new (.ident "D") []) "s") []) ]
-  == "uncaught: SyntaxError: Private field '#s' must be declared in an enclosing class"
+-- The static private method lives on the constructor, so an instance fails the brand check.
+#guard outcome [staticPrivate, .exprStmt (.call (.member (.ident "D") "p") [.new (.ident "D") []])]
+  == "uncaught: TypeError: Cannot read private member #s from an object whose class did not declare it"
 
 -- `class H { static get #x() { return 4; } static set #x(v) {} static r() { return H.#x; } }`:
 -- a static getter and setter of one name are one element, not a second add.

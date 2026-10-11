@@ -734,7 +734,7 @@ partial def cookedStrings : List TemplateString → DecodeM (List String)
     | none => bad "TemplateElement cooked is null outside a tag"
     | some c => do pure (c :: (← cookedStrings rest))
 
-/-- A class element's key, and which side of the class it names. A
+/-- A public class element key's spelling. A
 numeric key is refused: it would need ToPropertyKey at parse time, as an
 object literal's numeric key would. A computed key arrived as the
 bridge's placeholder and names itself. -/

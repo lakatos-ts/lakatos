@@ -240,13 +240,8 @@ round trip below. -/
   (classDefTerm { name := some "B", superClass := some (.ident "A"), elements := [] })
   `({ name := some "B", superClass := some (.ident "A"), elements := [] })
 #guard rendersSyntax (elementTerm (.ctor [] [])) `(.ctor [] [])
-#guard rendersSyntax (elementTerm (.method .method false "m" ["x"] []))
-  `(.method .method false "m" ["x"] [])
-#guard rendersSyntax (elementTerm (.method .getter true "g" [] [])) `(.method .getter true "g" [] [])
-#guard rendersSyntax (elementTerm (.method .setter false "s" ["v"] []))
-  `(.method .setter false "s" ["v"] [])
--- `.field`'s key is a `ClassKey`, whose two constructors are keywords: it
--- is pinned as text below, with the rest of the guillemet spellings.
+-- A method's and a field's key is a `ClassKey`, whose two constructors are
+-- keywords: they are pinned as text below, with the rest of the guillemet spellings.
 #guard rendersSyntax (exprTerm (.classExpr { name := none, superClass := none, elements := [] }))
   `(.classExpr { name := none, superClass := none, elements := [] })
 
@@ -280,6 +275,12 @@ component, and that is pinned as text. -/
     ".field true (.«public» \"n\") (some (.numLit 0))"
   printsAs (elementTerm (.field false (.«private» "v") none))
     ".field false (.«private» \"v\") none"
+  printsAs (elementTerm (.method .method false (.«public» "m") ["x"] []))
+    ".method .method false (.«public» \"m\") [\"x\"] []"
+  printsAs (elementTerm (.method .getter true (.«public» "g") [] []))
+    ".method .getter true (.«public» \"g\") [] []"
+  printsAs (elementTerm (.method .setter false (.«private» "s") ["v"] []))
+    ".method .setter false (.«private» \"s\") [\"v\"] []"
 
 /-! ## The round trip, acceptance criterion 2
 

@@ -320,9 +320,9 @@ partial def catchTerm (c : Tarski.CatchClause) : RenderM Term := do
 partial def elementTerm : Tarski.ClassElement → RenderM Term
   | .ctor params body => do
     ctorApp "ctor" #[← paramsTerm params, ← stmtsTerm body]
-  | .method kind isStatic name params body => do
+  | .method kind isStatic key params body => do
     ctorApp "method"
-      #[methodKindTerm kind, ← boolTerm isStatic, strTerm name,
+      #[methodKindTerm kind, ← boolTerm isStatic, ← classKeyTerm key,
         ← paramsTerm params, ← stmtsTerm body]
   | .field isStatic key value => do
     ctorApp "field"
