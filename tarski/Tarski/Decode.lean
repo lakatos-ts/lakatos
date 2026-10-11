@@ -34,8 +34,9 @@ early error this epic does not check.
 
 Classes arrive whole. What a class may spell and the AST may not is
 refused here by name: a numeric or computed key, an `async` or
-generator member, an `accessor` field, a decorator, and `super.x = v`. `new.target` and `#x in o` never reach this file — the
-bridge has no node for either, so each arrives as a placeholder.
+generator member, an `accessor` field, a decorator, and `super.x = v`.
+`new.target` and `#x in o` never reach this file — the bridge has no
+node for either, so each arrives as a placeholder.
 
 A string literal is decoded from its `raw` source text, not from its
 `value`: `Lean.Json` replaces a lone surrogate with U+FFFD, so `"\uD800"`

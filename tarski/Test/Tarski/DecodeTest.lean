@@ -844,7 +844,6 @@ private def methodValue (isAsync isGenerator : String) : String :=
           elements := [.staticBlock [.exprStmt (.numLit 1.0)]] }] : Program))
 
 -- A computed key and an `accessor` field each stand in the member's place.
-
 #guard decode (classWith r#"{"type":"Unsupported","kind":"ComputedPropertyName"}"#)
   == "unsupported: ComputedPropertyName"
 
