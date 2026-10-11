@@ -226,6 +226,8 @@ partial def targetTerm : Tarski.Target → RenderM Term
     ctorApp "index" #[← exprTerm object, ← exprTerm key]
   | .privateMember object name => do
     ctorApp "privateMember" #[← exprTerm object, strTerm name]
+  | .superMember name => ctorApp "superMember" #[strTerm name]
+  | .superIndex key => do ctorApp "superIndex" #[← exprTerm key]
 
 partial def arrowBodyTerm : Tarski.ArrowBody → RenderM Term
   | .expr value => do ctorApp "expr" #[← exprTerm value]

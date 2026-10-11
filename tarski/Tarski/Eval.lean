@@ -886,6 +886,8 @@ def mentionsArgumentsTarget : Target → Bool
   | .member object _ => mentionsArgumentsExpr object
   | .index object key => mentionsArgumentsExpr object || mentionsArgumentsExpr key
   | .privateMember object _ => mentionsArgumentsExpr object
+  | .superMember _ => false
+  | .superIndex key => mentionsArgumentsExpr key
 
 /-- An arrow's body; see `mentionsArgumentsExpr`. -/
 def mentionsArgumentsArrow : ArrowBody → Bool
@@ -1086,6 +1088,9 @@ inductive LeafRef where
   | prop (base : Value) (key : Key)
   /-- A private-element leaf. -/
   | priv (base : Value) (name : String)
+  /-- A `super` member leaf: the search starts at `parent`, the write
+  goes to `receiver`. -/
+  | superProp (parent : Option Ref) (receiver : Value) (key : Key)
 deriving Repr, Inhabited
 
 /-- CreateIterResultObject (7.4.14): an ordinary object with `value` and
@@ -1792,6 +1797,7 @@ def evalExpr (env : Env) : Expr → EvalM Value
       let v ← evalExpr env value
       writePrivate env base name v
       pure v
+    | .superMember _ | .superIndex _ => pure undefValue
   | .compoundAssign op target value =>
     -- 13.15.2 in its own order: the target's *reference* is evaluated
     -- once and read, then the right operand, then the operator, then the
@@ -1827,6 +1833,7 @@ def evalExpr (env : Env) : Expr → EvalM Value
       let result ← applyCoercing op l r
       writePrivate env base name result
       pure result
+    | .superMember _ | .superIndex _ => pure undefValue
   | .update op isPrefix target =>
     -- 13.4.2–13.4.5: read the reference, ToNumeric it, step it, write it
     -- back, and answer the new number for the prefix form and the old one
@@ -1857,6 +1864,7 @@ def evalExpr (env : Env) : Expr → EvalM Value
       let stepped := op.step old
       writePrivate env base name (.prim (.num stepped))
       pure (.prim (.num (if isPrefix then stepped else old)))
+    | .superMember _ | .superIndex _ => pure undefValue
   partial_fixpoint
 
 /-- SuperCall (13.3.7.1). The parent is the *active function object's*
@@ -1995,6 +2003,13 @@ def evalLeafRef (env : Env) : Target → EvalM LeafRef
     let k ← evalExpr env key
     pure (.prop base (← toPropertyKey k))
   | .privateMember object name => do pure (.priv (← evalExpr env object) name)
+  | .superMember name => do
+    let (parent, receiver) ← superBase env
+    pure (.superProp parent receiver name)
+  | .superIndex key => do
+    let (parent, receiver) ← superBase env
+    let k ← evalExpr env key
+    pure (.superProp parent receiver (← toPropertyKey k))
   partial_fixpoint
 
 /-- Write one value through an already-evaluated leaf reference.
@@ -2012,6 +2027,7 @@ def writeLeaf (env : Env) (mode : BindMode) : LeafRef → Value → EvalM Unit
     | _ => putIdent env n v
   | .prop base key, v => setProp base key v
   | .priv base name, v => writePrivate env base name v
+  | .superProp _ _ _, _ => pure ()
   partial_fixpoint
 
 /-- One walk for both pattern families (14.3.3 and 13.15.5), `mode`
@@ -6349,6 +6365,7 @@ def bindForIn (env : Env) (left : ForInLeft) (v : Value) : EvalM Env := do
     let base ← evalExpr env object
     writePrivate env base name v
     pure env
+  | .target (.superMember _) | .target (.superIndex _) => pure env
   partial_fixpoint
 
 /-- CaseBlockEvaluation's frame (14.12.4). The discriminant is evaluated

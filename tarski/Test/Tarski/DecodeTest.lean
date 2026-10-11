@@ -859,7 +859,7 @@ private def methodValue (isAsync isGenerator : String) : String :=
                 "object":{"type":"Super"},
                 "property":{"type":"Identifier","name":"x"}},
         "right":{"type":"Literal","value":1,"raw":"1"}}}"#)
-  == "unsupported: AssignmentExpression super target"
+  == toString (repr ([.exprStmt (.assign (.superMember "x") (.numLit 1.0))] : Program))
 
 -- A member whose `value` is not a function, a body that is not a
 -- `ClassBody`, and a `Super` where no rule admits one are all producer
