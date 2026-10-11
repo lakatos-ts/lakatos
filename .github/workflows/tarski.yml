@@ -130,7 +130,8 @@ jobs:
       # Private methods and accessors: a private method bumping a private
       # field, a private getter and setter pair, a static private method,
       # one function object shared across instances, nothing visible to
-      # `Object.keys` or `in`, and the brand check on a foreign object.
+      # `Object.keys` or `in`, the brand check on a foreign object, and a
+      # static block reading a static field before it.
       - name: Run the class-elements script
         run: |
           out=$(.lake/build/bin/tarski run Test/Tarski/fixtures/class-elements.json)
