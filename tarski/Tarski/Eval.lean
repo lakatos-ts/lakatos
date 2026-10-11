@@ -205,6 +205,7 @@ new refusal is written against a list rather than invented.
 | `(1).toExponential(f)` with an `f` outside 0–100   | `RangeError`     | `toExponential() argument must be between 0 and 100`          |
 | `(1).toPrecision(p)` with a `p` outside 1–100      | `RangeError`     | `toPrecision() argument must be between 1 and 100`            |
 | a write through an accessor with no setter         | `TypeError`      | `Cannot set property {key} of #<Object> which has only a getter` |
+| a super write onto a receiver whose own property is an accessor | `TypeError` | `Cannot redefine property: {key}` |
 | a class constructor called without `new`           | `TypeError`      | `Class constructor cannot be invoked without 'new'`           |
 | `extends` something that is neither a constructor nor `null` | `TypeError` | `Class extends value {v} is not a constructor or null`   |
 | a parent whose `prototype` is neither an object nor `null` | `TypeError` | `Class extends value does not have valid prototype property {p}` |
@@ -886,6 +887,8 @@ def mentionsArgumentsTarget : Target → Bool
   | .member object _ => mentionsArgumentsExpr object
   | .index object key => mentionsArgumentsExpr object || mentionsArgumentsExpr key
   | .privateMember object _ => mentionsArgumentsExpr object
+  | .superMember _ => false
+  | .superIndex key => mentionsArgumentsExpr key
 
 /-- An arrow's body; see `mentionsArgumentsExpr`. -/
 def mentionsArgumentsArrow : ArrowBody → Bool
@@ -1086,6 +1089,9 @@ inductive LeafRef where
   | prop (base : Value) (key : Key)
   /-- A private-element leaf. -/
   | priv (base : Value) (name : String)
+  /-- A `super` member leaf: the search starts at `parent`, the write
+  goes to `receiver`. -/
+  | superProp (parent : Option Ref) (receiver : Value) (key : Key)
 deriving Repr, Inhabited
 
 /-- CreateIterResultObject (7.4.14): an ordinary object with `value` and
@@ -1585,8 +1591,8 @@ def getTemplateObject (site : Nat) (strings : List TemplateString) : EvalM Value
 -- only a large definition, so raising it is the knob rather than
 -- splitting a block whose whole point is that its members may call one
 -- another. The iteration protocol and the `Array` surface pushed it past
--- a million.
-set_option maxHeartbeats 2000000 in
+-- a million, and splitting `setProp` for the super write past two million.
+set_option maxHeartbeats 3000000 in
 mutual
 
 /-- Evaluate an expression. -/
@@ -1792,6 +1798,17 @@ def evalExpr (env : Env) : Expr → EvalM Value
       let v ← evalExpr env value
       writePrivate env base name v
       pure v
+    | .superMember name => do
+      let (parent, receiver) ← superBase env
+      let v ← evalExpr env value
+      superWrite parent receiver name v
+      pure v
+    | .superIndex key => do
+      let (parent, receiver) ← superBase env
+      let k ← evalExpr env key
+      let v ← evalExpr env value
+      superWrite parent receiver (← toPropertyKey k) v
+      pure v
   | .compoundAssign op target value =>
     -- 13.15.2 in its own order: the target's *reference* is evaluated
     -- once and read, then the right operand, then the operator, then the
@@ -1827,6 +1844,21 @@ def evalExpr (env : Env) : Expr → EvalM Value
       let result ← applyCoercing op l r
       writePrivate env base name result
       pure result
+    | .superMember name => do
+      let (parent, receiver) ← superBase env
+      let l ← superRead parent receiver name
+      let r ← evalExpr env value
+      let result ← applyCoercing op l r
+      superWrite parent receiver name result
+      pure result
+    | .superIndex key => do
+      let (parent, receiver) ← superBase env
+      let k ← toPropertyKey (← evalExpr env key)
+      let l ← superRead parent receiver k
+      let r ← evalExpr env value
+      let result ← applyCoercing op l r
+      superWrite parent receiver k result
+      pure result
   | .update op isPrefix target =>
     -- 13.4.2–13.4.5: read the reference, ToNumeric it, step it, write it
     -- back, and answer the new number for the prefix form and the old one
@@ -1856,6 +1888,19 @@ def evalExpr (env : Env) : Expr → EvalM Value
       let old ← toNumberValue (← readPrivate env base name)
       let stepped := op.step old
       writePrivate env base name (.prim (.num stepped))
+      pure (.prim (.num (if isPrefix then stepped else old)))
+    | .superMember name => do
+      let (parent, receiver) ← superBase env
+      let old ← toNumberValue (← superRead parent receiver name)
+      let stepped := op.step old
+      superWrite parent receiver name (.prim (.num stepped))
+      pure (.prim (.num (if isPrefix then stepped else old)))
+    | .superIndex key => do
+      let (parent, receiver) ← superBase env
+      let k ← toPropertyKey (← evalExpr env key)
+      let old ← toNumberValue (← superRead parent receiver k)
+      let stepped := op.step old
+      superWrite parent receiver k (.prim (.num stepped))
       pure (.prim (.num (if isPrefix then stepped else old)))
   partial_fixpoint
 
@@ -1995,6 +2040,13 @@ def evalLeafRef (env : Env) : Target → EvalM LeafRef
     let k ← evalExpr env key
     pure (.prop base (← toPropertyKey k))
   | .privateMember object name => do pure (.priv (← evalExpr env object) name)
+  | .superMember name => do
+    let (parent, receiver) ← superBase env
+    pure (.superProp parent receiver name)
+  | .superIndex key => do
+    let (parent, receiver) ← superBase env
+    let k ← evalExpr env key
+    pure (.superProp parent receiver (← toPropertyKey k))
   partial_fixpoint
 
 /-- Write one value through an already-evaluated leaf reference.
@@ -2012,6 +2064,7 @@ def writeLeaf (env : Env) (mode : BindMode) : LeafRef → Value → EvalM Unit
     | _ => putIdent env n v
   | .prop base key, v => setProp base key v
   | .priv base name, v => writePrivate env base name v
+  | .superProp parent receiver key, v => superWrite parent receiver key v
   partial_fixpoint
 
 /-- One walk for both pattern families (14.3.3 and 13.15.5), `mode`
@@ -2527,36 +2580,65 @@ def findPropertyUp (parent : Ref) (key : Key) : EvalM (Option Property) :=
 def hasProperty (r : Ref) (key : Key) : EvalM Bool := do
   pure (← findProperty r key).isSome
 
-/-- Set a property, OrdinarySet and OrdinarySetWithOwnDescriptor
-(10.1.9). Strict mode throughout, so every refusal is a `TypeError`
-rather than a silent no-op: a primitive base, a non-writable data
-property anywhere on the chain, an accessor with no setter, and a write
-that would add a key to a non-extensible object.
+/-- Set a property, OrdinarySet (10.1.9): the search from the base, then
+the write on the receiver, which here is the base itself. Strict mode
+throughout, so every refusal is a `TypeError` rather than a silent no-op.
+Inside the fixpoint block because a setter anywhere on the chain is user
+code, and so is ArraySetLength's coercion. -/
+def setProp (base : Value) (key : Key) (v : Value) : EvalM Unit :=
+  match base with
+  | .obj r => do setFound (← findProperty r key) base key v
+  | .prim _ =>
+    throwJsError .typeError
+      s!"Cannot set properties of {formatValue base} (setting '{key}')"
+  | .sym _ =>
+    throwJsError .typeError
+      s!"Cannot set properties of {formatValue base} (setting '{key}')"
+  partial_fixpoint
+
+/-- OrdinarySetWithOwnDescriptor (10.1.9.2) once the chain has been
+searched. An accessor found anywhere calls its setter on the receiver or
+refuses; a non-writable data property found anywhere refuses; otherwise
+the write lands on the receiver. -/
+def setFound (found : Option Property) (receiver : Value) (key : Key) (v : Value) :
+    EvalM Unit := do
+  match found with
+  | some { slot := .accessor a, .. } =>
+    match a.setter with
+    | some s => do
+      let _ ← callFunction s receiver [v]
+      pure ()
+    | none =>
+      throwJsError .typeError
+        s!"Cannot set property {key} of #<Object> which has only a getter"
+  | some { slot := .data _ false, .. } =>
+    throwJsError .typeError
+      s!"Cannot assign to read only property '{key}' of object '#<Object>'"
+  | _ => writeOnReceiver receiver key v
+  partial_fixpoint
+
+/-- Steps 2–3 of OrdinarySetWithOwnDescriptor with a data or absent
+holder: an own accessor or own non-writable property on the receiver —
+read through `[[GetOwnProperty]]`, so a synthesized one counts —
+refuses, an own writable one keeps its attributes and takes the value,
+and a missing one is created subject to `[[Extensible]]`.
 
 An array's own `length` is the one key whose write is not a property
 write: assigning to it truncates or grows through ArraySetLength, and
 assigning to an index at or past the end grows the length to hold it —
 unless `length` is non-writable, in which case the write is refused as a
-read-only property is. Inside the fixpoint block because ArraySetLength's
-coercion can reach user code, and because a setter anywhere on the chain
-is user code too. -/
-def setProp (base : Value) (key : Key) (v : Value) : EvalM Unit :=
-  match base with
+read-only property is. -/
+def writeOnReceiver (receiver : Value) (key : Key) (v : Value) : EvalM Unit := do
+  match receiver with
   | .obj r => do
-    match ← findProperty r key with
-    | some { slot := .accessor a, .. } =>
-      match a.setter with
-      | some s => do
-        let _ ← callFunction s base [v]
-        pure ()
-      | none =>
-        throwJsError .typeError
-          s!"Cannot set property {key} of #<Object> which has only a getter"
+    let o ← readObj r
+    match o.ownProperty key with
+    | some { slot := .accessor _, .. } =>
+      throwJsError .typeError s!"Cannot redefine property: {key}"
     | some { slot := .data _ false, .. } =>
       throwJsError .typeError
         s!"Cannot assign to read only property '{key}' of object '#<Object>'"
-    | _ => do
-      let o ← readObj r
+    | _ =>
       match o.kind with
       | .array len lengthWritable =>
         if key == Key.str "length" then setArrayLength r o v
@@ -2566,26 +2648,26 @@ def setProp (base : Value) (key : Key) (v : Value) : EvalM Unit :=
             if len ≤ i && !lengthWritable then
               throwJsError .typeError
                 "Cannot assign to read only property 'length' of object '#<Object>'"
-            else if (o.getOwnProperty key).isNone && !o.extensible then
+            else if (o.ownProperty key).isNone && !o.extensible then
               throwJsError .typeError s!"Cannot add property {key}, object is not extensible"
             else
               writeObj r { o.setOwn key v with kind := .array (max len (i + 1)) lengthWritable }
           | none =>
-            if (o.getOwnProperty key).isNone && !o.extensible then
+            if (o.ownProperty key).isNone && !o.extensible then
               throwJsError .typeError s!"Cannot add property {key}, object is not extensible"
             else writeObj r (o.setOwn key v)
       -- A wrapper object takes an ordinary write like any other object: its
       -- `[[NumberData]]` is a field, not a property, so nothing can reach it.
       | _ =>
-        if (o.getOwnProperty key).isNone && !o.extensible then
+        if (o.ownProperty key).isNone && !o.extensible then
           throwJsError .typeError s!"Cannot add property {key}, object is not extensible"
         else writeObj r (o.setOwn key v)
   | .prim _ =>
     throwJsError .typeError
-      s!"Cannot set properties of {formatValue base} (setting '{key}')"
+      s!"Cannot set properties of {formatValue receiver} (setting '{key}')"
   | .sym _ =>
     throwJsError .typeError
-      s!"Cannot set properties of {formatValue base} (setting '{key}')"
+      s!"Cannot set properties of {formatValue receiver} (setting '{key}')"
   partial_fixpoint
 
 /-- ArraySetLength (10.4.2.4) as a *write* to `xs.length`. The value is
@@ -5843,6 +5925,17 @@ def superRead (parent : Option Ref) (receiver : Value) (key : Key) : EvalM Value
   | none => getProp (.prim .null) key
   partial_fixpoint
 
+/-- PutValue on a Super Reference (6.2.5.6 step 4 with 13.3.7): the
+search runs from the home object's prototype, the write lands on the
+current `this`. A null parent is the `TypeError` a write through null
+already is. -/
+def superWrite (parent : Option Ref) (receiver : Value) (key : Key) (v : Value) :
+    EvalM Unit := do
+  match parent with
+  | some p => setFound (← findProperty p key) receiver key v
+  | none => setProp (.prim .null) key v
+  partial_fixpoint
+
 /-- Evaluate a statement against the running completion value, and
 answer the updated one. The environment is not answered:
 `instantiateBlock` fixed it before the list started running.
@@ -6348,6 +6441,14 @@ def bindForIn (env : Env) (left : ForInLeft) (v : Value) : EvalM Env := do
   | .target (.privateMember object name) => do
     let base ← evalExpr env object
     writePrivate env base name v
+    pure env
+  | .target (.superMember name) => do
+    let (parent, receiver) ← superBase env
+    superWrite parent receiver name v
+    pure env
+  | .target (.superIndex key) => do
+    let (parent, receiver) ← superBase env
+    superWrite parent receiver (← toPropertyKey (← evalExpr env key)) v
     pure env
   partial_fixpoint
 

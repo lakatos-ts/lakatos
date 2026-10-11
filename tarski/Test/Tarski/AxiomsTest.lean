@@ -162,6 +162,14 @@ private def onlyStandard (n : Name) : CoreM Bool := do
 
 /-- info: true -/
 #guard_msgs in
+#eval onlyStandard ``Tarski.setFound
+
+/-- info: true -/
+#guard_msgs in
+#eval onlyStandard ``Tarski.writeOnReceiver
+
+/-- info: true -/
+#guard_msgs in
 #eval onlyStandard ``Tarski.toPrimitive
 
 /-- info: true -/
@@ -599,6 +607,10 @@ private def onlyStandard (n : Name) : CoreM Bool := do
 /-- info: true -/
 #guard_msgs in
 #eval onlyStandard ``Tarski.superRead
+
+/-- info: true -/
+#guard_msgs in
+#eval onlyStandard ``Tarski.superWrite
 
 /-- info: true -/
 #guard_msgs in

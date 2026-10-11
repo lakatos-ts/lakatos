@@ -42,6 +42,7 @@ private def simprocIn (n : Name) : CoreM Bool := do
 #guard_msgs in
 #eval (#[``Tarski.evalExpr, ``Tarski.evalStmt, ``Tarski.callFunction, ``Tarski.getFrom,
   ``Tarski.findProperty, ``Tarski.getProp, ``Tarski.project,
+  ``Tarski.setProp, ``Tarski.setFound, ``Tarski.writeOnReceiver, ``Tarski.superWrite,
   ``Tarski.readNumber,
   -- The iteration protocol and the pattern walk. `callIteratorNative` is
   -- split out of `callNative` for `callReflectNative`'s reason and is

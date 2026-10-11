@@ -107,6 +107,10 @@ which the field half of the same test fails first.
 fail: 14 of them under the class directories and the rest scattered
 through `function`, `object`, the declarations, and `try`.
 
+**Super member writes moved 7 tests from unsupported to pass** and none
+to fail: 3 under the class directories, 3 under `assignment`, and 1
+under `object`.
+
 **The two limits #391 left are filed rather than hidden.** Case mapping
 is ASCII-only and `normalize` validates its form and answers its input,
 because Lean has no Unicode character database and shipping one is a

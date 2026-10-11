@@ -167,6 +167,8 @@ literal already share. -/
 #guard rendersSyntax (targetTerm (.index (.ident "o") (.ident "k")))
   `(.index (.ident "o") (.ident "k"))
 #guard rendersSyntax (targetTerm (.privateMember .this "v")) `(.privateMember .this "v")
+#guard rendersSyntax (targetTerm (.superMember "p")) `(.superMember "p")
+#guard rendersSyntax (targetTerm (.superIndex (.ident "k"))) `(.superIndex (.ident "k"))
 
 /-! ## Parameters and declarators
 

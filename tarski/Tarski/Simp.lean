@@ -147,7 +147,8 @@ attribute [tarski_eval]
 -- through a descriptor, and the enumeration helpers over a concrete key
 -- list — recurse on data or not at all.
 attribute [tarski_eval]
-  getProp setProp getFrom findProperty hasProperty deleteProp toObjectValue
+  getProp setProp setFound writeOnReceiver superWrite getFrom findProperty hasProperty
+  deleteProp toObjectValue
   createDataProperty
   descriptorField toDescriptor fromProperty refuseDefine defineArrayLength
   definePropertyOrThrow readDescriptors applyDescriptors defineProperties setArrayLength

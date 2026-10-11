@@ -45,10 +45,11 @@ and `__proto__:`, all of them `PropDef`s over a `PropKey`. A computed
 public and private instance fields, methods, getters and setters,
 `static` members, `extends`, and `super`. What a class may spell and this
 AST may not is refused by name in `Tarski/Decode.lean` — a computed key,
-an `accessor` field, a decorator, `new.target`, `#x in o`, and
-`super.x = v` — because each is real syntax with semantics of its
-own rather than a shorthand for something here. Later slices add
-constructors; they do not reshape the ones here. -/
+an `accessor` field, a decorator, and `delete super.x` — because each is
+real syntax with semantics of its own rather than a shorthand for
+something here; `new.target` and `#x in o` arrive from the bridge as
+placeholders. Later slices add constructors; they do not reshape the
+ones here. -/
 
 namespace Tarski
 
@@ -383,6 +384,12 @@ inductive Target where
   write to a private element is not a property write: the element must
   already be on the object, or the write is a `TypeError`. -/
   | privateMember (object : Expr) (name : String)
+  /-- ESTree `MemberExpression` whose `object` is `Super`, `computed: false`,
+  as an assignment target. The write goes to the *receiver* — the current
+  `this` — after the search runs from the home object's prototype. -/
+  | superMember (name : String)
+  /-- The `computed: true` form. -/
+  | superIndex (key : Expr)
 
 /-- ESTree `ArrayPattern`, `ObjectPattern`, and the leaf they bottom out
 in. One type serves a *binding* pattern and an *assignment* pattern

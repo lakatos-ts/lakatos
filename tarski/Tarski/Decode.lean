@@ -34,7 +34,7 @@ early error this epic does not check.
 
 Classes arrive whole. What a class may spell and the AST may not is
 refused here by name: a numeric or computed key, an `async` or
-generator member, an `accessor` field, a decorator, and `super.x = v`.
+generator member, an `accessor` field, a decorator, and `delete super.x`.
 `new.target` and `#x in o` never reach this file — the bridge has no
 node for either, so each arrives as a placeholder.
 
@@ -335,10 +335,8 @@ private def toTarget : Expr → DecodeM Target
   | .member object name => pure (.member object name)
   | .index object key => pure (.index object key)
   | .privateMember object name => pure (.privateMember object name)
-  -- `super.x = v` is real syntax with semantics of its own — the write
-  -- goes to the *receiver*, not through the home object — so it is
-  -- refused by name rather than decoded as a member write.
-  | .superMember _ | .superIndex _ => throw (.unsupported "AssignmentExpression super target")
+  | .superMember name => pure (.superMember name)
+  | .superIndex key => pure (.superIndex key)
   | _ => throw (.unsupported "AssignmentExpression target")
 
 /-- The `$262` hooks the epic puts out of scope. Each is refused here, by
