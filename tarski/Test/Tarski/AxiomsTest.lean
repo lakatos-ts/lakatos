@@ -578,6 +578,10 @@ private def onlyStandard (n : Name) : CoreM Bool := do
 
 /-- info: true -/
 #guard_msgs in
+#eval onlyStandard ``Tarski.initStaticElements
+
+/-- info: true -/
+#guard_msgs in
 #eval onlyStandard ``Tarski.constructClass
 
 /-- info: true -/

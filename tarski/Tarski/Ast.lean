@@ -771,12 +771,6 @@ def staticElements : List ClassElement → List StaticElement
 def ClassDef.staticElements (d : ClassDef) : List StaticElement :=
   Tarski.staticElements d.elements
 
-/-- The fields alone; a block is run by the evaluator. -/
-def staticFieldsOnly : List StaticElement → List ClassField
-  | [] => []
-  | .field f :: rest => f :: staticFieldsOnly rest
-  | .block _ :: rest => staticFieldsOnly rest
-
 /-- Every `#name` a class body declares, in source order and with
 repeats still in: fields, methods, and accessor halves alike. -/
 def privateElementNames : List ClassElement → List String
