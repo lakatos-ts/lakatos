@@ -34,7 +34,7 @@ early error this epic does not check.
 
 Classes arrive whole. What a class may spell and the AST may not is
 refused here by name: a numeric or computed key, an `async` or
-generator member, an `accessor` field, and a decorator.
+generator member, an `accessor` field, a decorator, and `delete super.x`.
 `new.target` and `#x in o` never reach this file — the bridge has no
 node for either, so each arrives as a placeholder.
 

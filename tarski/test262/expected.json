@@ -4019,9 +4019,9 @@
       }
     },
     "test/language/expressions/assignment": {
-      "pass": 80,
+      "pass": 83,
       "fail": 1,
-      "unsupported": 5,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -4327,9 +4327,9 @@
       }
     },
     "test/language/expressions/class/elements": {
-      "pass": 369,
+      "pass": 370,
       "fail": 49,
-      "unsupported": 233,
+      "unsupported": 232,
       "timeout": 0,
       "harnessError": 2,
       "notRun": {
@@ -4887,9 +4887,9 @@
       }
     },
     "test/language/expressions/object": {
-      "pass": 231,
+      "pass": 232,
       "fail": 11,
-      "unsupported": 17,
+      "unsupported": 16,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -5377,9 +5377,9 @@
       }
     },
     "test/language/statements/class/elements": {
-      "pass": 426,
+      "pass": 427,
       "fail": 71,
-      "unsupported": 251,
+      "unsupported": 250,
       "timeout": 0,
       "harnessError": 2,
       "notRun": {
@@ -6063,9 +6063,9 @@
       }
     },
     "test/language/statements/class/syntax": {
-      "pass": 7,
+      "pass": 8,
       "fail": 0,
-      "unsupported": 3,
+      "unsupported": 2,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {

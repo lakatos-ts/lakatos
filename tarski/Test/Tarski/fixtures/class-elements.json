@@ -598,6 +598,214 @@
       }
     },
     {
+      "type": "ClassDeclaration",
+      "id": {
+        "type": "Identifier",
+        "name": "Parent"
+      },
+      "superClass": null,
+      "body": {
+        "type": "ClassBody",
+        "body": [
+          {
+            "type": "MethodDefinition",
+            "key": {
+              "type": "Identifier",
+              "name": "tagged"
+            },
+            "value": {
+              "type": "FunctionExpression",
+              "id": null,
+              "params": [
+                {
+                  "type": "Identifier",
+                  "name": "v"
+                }
+              ],
+              "body": {
+                "type": "BlockStatement",
+                "body": [
+                  {
+                    "type": "ExpressionStatement",
+                    "expression": {
+                      "type": "AssignmentExpression",
+                      "operator": "=",
+                      "left": {
+                        "type": "MemberExpression",
+                        "object": {
+                          "type": "ThisExpression"
+                        },
+                        "property": {
+                          "type": "Identifier",
+                          "name": "tag"
+                        },
+                        "computed": false
+                      },
+                      "right": {
+                        "type": "TemplateLiteral",
+                        "quasis": [
+                          {
+                            "type": "TemplateElement",
+                            "value": {
+                              "cooked": "p:",
+                              "raw": "p:"
+                            },
+                            "tail": false
+                          },
+                          {
+                            "type": "TemplateElement",
+                            "value": {
+                              "cooked": "",
+                              "raw": ""
+                            },
+                            "tail": true
+                          }
+                        ],
+                        "expressions": [
+                          {
+                            "type": "Identifier",
+                            "name": "v"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "async": false,
+              "generator": false
+            },
+            "kind": "set",
+            "computed": false,
+            "static": false
+          }
+        ]
+      }
+    },
+    {
+      "type": "ClassDeclaration",
+      "id": {
+        "type": "Identifier",
+        "name": "Child"
+      },
+      "superClass": {
+        "type": "Identifier",
+        "name": "Parent"
+      },
+      "body": {
+        "type": "ClassBody",
+        "body": [
+          {
+            "type": "MethodDefinition",
+            "key": {
+              "type": "Identifier",
+              "name": "mark"
+            },
+            "value": {
+              "type": "FunctionExpression",
+              "id": null,
+              "params": [],
+              "body": {
+                "type": "BlockStatement",
+                "body": [
+                  {
+                    "type": "ExpressionStatement",
+                    "expression": {
+                      "type": "AssignmentExpression",
+                      "operator": "=",
+                      "left": {
+                        "type": "MemberExpression",
+                        "object": {
+                          "type": "Super"
+                        },
+                        "property": {
+                          "type": "Identifier",
+                          "name": "plain"
+                        },
+                        "computed": false
+                      },
+                      "right": {
+                        "type": "Literal",
+                        "value": 1,
+                        "raw": "1"
+                      }
+                    }
+                  },
+                  {
+                    "type": "ExpressionStatement",
+                    "expression": {
+                      "type": "AssignmentExpression",
+                      "operator": "=",
+                      "left": {
+                        "type": "MemberExpression",
+                        "object": {
+                          "type": "Super"
+                        },
+                        "property": {
+                          "type": "Identifier",
+                          "name": "tagged"
+                        },
+                        "computed": false
+                      },
+                      "right": {
+                        "type": "Literal",
+                        "value": 2,
+                        "raw": "2"
+                      }
+                    }
+                  },
+                  {
+                    "type": "ReturnStatement",
+                    "argument": {
+                      "type": "ThisExpression"
+                    }
+                  }
+                ]
+              },
+              "async": false,
+              "generator": false
+            },
+            "kind": "method",
+            "computed": false,
+            "static": false
+          }
+        ]
+      }
+    },
+    {
+      "type": "VariableDeclaration",
+      "kind": "const",
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "id": {
+            "type": "Identifier",
+            "name": "ch"
+          },
+          "init": {
+            "type": "CallExpression",
+            "callee": {
+              "type": "MemberExpression",
+              "object": {
+                "type": "NewExpression",
+                "callee": {
+                  "type": "Identifier",
+                  "name": "Child"
+                },
+                "arguments": []
+              },
+              "property": {
+                "type": "Identifier",
+                "name": "mark"
+              },
+              "computed": false
+            },
+            "arguments": []
+          }
+        }
+      ]
+    },
+    {
       "type": "VariableDeclaration",
       "kind": "const",
       "declarations": [
@@ -647,28 +855,121 @@
                   "type": "LogicalExpression",
                   "operator": "&&",
                   "left": {
-                    "type": "BinaryExpression",
-                    "operator": "===",
+                    "type": "LogicalExpression",
+                    "operator": "&&",
                     "left": {
-                      "type": "CallExpression",
-                      "callee": {
-                        "type": "MemberExpression",
-                        "object": {
-                          "type": "Identifier",
-                          "name": "c"
+                      "type": "LogicalExpression",
+                      "operator": "&&",
+                      "left": {
+                        "type": "LogicalExpression",
+                        "operator": "&&",
+                        "left": {
+                          "type": "BinaryExpression",
+                          "operator": "===",
+                          "left": {
+                            "type": "CallExpression",
+                            "callee": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "Identifier",
+                                "name": "c"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "read"
+                              },
+                              "computed": false
+                            },
+                            "arguments": []
+                          },
+                          "right": {
+                            "type": "Literal",
+                            "value": 42,
+                            "raw": "42"
+                          }
                         },
-                        "property": {
-                          "type": "Identifier",
-                          "name": "read"
-                        },
-                        "computed": false
+                        "right": {
+                          "type": "CallExpression",
+                          "callee": {
+                            "type": "MemberExpression",
+                            "object": {
+                              "type": "Identifier",
+                              "name": "c"
+                            },
+                            "property": {
+                              "type": "Identifier",
+                              "name": "same"
+                            },
+                            "computed": false
+                          },
+                          "arguments": [
+                            {
+                              "type": "NewExpression",
+                              "callee": {
+                                "type": "Identifier",
+                                "name": "Counter"
+                              },
+                              "arguments": []
+                            }
+                          ]
+                        }
                       },
-                      "arguments": []
+                      "right": {
+                        "type": "BinaryExpression",
+                        "operator": "===",
+                        "left": {
+                          "type": "MemberExpression",
+                          "object": {
+                            "type": "CallExpression",
+                            "callee": {
+                              "type": "MemberExpression",
+                              "object": {
+                                "type": "Identifier",
+                                "name": "Object"
+                              },
+                              "property": {
+                                "type": "Identifier",
+                                "name": "keys"
+                              },
+                              "computed": false
+                            },
+                            "arguments": [
+                              {
+                                "type": "Identifier",
+                                "name": "c"
+                              }
+                            ]
+                          },
+                          "property": {
+                            "type": "Identifier",
+                            "name": "length"
+                          },
+                          "computed": false
+                        },
+                        "right": {
+                          "type": "Literal",
+                          "value": 0,
+                          "raw": "0"
+                        }
+                      }
                     },
                     "right": {
-                      "type": "Literal",
-                      "value": 42,
-                      "raw": "42"
+                      "type": "UnaryExpression",
+                      "operator": "!",
+                      "argument": {
+                        "type": "BinaryExpression",
+                        "operator": "in",
+                        "left": {
+                          "type": "Literal",
+                          "value": "bump",
+                          "raw": "\"bump\""
+                        },
+                        "right": {
+                          "type": "Identifier",
+                          "name": "c"
+                        }
+                      },
+                      "prefix": true
                     }
                   },
                   "right": {
@@ -677,22 +978,18 @@
                       "type": "MemberExpression",
                       "object": {
                         "type": "Identifier",
-                        "name": "c"
+                        "name": "Counter"
                       },
                       "property": {
                         "type": "Identifier",
-                        "name": "same"
+                        "name": "probe"
                       },
                       "computed": false
                     },
                     "arguments": [
                       {
-                        "type": "NewExpression",
-                        "callee": {
-                          "type": "Identifier",
-                          "name": "Counter"
-                        },
-                        "arguments": []
+                        "type": "ObjectExpression",
+                        "properties": []
                       }
                     ]
                   }
@@ -703,78 +1000,64 @@
                   "left": {
                     "type": "MemberExpression",
                     "object": {
-                      "type": "CallExpression",
-                      "callee": {
-                        "type": "MemberExpression",
-                        "object": {
-                          "type": "Identifier",
-                          "name": "Object"
-                        },
-                        "property": {
-                          "type": "Identifier",
-                          "name": "keys"
-                        },
-                        "computed": false
-                      },
-                      "arguments": [
-                        {
-                          "type": "Identifier",
-                          "name": "c"
-                        }
-                      ]
+                      "type": "Identifier",
+                      "name": "Tally"
                     },
                     "property": {
                       "type": "Identifier",
-                      "name": "length"
+                      "name": "doubled"
                     },
                     "computed": false
                   },
                   "right": {
                     "type": "Literal",
-                    "value": 0,
-                    "raw": "0"
+                    "value": 20,
+                    "raw": "20"
                   }
                 }
               },
               "right": {
-                "type": "UnaryExpression",
-                "operator": "!",
-                "argument": {
-                  "type": "BinaryExpression",
-                  "operator": "in",
-                  "left": {
-                    "type": "Literal",
-                    "value": "bump",
-                    "raw": "\"bump\""
-                  },
-                  "right": {
+                "type": "BinaryExpression",
+                "operator": "===",
+                "left": {
+                  "type": "MemberExpression",
+                  "object": {
                     "type": "Identifier",
-                    "name": "c"
-                  }
+                    "name": "Tally"
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "name": "final"
+                  },
+                  "computed": false
                 },
-                "prefix": true
+                "right": {
+                  "type": "Literal",
+                  "value": 21,
+                  "raw": "21"
+                }
               }
             },
             "right": {
-              "type": "CallExpression",
-              "callee": {
+              "type": "BinaryExpression",
+              "operator": "===",
+              "left": {
                 "type": "MemberExpression",
                 "object": {
                   "type": "Identifier",
-                  "name": "Counter"
+                  "name": "ch"
                 },
                 "property": {
                   "type": "Identifier",
-                  "name": "probe"
+                  "name": "plain"
                 },
                 "computed": false
               },
-              "arguments": [
-                {
-                  "type": "ObjectExpression",
-                  "properties": []
-                }
-              ]
+              "right": {
+                "type": "Literal",
+                "value": 1,
+                "raw": "1"
+              }
             }
           },
           "right": {
@@ -784,41 +1067,46 @@
               "type": "MemberExpression",
               "object": {
                 "type": "Identifier",
-                "name": "Tally"
+                "name": "ch"
               },
               "property": {
                 "type": "Identifier",
-                "name": "doubled"
+                "name": "tag"
               },
               "computed": false
             },
             "right": {
               "type": "Literal",
-              "value": 20,
-              "raw": "20"
+              "value": "p:2",
+              "raw": "\"p:2\""
             }
           }
         },
         "right": {
-          "type": "BinaryExpression",
-          "operator": "===",
-          "left": {
-            "type": "MemberExpression",
-            "object": {
-              "type": "Identifier",
-              "name": "Tally"
+          "type": "UnaryExpression",
+          "operator": "!",
+          "argument": {
+            "type": "BinaryExpression",
+            "operator": "in",
+            "left": {
+              "type": "Literal",
+              "value": "plain",
+              "raw": "\"plain\""
             },
-            "property": {
-              "type": "Identifier",
-              "name": "final"
-            },
-            "computed": false
+            "right": {
+              "type": "MemberExpression",
+              "object": {
+                "type": "Identifier",
+                "name": "Parent"
+              },
+              "property": {
+                "type": "Identifier",
+                "name": "prototype"
+              },
+              "computed": false
+            }
           },
-          "right": {
-            "type": "Literal",
-            "value": 21,
-            "raw": "21"
-          }
+          "prefix": true
         }
       }
     }
