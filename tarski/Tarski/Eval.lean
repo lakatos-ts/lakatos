@@ -5733,7 +5733,7 @@ def evalClass (env : Env) (d : ClassDef) (name : String) : EvalM Value := do
     match Env.lookup inner n with
     | some r => initCell r (.obj F)
     | none => pure ()
-  initFields inner (some F) (.obj F) d.staticFields
+  initFields inner (some F) (.obj F) (staticFieldsOnly d.staticElements)
   pure (.obj F)
   partial_fixpoint
 
