@@ -3767,9 +3767,9 @@
       }
     },
     "test/language/arguments-object": {
-      "pass": 64,
+      "pass": 84,
       "fail": 2,
-      "unsupported": 75,
+      "unsupported": 55,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -4075,9 +4075,9 @@
       }
     },
     "test/language/expressions/class": {
-      "pass": 68,
+      "pass": 74,
       "fail": 1,
-      "unsupported": 153,
+      "unsupported": 147,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -4313,9 +4313,9 @@
       }
     },
     "test/language/expressions/class/dstr": {
-      "pass": 284,
+      "pass": 476,
       "fail": 0,
-      "unsupported": 1004,
+      "unsupported": 812,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -4327,9 +4327,9 @@
       }
     },
     "test/language/expressions/class/elements": {
-      "pass": 206,
-      "fail": 45,
-      "unsupported": 400,
+      "pass": 369,
+      "fail": 49,
+      "unsupported": 233,
       "timeout": 0,
       "harnessError": 2,
       "notRun": {
@@ -4439,9 +4439,9 @@
       }
     },
     "test/language/expressions/class/elements/private-accessor-name": {
-      "pass": 0,
+      "pass": 20,
       "fail": 0,
-      "unsupported": 20,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -4454,8 +4454,8 @@
     },
     "test/language/expressions/class/elements/private-methods": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 3,
+      "fail": 2,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -4467,9 +4467,9 @@
       }
     },
     "test/language/expressions/class/elements/syntax/valid": {
-      "pass": 14,
+      "pass": 17,
       "fail": 1,
-      "unsupported": 13,
+      "unsupported": 10,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -5363,9 +5363,9 @@
       }
     },
     "test/language/statements/class/dstr": {
-      "pass": 284,
+      "pass": 476,
       "fail": 0,
-      "unsupported": 1004,
+      "unsupported": 812,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -5377,9 +5377,9 @@
       }
     },
     "test/language/statements/class/elements": {
-      "pass": 234,
-      "fail": 59,
-      "unsupported": 455,
+      "pass": 426,
+      "fail": 71,
+      "unsupported": 251,
       "timeout": 0,
       "harnessError": 2,
       "notRun": {
@@ -5489,9 +5489,9 @@
       }
     },
     "test/language/statements/class/elements/private-accessor-name": {
-      "pass": 0,
+      "pass": 20,
       "fail": 0,
-      "unsupported": 20,
+      "unsupported": 0,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -5504,8 +5504,8 @@
     },
     "test/language/statements/class/elements/private-methods": {
       "pass": 0,
-      "fail": 0,
-      "unsupported": 3,
+      "fail": 2,
+      "unsupported": 1,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -5517,9 +5517,9 @@
       }
     },
     "test/language/statements/class/elements/syntax/valid": {
-      "pass": 14,
+      "pass": 17,
       "fail": 1,
-      "unsupported": 15,
+      "unsupported": 12,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {
@@ -5728,8 +5728,8 @@
     },
     "test/language/statements/class/subclass": {
       "pass": 33,
-      "fail": 2,
-      "unsupported": 4,
+      "fail": 3,
+      "unsupported": 3,
       "timeout": 0,
       "harnessError": 0,
       "notRun": {

@@ -68,13 +68,14 @@ left are filed rather than classified under a closed issue — #531,
 `%IteratorPrototype%` carrying no `@@toStringTag` — and #533 is the
 destructuring evaluation order the two order tests see.
 
-The 1,644 failures below, by owner: 1,019 what #376 excludes (`eval`,
+The 1,665 failures below, by owner: 1,036 what #376 excludes (`eval`,
 `Date`, `RegExp`, `Proxy`, `Reflect`, typed arrays, the keyed
 collections, explicit resource management, the `Iterator` constructor and
 its helpers, `Error.prototype.stack`, `JSON.rawJSON` and the reviver's
 source text, `Array.fromAsync`, the `Function` constructor's semantics,
-and `nativeFunctionMatcher.js`, which matches source text with a regular
-expression), 191 the global object (#487), 151 the transcendental `Math`
+`nativeFunctionMatcher.js`, which matches source text with a regular
+expression, and the `nonextensible-applies-to-private` proposal), 195 the
+global object (#487), 151 the transcendental `Math`
 members (#434), 110 the six ES2023 `Array.prototype` members (#513), 70
 the global `isNaN` and `isFinite` (#441), 18 ToLength of an infinite
 `length` (#514), 16 the Unicode character database (#518), 14
@@ -93,6 +94,14 @@ derived constructor's dead zone was not reached; that is `superBase` in
 limit rather than an evaluator one: tsc refuses `a?.b.#c`, which is valid
 JavaScript, so four tests under `class/elements` are **harness errors**
 rather than failures and appear in no row below. #472 owns them.
+
+**Private methods and accessors moved 811 tests from unsupported to
+pass** across the class directories and `arguments-object`, and 21 to
+fail, none of them a private element answering wrongly: 8 read a
+private name through direct `eval`, 8 reach for `Proxy` or `Reflect`, 4
+check `__lookupGetter__` or `__lookupSetter__`, which come with the global
+object (#487), and 1 is the `nonextensible-applies-to-private` proposal,
+which the field half of the same test fails first.
 
 **The two limits #391 left are filed rather than hidden.** Case mapping
 is ASCII-only and `normalize` validates its form and answers its input,
@@ -527,7 +536,9 @@ answering the wrong thing.**
 | `test/language/expressions/class`                                     | 1     | builtin      | `Function.prototype.caller` and `arguments` are the `%ThrowTypeError%` accessors                                    | #487  |
 | `test/language/expressions/class/elements`                            | 24    | out-of-scope | an early-error test that reaches for `eval`                                                                         | #376  |
 | `test/language/expressions/class/elements`                            | 19    | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
-| `test/language/expressions/class/elements`                            | 2     | out-of-scope | `Proxy` and `Reflect` are excluded by the epic                                                                      | #376  |
+| `test/language/expressions/class/elements`                            | 4     | out-of-scope | `Proxy` and `Reflect` are excluded by the epic                                                                      | #376  |
+| `test/language/expressions/class/elements`                            | 2     | builtin      | the Annex B accessors on `Object.prototype` come with the global object                                             | #487  |
+| `test/language/expressions/class/elements/private-methods`            | 2     | out-of-scope | `Proxy` and `Reflect` are excluded by the epic                                                                      | #376  |
 | `test/language/expressions/class/elements/syntax/valid`               | 1     | bug          | a static method named `constructor` is emitted as the class constructor                                             | #496  |
 | `test/language/expressions/class/subclass-builtins`                   | 14    | out-of-scope | typed arrays and their buffers are excluded by the epic                                                             | #376  |
 | `test/language/expressions/class/subclass-builtins`                   | 6     | out-of-scope | the keyed collections and promises are excluded by the epic                                                         | #376  |
@@ -573,13 +584,16 @@ answering the wrong thing.**
 | `test/language/statements/class`                                      | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/statements/class/definition`                           | 1     | builtin      | `Function.prototype.caller` and `arguments` are the `%ThrowTypeError%` accessors                                    | #487  |
 | `test/language/statements/class/elements`                             | 32    | out-of-scope | an early-error test that reaches for `eval`                                                                         | #376  |
-| `test/language/statements/class/elements`                             | 22    | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
-| `test/language/statements/class/elements`                             | 4     | out-of-scope | `Proxy` and `Reflect` are excluded by the epic                                                                      | #376  |
+| `test/language/statements/class/elements`                             | 30    | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
+| `test/language/statements/class/elements`                             | 6     | out-of-scope | `Proxy` and `Reflect` are excluded by the epic                                                                      | #376  |
+| `test/language/statements/class/elements`                             | 2     | builtin      | the Annex B accessors on `Object.prototype` come with the global object                                             | #487  |
 | `test/language/statements/class/elements`                             | 1     | builtin      | there is no global object                                                                                           | #487  |
+| `test/language/statements/class/elements/private-methods`             | 2     | out-of-scope | `Proxy` and `Reflect` are excluded by the epic                                                                      | #376  |
 | `test/language/statements/class/elements/syntax/valid`                | 1     | bug          | a static method named `constructor` is emitted as the class constructor                                             | #496  |
 | `test/language/statements/class/strict-mode`                          | 1     | builtin      | `Function.prototype.caller` and `arguments` are the `%ThrowTypeError%` accessors                                    | #487  |
 | `test/language/statements/class/subclass`                             | 1     | out-of-scope | `Proxy` and `Reflect` are excluded by the epic                                                                      | #376  |
 | `test/language/statements/class/subclass`                             | 1     | out-of-scope | typed arrays and their buffers are excluded by the epic                                                             | #376  |
+| `test/language/statements/class/subclass`                             | 1     | out-of-scope | a private element refusing a non-extensible object is the `nonextensible-applies-to-private` stage-3 proposal       | #376  |
 | `test/language/statements/class/subclass-builtins`                    | 14    | out-of-scope | typed arrays and their buffers are excluded by the epic                                                             | #376  |
 | `test/language/statements/class/subclass-builtins`                    | 6     | out-of-scope | the keyed collections and promises are excluded by the epic                                                         | #376  |
 | `test/language/statements/class/subclass-builtins`                    | 1     | out-of-scope | `Date` is excluded by the epic                                                                                      | #376  |

@@ -587,8 +587,8 @@ describe("parseScript", () => {
   });
 
   // A class member outside the slice stands where it appeared, so the
-  // class itself still reaches the Lean decoder — which is also how a
-  // private method arrives, for the decoder to refuse by name.
+  // class itself still reaches the Lean decoder — a private method
+  // arrives whole.
   const CLASS_MEMBERS: [string, string, string][] = [
     ["a static block", "static { }", "ClassStaticBlockDeclaration"],
     ["a computed key", "[k]() {}", "ComputedPropertyName"],
@@ -657,7 +657,7 @@ describe("parseScript", () => {
     });
   }
 
-  it("keeps a private method, for the Lean decoder to refuse by name", () => {
+  it("keeps a private method with its private key", () => {
     const program = parseScript(
       '"use strict";\nclass A {\n  #m() {}\n}\n',
       "pm.js",

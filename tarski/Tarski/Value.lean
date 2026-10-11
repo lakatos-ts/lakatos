@@ -171,6 +171,15 @@ inductive FuncKind where
   | classCtor (derived : Bool) (implicit : Bool)
 deriving Repr, DecidableEq, Inhabited
 
+/-- One `[[PrivateElements]]` entry (6.2.10). A field holds a value, a
+method its function, an accessor its two halves; the name that keys it
+is the cell `PrivateName` names. -/
+inductive PrivateElement where
+  | field (v : Value)
+  | method (f : Value)
+  | accessor (get set : Option Value)
+deriving Repr, Inhabited
+
 /-- A function's code and the scope it closed over. -/
 structure Closure where
   params : List Param
@@ -185,6 +194,10 @@ structure Closure where
   /-- `[[Fields]]`: the instance fields a class constructor initializes,
   in source order. Empty for every other closure. -/
   fields : List ClassField := []
+  /-- `[[PrivateMethods]]`: the private methods and accessors a class
+  constructor installs on each instance ahead of its fields, built once
+  per class evaluation so every instance shares one function object. -/
+  privateMethods : List (PrivateName × PrivateElement) := []
   /-- Whether a call binds an `arguments` object. ContainsArguments over
   the parameters and the body, computed once when the function object is
   made — `makeFunction` and `evalClass` are the only two that set it, and
@@ -822,11 +835,9 @@ structure Obj where
   `Object.preventExtensions` changes a *state*: no key names it, and
   nothing a script writes can forge one. -/
   extensible : Bool := true
-  /-- `[[PrivateElements]]`, restricted to fields — a private method or
-  accessor is a decoder refusal, so no other kind can arrive. These are
-  not properties: no key names them, `Object.keys` cannot see them, and
-  a prototype walk never reaches them. -/
-  privates : List (PrivateName × Value) := []
+  /-- `[[PrivateElements]]`. These are not properties: no key names them,
+  `Object.keys` cannot see them, and a prototype walk never reaches them. -/
+  privates : List (PrivateName × PrivateElement) := []
 deriving Repr, Inhabited
 
 /-- A variable binding. `mutable` is `false` for `const`, which is what
@@ -989,29 +1000,31 @@ def Obj.remove (o : Obj) (key : Key) : Obj :=
   { o with properties := propDrop o.properties key }
 
 /-- Find a private element. -/
-def privateGet : List (PrivateName × Value) → PrivateName → Option Value
+def privateGet : List (PrivateName × PrivateElement) → PrivateName → Option PrivateElement
   | [], _ => none
   | (k, v) :: rest, key => if k == key then some v else privateGet rest key
 
 /-- Overwrite a private element that is already there. -/
-def privateSet : List (PrivateName × Value) → PrivateName → Value → List (PrivateName × Value)
+def privateSet : List (PrivateName × PrivateElement) → PrivateName → PrivateElement
+    → List (PrivateName × PrivateElement)
   | [], _, _ => []
   | (k, w) :: rest, key, v =>
     if k == key then (key, v) :: rest else (k, w) :: privateSet rest key v
 
-/-- A private element's value, or `none` when the object's class did not
-declare it — which is the whole of a private read's type check. -/
-def Obj.getPrivate (o : Obj) (k : PrivateName) : Option Value :=
+/-- A private element, or `none` when the object's class did not declare
+it — which is the whole of the brand check. -/
+def Obj.getPrivate (o : Obj) (k : PrivateName) : Option PrivateElement :=
   privateGet o.privates k
 
-/-- Write a private element that is already there. A private field is
-never created by a write: only field initialization adds one. -/
-def Obj.setPrivate (o : Obj) (k : PrivateName) (v : Value) : Obj :=
+/-- Write a private element that is already there. Only a field's value
+ever changes after it is added. -/
+def Obj.setPrivate (o : Obj) (k : PrivateName) (v : PrivateElement) : Obj :=
   { o with privates := privateSet o.privates k v }
 
-/-- PrivateFieldAdd's half that cannot fail: append the element. The
-already-present check is `Eval`'s, which has the `TypeError` to throw. -/
-def Obj.addPrivate (o : Obj) (k : PrivateName) (v : Value) : Obj :=
+/-- PrivateFieldAdd's and PrivateMethodOrAccessorAdd's half that cannot
+fail: append the element. The already-present check is `Eval`'s, which
+has the `TypeError` to throw. -/
+def Obj.addPrivate (o : Obj) (k : PrivateName) (v : PrivateElement) : Obj :=
   { o with privates := o.privates ++ [(k, v)] }
 
 /-- Resolve a name in a scope chain: the innermost binding wins. -/

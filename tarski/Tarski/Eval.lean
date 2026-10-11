@@ -216,7 +216,11 @@ new refusal is written against a list rather than invented.
 | a private name not in scope                        | `SyntaxError`    | `Private field '#{name}' must be declared in an enclosing class` |
 | a private read on an object without the element    | `TypeError`      | `Cannot read private member #{name} from an object whose class did not declare it` |
 | a private write on an object without the element   | `TypeError`      | `Cannot write private member #{name} to an object whose class did not declare it` |
+| a private method written                           | `TypeError`      | `Private method '#{name}' is not writable`                    |
+| a private accessor read with no getter             | `TypeError`      | `'#{name}' was defined without a getter`                      |
+| a private accessor written with no setter          | `TypeError`      | `'#{name}' was defined without a setter`                      |
 | a private field initialized twice                  | `TypeError`      | `Cannot initialize #{name} twice on the same object`          |
+| private methods stamped on an object twice         | `TypeError`      | `Cannot initialize private methods twice on the same object`  |
 | `arguments.callee` read or written                 | `TypeError`      | `'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them` |
 | a write to a non-writable data property            | `TypeError`      | `Cannot assign to read only property '{key}' of object '#<Object>'` |
 | a write adding a key to a non-extensible object    | `TypeError`      | `Cannot add property {key}, object is not extensible`         |
@@ -1465,46 +1469,15 @@ def privateName (env : Env) (name : String) : EvalM PrivateName :=
     throwJsError .syntaxError
       s!"Private field '#{name}' must be declared in an enclosing class"
 
-/-- PrivateGet, restricted to fields: the element on the object itself.
-There is no prototype walk — a private element is not a property — so a
-base whose class did not declare the name is a `TypeError`, and so is a
-primitive base. -/
-def readPrivate (env : Env) (base : Value) (name : String) : EvalM Value := do
-  let k ← privateName env name
-  match base with
-  | .obj r =>
-    match (← readObj r).getPrivate k with
-    | some v => pure v
-    | none =>
-      throwJsError .typeError
-        s!"Cannot read private member #{name} from an object whose class did not declare it"
-  | _ =>
-    throwJsError .typeError
-      s!"Cannot read private member #{name} from an object whose class did not declare it"
-
-/-- PrivateSet, restricted to fields. A write never creates an element:
-only field initialization does, which is why a write to an object the
-class did not build is a `TypeError` rather than a new field. -/
-def writePrivate (env : Env) (base : Value) (name : String) (v : Value) : EvalM Unit := do
-  let k ← privateName env name
-  match base with
-  | .obj r =>
-    match (← readObj r).getPrivate k with
-    | some _ => modifyObj r (fun o => o.setPrivate k v)
-    | none =>
-      throwJsError .typeError
-        s!"Cannot write private member #{name} to an object whose class did not declare it"
-  | _ =>
-    throwJsError .typeError
-      s!"Cannot write private member #{name} to an object whose class did not declare it"
-
-/-- PrivateFieldAdd. The element must not already be there: it can be,
-through the return-override trick, and the specification makes that a
-`TypeError` rather than a second element of one name. -/
-def addPrivate (target : Ref) (name : String) (k : PrivateName) (v : Value) : EvalM Unit := do
+/-- PrivateFieldAdd and PrivateMethodOrAccessorAdd: the element must not
+already be there. It can be, through the return-override trick, and the
+specification makes that a `TypeError` rather than a second element of
+one name. -/
+def addPrivateElement (target : Ref) (name : String) (k : PrivateName) (e : PrivateElement) :
+    EvalM Unit := do
   match (← readObj target).getPrivate k with
   | some _ => throwJsError .typeError s!"Cannot initialize #{name} twice on the same object"
-  | none => modifyObj target (fun o => o.addPrivate k v)
+  | none => modifyObj target (fun o => o.addPrivate k e)
 
 /-- One immutable cell per `#name` the class declares, pushed under the
 spelling `"#name"`. The cell's *reference* is the Private Name; its
@@ -1515,22 +1488,38 @@ def bindPrivateNames (env : Env) : List String → EvalM Env
     let r ← allocCell { mutable := false, value := some undefValue }
     bindPrivateNames (("#" ++ n, r) :: env) rest
 
-/-- MethodDefinitionEvaluation over a class body: every method, getter,
-and setter on its home object — the prototype for an instance element,
-the constructor for a `static` one. A getter and a setter of one name
-merge into one accessor property, which is `Obj.defineAccessorHalf`'s
-business. Every one of them is non-enumerable and configurable, as
-15.4.4 and 15.4.6 have it, and each function's `name` is the key for a
-method and `"get x"` or `"set x"` for an accessor half.
-Constructors and fields are not here: the first is the closure
-`evalClass` built, the second runs per instance.
+/-- A getter and a setter of one private name are one accessor element:
+`e` joins the list, merging into an accessor already there. Anything
+else of the same name is an early error the epic does not check; `e`'s
+halves win. -/
+def mergePrivate (k : PrivateName) (e : PrivateElement)
+    (l : List (PrivateName × PrivateElement)) : List (PrivateName × PrivateElement) :=
+  match privateGet l k, e with
+  | none, _ => (k, e) :: l
+  | some (.accessor g' s'), .accessor g s =>
+    privateSet l k (.accessor (match g with | some _ => g | none => g')
+      (match s with | some _ => s | none => s'))
+  | some _, _ => privateSet l k e
+
+/-- MethodDefinitionEvaluation over a class body. A public method,
+getter, or setter goes on its home object — the prototype for an
+instance element, the constructor for a `static` one — as a
+non-enumerable, configurable property, a getter and a setter of one
+name merging into one accessor. A private one is an element rather than
+a property: a static one goes on the constructor here, and an instance
+one into the answered list that becomes `[[PrivateMethods]]`, a getter
+and a setter of one name merging the same way in either case. Each
+function's `name` is the key for a method and `"get x"` or `"set x"` for
+an accessor half, `#` and all. Constructors and fields are not here: the
+first is the closure `evalClass` built, the second runs per instance.
 
 Outside the fixpoint block, like `instantiateBlock` and `initFunctions`
 and for the same reason: a method's body is closed over here, never run,
 so nothing this does can reach user code. -/
-def defineMethods (env : Env) (F proto : Ref) : List ClassElement → EvalM Unit
-  | [] => pure ()
-  | .method kind isStatic name params body :: rest => do
+def defineMethods (env : Env) (F proto : Ref) :
+    List ClassElement → EvalM (List (PrivateName × PrivateElement))
+  | [] => pure []
+  | .method kind isStatic (.«public» name) params body :: rest => do
     let target := if isStatic then F else proto
     let fname := match kind with
       | .method => name
@@ -1543,6 +1532,24 @@ def defineMethods (env : Env) (F proto : Ref) : List ClassElement → EvalM Unit
       | .getter => o.defineAccessorHalf name (some f) none false true
       | .setter => o.defineAccessorHalf name none (some f) false true)
     defineMethods env F proto rest
+  | .method kind isStatic (.«private» name) params body :: rest => do
+    let target := if isStatic then F else proto
+    let fname := match kind with
+      | .method => "#" ++ name
+      | .getter => "get #" ++ name
+      | .setter => "set #" ++ name
+    let f ← makeFunction { params, body, env, kind := .method, homeObject := some target } fname
+    let k ← privateName env name
+    let element : PrivateElement := match kind with
+      | .method => .method f
+      | .getter => .accessor (some f) none
+      | .setter => .accessor none (some f)
+    if isStatic then
+      -- The constructor is fresh, so only this body's own elements are there.
+      modifyObj F (fun o => { o with privates := mergePrivate k element o.privates })
+      defineMethods env F proto rest
+    else
+      pure (mergePrivate k element (← defineMethods env F proto rest))
   | _ :: rest => defineMethods env F proto rest
 
 /-- GetTemplateObject (13.2.8.4). The realm's `[[TemplateMap]]` is
@@ -5572,14 +5579,30 @@ def runConstructor (r : Ref) (c : Closure) (thisValue : Option Value)
   pure (returned, (← getCell tr).value)
   partial_fixpoint
 
-/-- InitializeInstanceElements: the fields the constructor object
-carries, put on the target. The class's own scope and home object come
-off the closure, so a field initializer sees the class's private names
-and may say `super.x`. -/
+/-- InitializeInstanceElements (7.3.34): the private methods and accessors
+first, then the fields, so a field initializer may call a private method.
+The class's own scope and home object come off the closure, so a field
+initializer sees the class's private names and may say `super.x`. -/
 def initializeInstance (r : Ref) (target : Value) : EvalM Unit := do
   match (← readObj r).callable with
-  | some (.closure c) => initFields c.env c.homeObject target c.fields
+  | some (.closure c) => do
+    initPrivateMethods target c.privateMethods
+    initFields c.env c.homeObject target c.fields
   | _ => pure ()
+  partial_fixpoint
+
+/-- PrivateMethodOrAccessorAdd over `[[PrivateMethods]]`. A `PrivateName`
+is a cell and cannot be spelled back, so the message names no `#name`. -/
+def initPrivateMethods (target : Value) : List (PrivateName × PrivateElement) → EvalM Unit
+  | [] => pure ()
+  | (k, e) :: rest => do
+    match target with
+    | .obj t =>
+      match (← readObj t).getPrivate k with
+      | some _ => throwJsError .typeError "Cannot initialize private methods twice on the same object"
+      | none => modifyObj t (fun o => o.addPrivate k e)
+    | _ => pure ()
+    initPrivateMethods target rest
   partial_fixpoint
 
 /-- DefineField over a list, in source order, with `this` and the home
@@ -5621,7 +5644,7 @@ def initFieldList (env : Env) (target : Value) : List ClassField → EvalM Unit
     | .obj t, .«public» name => modifyObj t (fun o => o.define name (Property.ordinary v))
     | .obj t, .«private» name => do
       let k ← privateName env name
-      addPrivate t name k v
+      addPrivateElement t name k (.field v)
     -- The target is always the object being built, so this arm is
     -- unreachable; `Value` is not a subtype.
     | _, _ => pure ()
@@ -5698,7 +5721,12 @@ def evalClass (env : Env) (d : ClassDef) (name : String) : EvalM Value := do
           ("name", Property.attribute (.prim (.str (d.name.getD name)))),
           ("prototype", Property.constant (.obj proto)) ] }
   modifyObj proto (fun o => o.define "constructor" (Property.method (.obj F)))
-  defineMethods inner F proto d.elements
+  -- The instance list exists only once the methods are made, after `F`;
+  -- an empty one skips the write, which keeps a closed reduction short.
+  match ← defineMethods inner F proto d.elements with
+  | [] => pure ()
+  | privateMethods =>
+    modifyObj F (fun o => { o with callable := some (.closure { ctor with privateMethods }) })
   match d.name with
   | none => pure ()
   | some n =>
@@ -5720,6 +5748,53 @@ def superConstructor (r : Ref) : EvalM (Option Ref) := do
   | none => pure none
   | some parent =>
     if ← isConstructor (.obj parent) then pure (some parent) else pure none
+
+/-- PrivateGet (7.3.31). A field answers its value, a method its function,
+an accessor its getter's answer with the base as receiver. There is no
+prototype walk — a private element is not a property — so a base whose
+class did not declare the name is a `TypeError`, and so is a primitive
+base. -/
+def readPrivate (env : Env) (base : Value) (name : String) : EvalM Value := do
+  let k ← privateName env name
+  match base with
+  | .obj r =>
+    match (← readObj r).getPrivate k with
+    | some (.field v) => pure v
+    | some (.method f) => pure f
+    | some (.accessor (some g) _) => callFunction g base []
+    | some (.accessor none _) =>
+      throwJsError .typeError s!"'#{name}' was defined without a getter"
+    | none =>
+      throwJsError .typeError
+        s!"Cannot read private member #{name} from an object whose class did not declare it"
+  | _ =>
+    throwJsError .typeError
+      s!"Cannot read private member #{name} from an object whose class did not declare it"
+  partial_fixpoint
+
+/-- PrivateSet (7.3.32). A field takes the value, a method refuses, an
+accessor calls its setter with the base as receiver. A write never
+creates an element: only initialization does. -/
+def writePrivate (env : Env) (base : Value) (name : String) (v : Value) : EvalM Unit := do
+  let k ← privateName env name
+  match base with
+  | .obj r =>
+    match (← readObj r).getPrivate k with
+    | some (.field _) => modifyObj r (fun o => o.setPrivate k (.field v))
+    | some (.method _) =>
+      throwJsError .typeError s!"Private method '#{name}' is not writable"
+    | some (.accessor _ (some s)) => do
+      let _ ← callFunction s base [v]
+      pure ()
+    | some (.accessor _ none) =>
+      throwJsError .typeError s!"'#{name}' was defined without a setter"
+    | none =>
+      throwJsError .typeError
+        s!"Cannot write private member #{name} to an object whose class did not declare it"
+  | _ =>
+    throwJsError .typeError
+      s!"Cannot write private member #{name} to an object whose class did not declare it"
+  partial_fixpoint
 
 /-- MakeSuperPropertyReference's first two steps (13.3.7.2): the object
 the read will go through — the home object's *prototype* — and the

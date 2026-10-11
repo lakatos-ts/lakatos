@@ -800,13 +800,15 @@ private def methodValue (isAsync isGenerator : String) : String :=
       "body":{"type":"BlockStatement","body":[]},
       "async":"# ++ isAsync ++ r#","generator":"# ++ isGenerator ++ "}"
 
--- A private method is a non-writable element rather than a property, so
--- it has semantics of its own and is refused by name.
+-- A private method decodes to a method element with a private key; what
+-- it means is the evaluator's business.
 #guard decode (classWith
     (r#"{"type":"MethodDefinition","kind":"method","computed":false,"static":false,
          "key":{"type":"PrivateIdentifier","name":"m"},
          "value":"# ++ methodValue "false" "false" ++ "}"))
-  == "unsupported: MethodDefinition private"
+  == toString (repr ([.classDecl "A"
+        { name := some "A", superClass := none,
+          elements := [.method .method false (.«private» "m") [] []] }] : Program))
 
 #guard decode (classWith
     (r#"{"type":"MethodDefinition","kind":"method","computed":false,"static":false,

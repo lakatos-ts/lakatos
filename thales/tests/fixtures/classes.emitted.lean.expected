@@ -25,7 +25,8 @@ def TsModel.Box.ast : Tarski.Program :=
         elements :=
           [.field false (.«private» "v") none,
             .ctor ["v"] [.exprStmt (.assign (.privateMember .this "v") (.ident "v"))],
-            .method .getter false "v" [] [.returnStmt (some (.privateMember .this "v"))]] }]
+            .method .getter false (.«public» "v") []
+              [.returnStmt (some (.privateMember .this "v"))]] }]
 
 @[js_norm, grind]
 def TsModel.Box.construct (v : JsNumber) : JsM TsModel.Box := do
@@ -63,7 +64,8 @@ def TsModel.Gate.ast : Tarski.Program :=
               [.ifStmt (.binary .lt (.ident "a") (.numLit 0))
                   (.block [.throwStmt (.new (.ident "RangeError") [.strLit "negative"])])
                   (some (.block [.exprStmt (.assign (.privateMember .this "lo") (.ident "a"))]))],
-            .method .getter false "lo" [] [.returnStmt (some (.privateMember .this "lo"))]] }]
+            .method .getter false (.«public» "lo") []
+              [.returnStmt (some (.privateMember .this "lo"))]] }]
 
 @[js_norm, grind]
 def TsModel.Gate.construct (a : JsNumber) : JsM TsModel.Gate := do
@@ -105,10 +107,11 @@ def TsModel.Doubler.ast : Tarski.Program :=
         elements :=
           [.field false (.«private» "v") none,
             .ctor ["v"] [.exprStmt (.assign (.privateMember .this "v") (.ident "v"))],
-            .method .method false "double" []
+            .method .method false (.«public» "double") []
               [.returnStmt (some (.binary .mul (.privateMember .this "v") (.numLit 2)))],
-            .method .method false "base" [] [.returnStmt (some (.privateMember .this "v"))],
-            .method .method false "twice" []
+            .method .method false (.«public» "base") []
+              [.returnStmt (some (.privateMember .this "v"))],
+            .method .method false (.«public» "twice") []
               [.returnStmt
                   (some
                     (.binary .add (.call (.member .this "base") [])

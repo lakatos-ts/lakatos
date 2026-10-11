@@ -169,7 +169,10 @@ def readPrivateField (h : Heap) : Value → String → Option Value
             match h.readObj c with
             | some { callable := some (.closure cl), .. } =>
               match Env.lookup cl.env ("#" ++ name) with
-              | some k => o.getPrivate k
+              | some k =>
+                match o.getPrivate k with
+                | some (.field v) => some v
+                | _ => none
               | none => none
             | _ => none
           | _ => none

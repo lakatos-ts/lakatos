@@ -106,6 +106,7 @@ describe("the bridge as a command", () => {
     "for-switch-var",
     "number-conversions",
     "class-box",
+    "class-elements",
     "emitter-classes",
     "hoisting-arguments",
     "exe-example",

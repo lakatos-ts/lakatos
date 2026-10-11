@@ -33,8 +33,7 @@ pattern is `unsupported`: it is real syntax (`({ ...[a] } = o)`) whose
 early error this epic does not check.
 
 Classes arrive whole. What a class may spell and the AST may not is
-refused here by name: a private method or accessor (a non-writable
-element, not a property), a numeric or computed key, an `async` or
+refused here by name: a numeric or computed key, an `async` or
 generator member, a static block, an `accessor` field, a decorator, and
 `super.x = v`. `new.target` and `#x in o` never reach this file — the
 bridge has no node for either, so each arrives as a placeholder.
@@ -735,17 +734,14 @@ partial def cookedStrings : List TemplateString → DecodeM (List String)
     | none => bad "TemplateElement cooked is null outside a tag"
     | some c => do pure (c :: (← cookedStrings rest))
 
-/-- A class element's key, and which side of the class it names. A
-private method or accessor and a numeric key are refused: the first has
-semantics of its own — a non-writable element rather than a property —
-and the second would need ToPropertyKey at parse time, as an object
-literal's numeric key would. A computed key arrived as the bridge's
-placeholder and names itself. -/
+/-- A public class element key's spelling. A
+numeric key is refused: it would need ToPropertyKey at parse time, as an
+object literal's numeric key would. A computed key arrived as the
+bridge's placeholder and names itself. -/
 partial def memberKey (j : Json) (label : String) : DecodeM String := do
   let key ← field j "key"
   match ← nodeType key with
   | "Identifier" => strField key "name"
-  | "PrivateIdentifier" => throw (.unsupported s!"{label} private")
   | "Literal" =>
     match ← field key "value" with
     | .str s => pure s
@@ -754,12 +750,12 @@ partial def memberKey (j : Json) (label : String) : DecodeM String := do
   | "Unsupported" => throw (.unsupported (← strField key "kind"))
   | other => bad s!"{label} key is a {other}"
 
-/-- A `PropertyDefinition`'s key, which may be private. -/
-partial def fieldKey (j : Json) : DecodeM ClassKey := do
+/-- A method's or a field's key, which may be private. -/
+partial def classMemberKey (j : Json) (label : String) : DecodeM ClassKey := do
   let key ← field j "key"
   match ← nodeType key with
   | "PrivateIdentifier" => pure (.«private» (← strField key "name"))
-  | _ => pure (.«public» (← memberKey j "PropertyDefinition"))
+  | _ => pure (.«public» (← memberKey j label))
 
 /-- A `ClassBody`'s members, in source order. Anything the bridge could
 not put here arrived as its placeholder — a static block, a computed
@@ -784,15 +780,15 @@ partial def decodeElements : List Json → DecodeM (List ClassElement)
         -- reaches this arm.
         | "constructor" => pure (ClassElement.ctor params body)
         | "method" =>
-          pure (.method .method isStatic (← memberKey m "MethodDefinition") params body)
+          pure (.method .method isStatic (← classMemberKey m "MethodDefinition") params body)
         | "get" =>
-          pure (.method .getter isStatic (← memberKey m "MethodDefinition") params body)
+          pure (.method .getter isStatic (← classMemberKey m "MethodDefinition") params body)
         | "set" =>
-          pure (.method .setter isStatic (← memberKey m "MethodDefinition") params body)
+          pure (.method .setter isStatic (← classMemberKey m "MethodDefinition") params body)
         | other => throw (.unsupported s!"MethodDefinition {other}")
       pure (element :: (← decodeElements rest))
     | "PropertyDefinition" =>
-      let key ← fieldKey m
+      let key ← classMemberKey m "PropertyDefinition"
       let value ← optExpr m "value"
       pure (.field (← boolField m "static") key value :: (← decodeElements rest))
     | "Unsupported" => throw (.unsupported (← strField m "kind"))

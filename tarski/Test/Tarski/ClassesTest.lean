@@ -12,8 +12,9 @@ one witness per `@ensures`, so `lake build TarskiTest` checks the
 fragment those proofs are about without running Node.
 
 What is refused rather than evaluated is `Tarski/Decode.lean`'s business
-and pinned there: a computed key, a private method or accessor, a static
-block, a decorator, `new.target`, and `#x in o` never reach an AST. What
+and pinned there: a computed key, a static block, a decorator,
+`new.target`, and `#x in o` never reach an AST. Private methods and
+accessors are `Test/Tarski/PrivateElementsTest.lean`'s. What
 is *out of scope* is descriptors (#389), so `Object.keys` still lists a
 method and a class's `name` does not exist; its `length` is #393's and
 does, which `Test/Tarski/ParamsTest.lean` pins. -/
