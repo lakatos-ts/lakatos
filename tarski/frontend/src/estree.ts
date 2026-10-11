@@ -286,9 +286,14 @@ export interface PropertyDefinition {
   static: boolean;
 }
 
+export interface StaticBlock {
+  type: "StaticBlock";
+  body: Statement[];
+}
+
 export interface ClassBody {
   type: "ClassBody";
-  body: (MethodDefinition | PropertyDefinition | Unsupported)[];
+  body: (MethodDefinition | PropertyDefinition | StaticBlock | Unsupported)[];
 }
 
 export interface ClassDeclaration {
@@ -970,17 +975,20 @@ function isStatic(node: ts.Node): boolean {
   );
 }
 
-/** One member of a class body. A static block, a bodiless method, and
- * every TypeScript-only form — a type annotation, a `?` or `!` marker, a
+/** One member of a class body. A bodiless method and every
+ * TypeScript-only form — a type annotation, a `?` or `!` marker, a
  * modifier other than `static` or `async`, a decorator — is refused in
  * place, so the class around it still reaches the Lean decoder and the
  * refusal names the tsc kind it stood for. */
 function classMember(
   m: ts.ClassElement,
   sf: ts.SourceFile,
-): MethodDefinition | PropertyDefinition | Unsupported {
+): MethodDefinition | PropertyDefinition | StaticBlock | Unsupported {
   const offending = offendingModifier(m);
   if (offending) return unsupported(offending);
+  if (ts.isClassStaticBlockDeclaration(m)) {
+    return { type: "StaticBlock", body: blockStatement(m.body, sf).body };
+  }
   if (ts.isConstructorDeclaration(m)) {
     if (!m.body) return unsupported(m);
     const parts = functionParts(m as unknown as ts.FunctionExpression, sf);
