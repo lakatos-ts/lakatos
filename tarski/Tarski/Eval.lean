@@ -1804,9 +1804,9 @@ def evalExpr (env : Env) : Expr → EvalM Value
       pure v
     | .superIndex key => do
       let (parent, receiver) ← superBase env
-      let k ← toPropertyKey (← evalExpr env key)
+      let k ← evalExpr env key
       let v ← evalExpr env value
-      superWrite parent receiver k v
+      superWrite parent receiver (← toPropertyKey k) v
       pure v
   | .compoundAssign op target value =>
     -- 13.15.2 in its own order: the target's *reference* is evaluated
@@ -2617,8 +2617,8 @@ def setFound (found : Option Property) (receiver : Value) (key : Key) (v : Value
   partial_fixpoint
 
 /-- Steps 2–3 of OrdinarySetWithOwnDescriptor with a data or absent
-holder: an own accessor or own non-writable property on the receiver
-refuses, an own writable one keeps its attributes and takes the value,
+holder: an own accessor or own non-writable property on the receiver —
+read through `[[GetOwnProperty]]`, so a synthesized one counts — refuses, an own writable one keeps its attributes and takes the value,
 and a missing one is created subject to `[[Extensible]]`.
 
 An array's own `length` is the one key whose write is not a property
@@ -2630,7 +2630,7 @@ def writeOnReceiver (receiver : Value) (key : Key) (v : Value) : EvalM Unit := d
   match receiver with
   | .obj r => do
     let o ← readObj r
-    match o.getOwnProperty key with
+    match o.ownProperty key with
     | some { slot := .accessor _, .. } =>
       throwJsError .typeError
         s!"Cannot set property {key} of #<Object> which has only a getter"
@@ -2647,18 +2647,18 @@ def writeOnReceiver (receiver : Value) (key : Key) (v : Value) : EvalM Unit := d
             if len ≤ i && !lengthWritable then
               throwJsError .typeError
                 "Cannot assign to read only property 'length' of object '#<Object>'"
-            else if (o.getOwnProperty key).isNone && !o.extensible then
+            else if (o.ownProperty key).isNone && !o.extensible then
               throwJsError .typeError s!"Cannot add property {key}, object is not extensible"
             else
               writeObj r { o.setOwn key v with kind := .array (max len (i + 1)) lengthWritable }
           | none =>
-            if (o.getOwnProperty key).isNone && !o.extensible then
+            if (o.ownProperty key).isNone && !o.extensible then
               throwJsError .typeError s!"Cannot add property {key}, object is not extensible"
             else writeObj r (o.setOwn key v)
       -- A wrapper object takes an ordinary write like any other object: its
       -- `[[NumberData]]` is a field, not a property, so nothing can reach it.
       | _ =>
-        if (o.getOwnProperty key).isNone && !o.extensible then
+        if (o.ownProperty key).isNone && !o.extensible then
           throwJsError .typeError s!"Cannot add property {key}, object is not extensible"
         else writeObj r (o.setOwn key v)
   | .prim _ =>

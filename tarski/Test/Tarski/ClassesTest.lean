@@ -841,3 +841,36 @@ private def superAssign : List Stmt :=
         (.binary .strictEq (.call (.member (.new (.ident "B") []) "take") []) (.numLit 3.0))
         (.binary .strictEq (.call (.member (.ident "B") "tag") []) (.strLit "s"))) ]
   == "true"
+
+-- The receiver's own properties are its real ones, so a String object's
+-- read-only index refuses a super write:
+-- `class S extends String { m() { try { super[0] = "z"; return "wrote"; }`
+-- `  catch (e) { return e instanceof TypeError; } } } new S("ab").m()`
+#guard outcome
+    [ subcls "S" "String" [ .method .method false "m" []
+        [ .tryStmt
+            [ .exprStmt (.assign (.superIndex (.numLit 0.0)) (.strLit "z")),
+              .returnStmt (some (.strLit "wrote")) ]
+            (some { param := some "e",
+                    body := [ .returnStmt (some (.binary .instanceof (.ident "e") (.ident "TypeError"))) ] })
+            none ] ],
+      .exprStmt (.call (.member (.new (.ident "S") [.strLit "ab"]) "m") []) ]
+  == "true"
+
+-- A computed super key is converted after the right-hand side runs:
+-- `const log = []; const key = { toString() { log.push("key"); return "p"; } };`
+-- `function rhs() { log.push("rhs"); return 1; }`
+-- `class C { m() { super[key] = rhs(); } } new C().m(); log.join()`
+#guard outcome
+    [ letConst "log" (.arrayLit []),
+      letConst "key" (.objectLit [ .method .method "toString" []
+        [ .exprStmt (.call (.member (.ident "log") "push") [.strLit "key"]),
+          .returnStmt (some (.strLit "p")) ] ]),
+      .funcDecl "rhs" []
+        [ .exprStmt (.call (.member (.ident "log") "push") [.strLit "rhs"]),
+          .returnStmt (some (.numLit 1.0)) ],
+      cls "C" [ .method .method false "m" []
+        [.exprStmt (.assign (.superIndex (.ident "key")) (.call (.ident "rhs") []))] ],
+      .exprStmt (.call (.member (.new (.ident "C") []) "m") []),
+      .exprStmt (.call (.member (.ident "log") "join") []) ]
+  == "rhs,key"
