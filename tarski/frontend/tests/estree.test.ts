@@ -600,6 +600,7 @@ describe("parseScript", () => {
     ["a computed field key", "[k] = 1;", "ComputedPropertyName"],
     ["a definite-assignment marker", "x!;", "ExclamationToken"],
     ["a `declare` modifier", "declare x;", "DeclareKeyword"],
+    ["an index signature", "[k: string]: number;", "IndexSignature"],
   ];
 
   for (const [what, member, kind] of CLASS_MEMBERS) {
