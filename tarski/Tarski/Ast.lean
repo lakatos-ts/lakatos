@@ -45,10 +45,11 @@ and `__proto__:`, all of them `PropDef`s over a `PropKey`. A computed
 public and private instance fields, methods, getters and setters,
 `static` members, `extends`, and `super`. What a class may spell and this
 AST may not is refused by name in `Tarski/Decode.lean` — a computed key,
-an `accessor` field, a decorator, `new.target`, `#x in o`, and `delete super.x` —
-because each is real syntax with semantics of its own rather than a
-shorthand for something here. Later slices add
-constructors; they do not reshape the ones here. -/
+an `accessor` field, a decorator, and `delete super.x` — because each is
+real syntax with semantics of its own rather than a shorthand for
+something here; `new.target` and `#x in o` arrive from the bridge as
+placeholders. Later slices add constructors; they do not reshape the
+ones here. -/
 
 namespace Tarski
 

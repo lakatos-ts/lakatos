@@ -819,6 +819,21 @@ private def superAssign : List Stmt :=
       .exprStmt (.call (.member (.new (.ident "B") []) "put") []) ]
   == "uncaught: TypeError: Cannot add property x, object is not extensible"
 
+-- An own accessor on the receiver refuses, setter or not:
+-- `class A {} class B extends A { put() {`
+-- `  Object.defineProperty(this, "x", { set(v) {}, configurable: true });`
+-- `  super.x = 1; } } new B().put()`
+#guard outcome
+    [ cls "A" [],
+      subcls "B" "A" [ .method .method false "put" []
+        [ .exprStmt (.call (.member (.ident "Object") "defineProperty")
+            [ .this, .strLit "x",
+              .objectLit [ .method .method "set" ["v"] [],
+                           .init "configurable" (.boolLit true) ] ]),
+          .exprStmt (.assign (.superMember "x") (.numLit 1.0)) ] ],
+      .exprStmt (.call (.member (.new (.ident "B") []) "put") []) ]
+  == "uncaught: TypeError: Cannot redefine property: x"
+
 -- Destructuring into super members, and a static method writing to the
 -- constructor:
 -- `class A {} class B extends A {`

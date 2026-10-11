@@ -205,6 +205,7 @@ new refusal is written against a list rather than invented.
 | `(1).toExponential(f)` with an `f` outside 0–100   | `RangeError`     | `toExponential() argument must be between 0 and 100`          |
 | `(1).toPrecision(p)` with a `p` outside 1–100      | `RangeError`     | `toPrecision() argument must be between 1 and 100`            |
 | a write through an accessor with no setter         | `TypeError`      | `Cannot set property {key} of #<Object> which has only a getter` |
+| a super write onto a receiver whose own property is an accessor | `TypeError` | `Cannot redefine property: {key}` |
 | a class constructor called without `new`           | `TypeError`      | `Class constructor cannot be invoked without 'new'`           |
 | `extends` something that is neither a constructor nor `null` | `TypeError` | `Class extends value {v} is not a constructor or null`   |
 | a parent whose `prototype` is neither an object nor `null` | `TypeError` | `Class extends value does not have valid prototype property {p}` |
@@ -1590,7 +1591,7 @@ def getTemplateObject (site : Nat) (strings : List TemplateString) : EvalM Value
 -- only a large definition, so raising it is the knob rather than
 -- splitting a block whose whole point is that its members may call one
 -- another. The iteration protocol and the `Array` surface pushed it past
--- a million, and splitting `setProp` for the super write past two.
+-- a million, and splitting `setProp` for the super write past two million.
 set_option maxHeartbeats 3000000 in
 mutual
 
@@ -2618,7 +2619,8 @@ def setFound (found : Option Property) (receiver : Value) (key : Key) (v : Value
 
 /-- Steps 2–3 of OrdinarySetWithOwnDescriptor with a data or absent
 holder: an own accessor or own non-writable property on the receiver —
-read through `[[GetOwnProperty]]`, so a synthesized one counts — refuses, an own writable one keeps its attributes and takes the value,
+read through `[[GetOwnProperty]]`, so a synthesized one counts —
+refuses, an own writable one keeps its attributes and takes the value,
 and a missing one is created subject to `[[Extensible]]`.
 
 An array's own `length` is the one key whose write is not a property
@@ -2632,8 +2634,7 @@ def writeOnReceiver (receiver : Value) (key : Key) (v : Value) : EvalM Unit := d
     let o ← readObj r
     match o.ownProperty key with
     | some { slot := .accessor _, .. } =>
-      throwJsError .typeError
-        s!"Cannot set property {key} of #<Object> which has only a getter"
+      throwJsError .typeError s!"Cannot redefine property: {key}"
     | some { slot := .data _ false, .. } =>
       throwJsError .typeError
         s!"Cannot assign to read only property '{key}' of object '#<Object>'"
