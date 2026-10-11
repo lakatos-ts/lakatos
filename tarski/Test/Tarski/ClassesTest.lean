@@ -755,3 +755,89 @@ private def staticBlocks : Stmt :=
         none,
       .exprStmt (.ident "T") ]
   == "true"
+
+/-! ## `super.x = v` -/
+
+/-- ```js
+class A { set s(v) { this.got = v; } }
+A.prototype.x = 5;
+class B extends A {
+  put() { super.x = 1; super.s = 2; super["y"] = 3; super.x += 10; super.x++; return this; }
+}
+const b = new B().put();
+b.x === 6 && A.prototype.x === 5 && b.got === 2 && b.y === 3
+```
+The compound and update forms read `x` off the parent and write it on
+the receiver, so each starts from 5 and the parent's `x` never moves. -/
+private def superAssign : List Stmt :=
+  [ cls "A" [ .method .setter false "s" ["v"]
+      [.exprStmt (.assign (.member .this "got") (.ident "v"))] ],
+    .exprStmt (.assign (.member (.member (.ident "A") "prototype") "x") (.numLit 5.0)),
+    subcls "B" "A"
+      [ .method .method false "put" []
+          [ .exprStmt (.assign (.superMember "x") (.numLit 1.0)),
+            .exprStmt (.assign (.superMember "s") (.numLit 2.0)),
+            .exprStmt (.assign (.superIndex (.strLit "y")) (.numLit 3.0)),
+            .exprStmt (.compoundAssign .add (.superMember "x") (.numLit 10.0)),
+            .exprStmt (.update .inc false (.superMember "x")),
+            .returnStmt (some .this) ] ],
+    letConst "b" (.call (.member (.new (.ident "B") []) "put") []) ]
+
+#guard outcome
+    (superAssign ++
+      [ .exprStmt (.logical .and
+          (.logical .and
+            (.logical .and
+              (.binary .strictEq (.member (.ident "b") "x") (.numLit 6.0))
+              (.binary .strictEq (.member (.member (.ident "A") "prototype") "x") (.numLit 5.0)))
+            (.binary .strictEq (.member (.ident "b") "got") (.numLit 2.0)))
+          (.binary .strictEq (.member (.ident "b") "y") (.numLit 3.0))) ])
+  == "true"
+
+-- A non-writable `x` on the parent chain refuses even though the receiver
+-- would take the write:
+-- `class A {} Object.defineProperty(A.prototype, "x", { value: 1, writable: false });`
+-- `class B extends A { put() { super.x = 2; } } new B().put()`
+#guard outcome
+    [ cls "A" [],
+      .exprStmt (.call (.member (.ident "Object") "defineProperty")
+        [ .member (.ident "A") "prototype", .strLit "x",
+          .objectLit [ .init "value" (.numLit 1.0), .init "writable" (.boolLit false) ] ]),
+      subcls "B" "A" [ .method .method false "put" []
+        [.exprStmt (.assign (.superMember "x") (.numLit 2.0))] ],
+      .exprStmt (.call (.member (.new (.ident "B") []) "put") []) ]
+  == "uncaught: TypeError: Cannot assign to read only property 'x' of object '#<Object>'"
+
+-- A frozen receiver with no `x` anywhere refuses: the write would add a key.
+-- `class A {} class B extends A { put() { Object.freeze(this); super.x = 2; } }`
+-- `new B().put()`
+#guard outcome
+    [ cls "A" [],
+      subcls "B" "A" [ .method .method false "put" []
+        [ .exprStmt (.call (.member (.ident "Object") "freeze") [.this]),
+          .exprStmt (.assign (.superMember "x") (.numLit 2.0)) ] ],
+      .exprStmt (.call (.member (.new (.ident "B") []) "put") []) ]
+  == "uncaught: TypeError: Cannot add property x, object is not extensible"
+
+-- Destructuring into super members, and a static method writing to the
+-- constructor:
+-- `class A {} class B extends A {`
+-- `  take() { [super.a, super.b] = [1, 2]; return this.a + this.b; }`
+-- `  static tag() { super.t = "s"; return B.t; } }`
+-- `new B().take() === 3 && B.tag() === "s"`
+#guard outcome
+    [ cls "A" [],
+      subcls "B" "A"
+        [ .method .method false "take" []
+            [ .exprStmt (.assignPattern
+                (.array [ some { target := .target (.superMember "a"), default := none },
+                          some { target := .target (.superMember "b"), default := none } ] none)
+                (.arrayLit [.numLit 1.0, .numLit 2.0])),
+              .returnStmt (some (.binary .add (.member .this "a") (.member .this "b"))) ],
+          .method .method true "tag" []
+            [ .exprStmt (.assign (.superMember "t") (.strLit "s")),
+              .returnStmt (some (.member (.ident "B") "t")) ] ],
+      .exprStmt (.logical .and
+        (.binary .strictEq (.call (.member (.new (.ident "B") []) "take") []) (.numLit 3.0))
+        (.binary .strictEq (.call (.member (.ident "B") "tag") []) (.strLit "s"))) ]
+  == "true"
