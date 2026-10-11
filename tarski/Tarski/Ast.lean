@@ -45,8 +45,8 @@ and `__proto__:`, all of them `PropDef`s over a `PropKey`. A computed
 public and private instance fields, methods, getters and setters,
 `static` members, `extends`, and `super`. What a class may spell and this
 AST may not is refused by name in `Tarski/Decode.lean` — a computed key,
-a static block, an `accessor` field, a decorator, `new.target`, `#x in
-o`, and `super.x = v` — because each is real syntax with semantics of its
+an `accessor` field, a decorator, `new.target`, `#x in o`, and
+`super.x = v` — because each is real syntax with semantics of its
 own rather than a shorthand for something here. Later slices add
 constructors; they do not reshape the ones here. -/
 
@@ -566,6 +566,9 @@ inductive ClassElement where
       (params : List Param) (body : List Stmt)
   /-- ESTree `PropertyDefinition`. -/
   | field (isStatic : Bool) (key : ClassKey) (value : Option Expr)
+  /-- ESTree `StaticBlock`: a scope of its own with `this` bound to the
+  constructor, run in source order among the static fields. -/
+  | staticBlock (body : List Stmt)
 
 /-- ESTree `ClassDeclaration` or `ClassExpression` with `body.body`
 flattened. `name` is the class's *own* binding — the immutable one its
@@ -751,10 +754,22 @@ def classFields (wanted : Bool) : List ClassElement → List ClassField
 def ClassDef.instanceFields (d : ClassDef) : List ClassField :=
   classFields false d.elements
 
-/-- The `static` fields, which ClassDefinitionEvaluation puts on the
-constructor object once the class is built. -/
-def ClassDef.staticFields (d : ClassDef) : List ClassField :=
-  classFields true d.elements
+/-- What ClassDefinitionEvaluation runs on the constructor once the
+class is built: a static field's definition or a static block's body. -/
+inductive StaticElement where
+  | field (f : ClassField)
+  | block (body : List Stmt)
+deriving Repr, Inhabited
+
+/-- The `static` fields and blocks, in source order. -/
+def staticElements : List ClassElement → List StaticElement
+  | [] => []
+  | .field true key value :: rest => .field { key, value } :: staticElements rest
+  | .staticBlock body :: rest => .block body :: staticElements rest
+  | _ :: rest => staticElements rest
+
+def ClassDef.staticElements (d : ClassDef) : List StaticElement :=
+  Tarski.staticElements d.elements
 
 /-- Every `#name` a class body declares, in source order and with
 repeats still in: fields, methods, and accessor halves alike. -/

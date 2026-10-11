@@ -977,8 +977,22 @@
       "additionalProperties": false
     },
 
+    "StaticBlock": {
+      "description": "A class static initialization block: a scope of its own with `this` bound to the constructor, run in source order among the static fields.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "StaticBlock" },
+        "body": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Statement" }
+        }
+      },
+      "required": ["type", "body"],
+      "additionalProperties": false
+    },
+
     "ClassBody": {
-      "description": "A class body's members, in source order. A static block, a computed key, an `accessor` field, a decorator, and every TypeScript-only modifier or annotation arrive as `Unsupported` in the member's place, so the class around them still reaches the decoder. A bare `;` between members carries no meaning and is dropped.",
+      "description": "A class body's members, in source order. A computed key, an `accessor` field, a decorator, and every TypeScript-only modifier or annotation arrive as `Unsupported` in the member's place, so the class around them still reaches the decoder. A bare `;` between members carries no meaning and is dropped.",
       "type": "object",
       "properties": {
         "type": { "const": "ClassBody" },
@@ -988,6 +1002,7 @@
             "anyOf": [
               { "$ref": "#/definitions/MethodDefinition" },
               { "$ref": "#/definitions/PropertyDefinition" },
+              { "$ref": "#/definitions/StaticBlock" },
               { "$ref": "#/definitions/Unsupported" }
             ]
           }

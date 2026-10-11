@@ -133,12 +133,13 @@ attribute [tarski_eval]
 
 -- Classes and private elements.
 attribute [tarski_eval]
-  evalClass defineMethods initializeInstance initFields initFieldList
+  evalClass defineMethods initializeInstance initFields initFieldList initStaticElements
   constructClass runConstructor superConstructor bindPrivateNames privateName
   readPrivate writePrivate addPrivateElement mergePrivate initPrivateMethods
   allocFromConstructor
-  ClassDef.constructor? ClassDef.instanceFields ClassDef.staticFields
-  ClassDef.privateNames classFields dedupNames firstConstructor privateElementNames
+  ClassDef.constructor? ClassDef.instanceFields ClassDef.staticElements
+  ClassDef.privateNames classFields staticElements dedupNames
+  firstConstructor privateElementNames
 
 -- Property reads and writes, own-property depth only: the two prototype
 -- steps are guarded simprocs below. The property protocol's own

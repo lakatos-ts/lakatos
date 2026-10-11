@@ -590,7 +590,6 @@ describe("parseScript", () => {
   // class itself still reaches the Lean decoder — a private method
   // arrives whole.
   const CLASS_MEMBERS: [string, string, string][] = [
-    ["a static block", "static { }", "ClassStaticBlockDeclaration"],
     ["a computed key", "[k]() {}", "ComputedPropertyName"],
     ["an `accessor` field", "accessor x = 1;", "AccessorKeyword"],
     ["a type annotation", "x: number = 1;", "NumberKeyword"],
@@ -601,6 +600,7 @@ describe("parseScript", () => {
     ["a computed field key", "[k] = 1;", "ComputedPropertyName"],
     ["a definite-assignment marker", "x!;", "ExclamationToken"],
     ["a `declare` modifier", "declare x;", "DeclareKeyword"],
+    ["an index signature", "[k: string]: number;", "IndexSignature"],
   ];
 
   for (const [what, member, kind] of CLASS_MEMBERS) {
@@ -673,6 +673,22 @@ describe("parseScript", () => {
         ],
       },
     });
+    validate(program);
+  });
+
+  it("keeps a static block as a StaticBlock with its statements", () => {
+    const program = parseScript(
+      `"use strict";\nclass A {\n  static x = 1;\n  static { A.y = A.x + 1; }\n}\n`,
+      "m.js",
+    );
+    const cls = program.body[1];
+    expect(cls?.type).toBe("ClassDeclaration");
+    if (cls?.type !== "ClassDeclaration") return;
+    const block = cls.body.body[1];
+    expect(block).toMatchObject({ type: "StaticBlock" });
+    if (block?.type !== "StaticBlock") return;
+    expect(block.body).toHaveLength(1);
+    expect(block.body[0]?.type).toBe("ExpressionStatement");
     validate(program);
   });
 

@@ -34,9 +34,18 @@ class Counter {
     }
   }
 }
+class Tally {
+  static base = 10;
+  static {
+    Tally.doubled = this.base * 2;
+  }
+  static final = Tally.doubled + 1;
+}
 const c = Counter.make();
 c.read() === 42 &&
   c.same(new Counter()) &&
   Object.keys(c).length === 0 &&
   !("bump" in c) &&
-  Counter.probe({});
+  Counter.probe({}) &&
+  Tally.doubled === 20 &&
+  Tally.final === 21;

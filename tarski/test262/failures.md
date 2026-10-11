@@ -103,6 +103,10 @@ check `__lookupGetter__` or `__lookupSetter__`, which come with the global
 object (#487), and 1 is the `nonextensible-applies-to-private` proposal,
 which the field half of the same test fails first.
 
+**Static blocks moved 29 tests from unsupported to pass** and none to
+fail: 14 of them under the class directories and the rest scattered
+through `function`, `object`, the declarations, and `try`.
+
 **The two limits #391 left are filed rather than hidden.** Case mapping
 is ASCII-only and `normalize` validates its form and answers its input,
 because Lean has no Unicode character database and shipping one is a

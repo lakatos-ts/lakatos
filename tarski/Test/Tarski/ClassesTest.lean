@@ -12,12 +12,12 @@ one witness per `@ensures`, so `lake build TarskiTest` checks the
 fragment those proofs are about without running Node.
 
 What is refused rather than evaluated is `Tarski/Decode.lean`'s business
-and pinned there: a computed key, a static block, a decorator,
-`new.target`, and `#x in o` never reach an AST. Private methods and
-accessors are `Test/Tarski/PrivateElementsTest.lean`'s. What
-is *out of scope* is descriptors (#389), so `Object.keys` still lists a
-method and a class's `name` does not exist; its `length` is #393's and
-does, which `Test/Tarski/ParamsTest.lean` pins. -/
+and pinned there: a computed key, a decorator, `new.target`, and
+`#x in o` never reach an AST. Private methods and accessors are
+`Test/Tarski/PrivateElementsTest.lean`'s. What is *out of scope* is
+descriptors (#389), so `Object.keys` still lists a method and a
+class's `name` does not exist; its `length` is #393's and does, which
+`Test/Tarski/ParamsTest.lean` pins. -/
 
 open Tarski
 
@@ -689,3 +689,69 @@ private def classWithM : Stmt :=
 -- `1; class A {}` — a class declaration completes empty, as a function
 -- declaration does, so the running completion value stands.
 #guard outcome [.exprStmt (.numLit 1.0), cls "A" []] == "1"
+
+/-! ## Static blocks -/
+
+/-- ```js
+class S {
+  static a = 1;
+  static { S.b = S.a + 1; S.self = this === S; }
+  static c = S.b + 1;
+  static { var hidden = 5; S.d = hidden; }
+}
+S.b === 2 && S.c === 3 && S.self && S.d === 5 && typeof hidden === "undefined"
+``` -/
+private def staticBlocks : Stmt :=
+  cls "S"
+    [ .field true "a" (some (.numLit 1.0)),
+      .staticBlock
+        [ .exprStmt (.assign (.member (.ident "S") "b")
+            (.binary .add (.member (.ident "S") "a") (.numLit 1.0))),
+          .exprStmt (.assign (.member (.ident "S") "self")
+            (.binary .strictEq .this (.ident "S"))) ],
+      .field true "c" (some (.binary .add (.member (.ident "S") "b") (.numLit 1.0))),
+      .staticBlock
+        [ .varDecl .«var» [{ target := "hidden", init := some (.numLit 5.0) }],
+          .exprStmt (.assign (.member (.ident "S") "d") (.ident "hidden")) ] ]
+
+#guard outcome
+    [ staticBlocks,
+      .exprStmt (.logical .and
+        (.logical .and
+          (.logical .and
+            (.logical .and
+              (.binary .strictEq (.member (.ident "S") "b") (.numLit 2.0))
+              (.binary .strictEq (.member (.ident "S") "c") (.numLit 3.0)))
+            (.member (.ident "S") "self"))
+          (.binary .strictEq (.member (.ident "S") "d") (.numLit 5.0)))
+        (.binary .strictEq (.unary .typeof (.ident "hidden")) (.strLit "undefined"))) ]
+  == "true"
+
+-- `class P { static x = 7; } class Q extends P { static { Q.y = super.x; } } Q.y;`
+-- — `super` inside a block reads through the constructor's parent.
+#guard outcome
+    [ cls "P" [ .field true "x" (some (.numLit 7.0)) ],
+      subcls "Q" "P" [ .staticBlock [ .exprStmt (.assign (.member (.ident "Q") "y") (.superMember "x")) ] ],
+      .exprStmt (.member (.ident "Q") "y") ]
+  == "7"
+
+-- `class T { static { throw new RangeError("boom"); } }` — a throwing block
+-- escapes class evaluation.
+#guard outcome [cls "T" [ .staticBlock [ .throwStmt (.new (.ident "RangeError") [.strLit "boom"]) ] ]]
+  == "uncaught: RangeError: boom"
+
+-- `let T = 0; try { T = class { static { throw new RangeError("boom"); } }; }
+--  catch (e) { T = e instanceof RangeError; } T;` — a class expression whose
+-- block throws leaves its target untouched.
+#guard outcome
+    [ .varDecl .«let» [{ target := "T", init := some (.numLit 0.0) }],
+      .tryStmt
+        [ .exprStmt (.assign (.ident "T") (.classExpr
+            { name := none, superClass := none,
+              elements := [ .staticBlock [ .throwStmt (.new (.ident "RangeError") [.strLit "boom"]) ] ] })) ]
+        (some { param := some "e",
+                body := [ .exprStmt (.assign (.ident "T")
+                  (.binary .instanceof (.ident "e") (.ident "RangeError"))) ] })
+        none,
+      .exprStmt (.ident "T") ]
+  == "true"

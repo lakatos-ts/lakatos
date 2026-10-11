@@ -835,11 +835,15 @@ private def methodValue (isAsync isGenerator : String) : String :=
         "key":{"type":"Literal","value":1,"raw":"1"},"value":null}"#)
   == "unsupported: PropertyDefinition numeric key"
 
--- A static block is a scope with a `this` of its own; a computed key and
--- an `accessor` field each stand in the member's place.
-#guard decode (classWith r#"{"type":"Unsupported","kind":"ClassStaticBlockDeclaration"}"#)
-  == "unsupported: ClassStaticBlockDeclaration"
+-- A static block decodes to a block element; its scope is the evaluator's.
+#guard decode (classWith
+    r#"{"type":"StaticBlock","body":[{"type":"ExpressionStatement",
+        "expression":{"type":"Literal","value":1,"raw":"1"}}]}"#)
+  == toString (repr ([.classDecl "A"
+        { name := some "A", superClass := none,
+          elements := [.staticBlock [.exprStmt (.numLit 1.0)]] }] : Program))
 
+-- A computed key and an `accessor` field each stand in the member's place.
 #guard decode (classWith r#"{"type":"Unsupported","kind":"ComputedPropertyName"}"#)
   == "unsupported: ComputedPropertyName"
 

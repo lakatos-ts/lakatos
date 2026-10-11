@@ -5651,6 +5651,22 @@ def initFieldList (env : Env) (target : Value) : List ClassField → EvalM Unit
     initFieldList env target rest
   partial_fixpoint
 
+/-- 15.7.14 step 31: the static fields and blocks in source order. A
+block is ClassStaticBlockDefinitionEvaluation — a parameterless method
+over the class scope with the constructor as home object — called with
+the constructor as `this`, which is what gives it a function body's
+`var` scope, a dead zone of its own, and `super.x`. -/
+def initStaticElements (env : Env) (F : Ref) : List StaticElement → EvalM Unit
+  | [] => pure ()
+  | .field f :: rest => do
+    initFields env (some F) (.obj F) [f]
+    initStaticElements env F rest
+  | .block body :: rest => do
+    let f ← makeFunction { params := [], body, env, kind := .method, homeObject := some F } ""
+    let _ ← callFunction f (.obj F) []
+    initStaticElements env F rest
+  partial_fixpoint
+
 /-- ClassDefinitionEvaluation (15.7.14), in the specification's order.
 
 The class's own name is an immutable binding in a scope of its own, so
@@ -5733,7 +5749,7 @@ def evalClass (env : Env) (d : ClassDef) (name : String) : EvalM Value := do
     match Env.lookup inner n with
     | some r => initCell r (.obj F)
     | none => pure ()
-  initFields inner (some F) (.obj F) d.staticFields
+  initStaticElements inner F d.staticElements
   pure (.obj F)
   partial_fixpoint
 

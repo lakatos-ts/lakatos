@@ -240,6 +240,8 @@ round trip below. -/
   (classDefTerm { name := some "B", superClass := some (.ident "A"), elements := [] })
   `({ name := some "B", superClass := some (.ident "A"), elements := [] })
 #guard rendersSyntax (elementTerm (.ctor [] [])) `(.ctor [] [])
+#guard rendersSyntax (elementTerm (.staticBlock [.exprStmt (.numLit 1)]))
+  `(.staticBlock [.exprStmt (.numLit 1)])
 -- A method's and a field's key is a `ClassKey`, whose two constructors are
 -- keywords: they are pinned as text below, with the rest of the guillemet spellings.
 #guard rendersSyntax (exprTerm (.classExpr { name := none, superClass := none, elements := [] }))

@@ -34,9 +34,9 @@ early error this epic does not check.
 
 Classes arrive whole. What a class may spell and the AST may not is
 refused here by name: a numeric or computed key, an `async` or
-generator member, a static block, an `accessor` field, a decorator, and
-`super.x = v`. `new.target` and `#x in o` never reach this file — the
-bridge has no node for either, so each arrives as a placeholder.
+generator member, an `accessor` field, a decorator, and `super.x = v`.
+`new.target` and `#x in o` never reach this file — the bridge has no
+node for either, so each arrives as a placeholder.
 
 A string literal is decoded from its `raw` source text, not from its
 `value`: `Lean.Json` replaces a lone surrogate with U+FFFD, so `"\uD800"`
@@ -758,9 +758,9 @@ partial def classMemberKey (j : Json) (label : String) : DecodeM ClassKey := do
   | _ => pure (.«public» (← memberKey j label))
 
 /-- A `ClassBody`'s members, in source order. Anything the bridge could
-not put here arrived as its placeholder — a static block, a computed
-key, an `accessor` field, a decorator, a TS-only modifier — and names
-the kind it stood for. -/
+not put here arrived as its placeholder — a computed key, an
+`accessor` field, a decorator, a TS-only modifier — and names the kind
+it stood for. -/
 partial def decodeElements : List Json → DecodeM (List ClassElement)
   | [] => pure []
   | m :: rest => do
@@ -791,6 +791,8 @@ partial def decodeElements : List Json → DecodeM (List ClassElement)
       let key ← classMemberKey m "PropertyDefinition"
       let value ← optExpr m "value"
       pure (.field (← boolField m "static") key value :: (← decodeElements rest))
+    | "StaticBlock" =>
+      pure (.staticBlock (← decodeStmts (← arrayField m "body")) :: (← decodeElements rest))
     | "Unsupported" => throw (.unsupported (← strField m "kind"))
     | other => throw (.unsupported other)
 

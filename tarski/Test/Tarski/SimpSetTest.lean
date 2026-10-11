@@ -59,6 +59,8 @@ private def simprocIn (n : Name) : CoreM Bool := do
 #guard_msgs in
 #eval (#[``Tarski.evalClass, ``Tarski.defineMethods, ``Tarski.initializeInstance,
   ``Tarski.initPrivateMethods, ``Tarski.initFields, ``Tarski.initFieldList,
+  ``Tarski.initStaticElements, ``Tarski.staticElements,
+  ``Tarski.ClassDef.staticElements,
   ``Tarski.mergePrivate, ``Tarski.addPrivateElement,
   ``Tarski.privateElementNames].allM unfoldsIn)
 

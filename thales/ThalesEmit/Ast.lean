@@ -328,6 +328,8 @@ partial def elementTerm : Tarski.ClassElement → RenderM Term
     ctorApp "field"
       #[← boolTerm isStatic, ← classKeyTerm key,
         ← optTerm (← value.mapM exprTerm)]
+  | .staticBlock body => do
+    ctorApp "staticBlock" #[← stmtsTerm body]
 
 partial def elementsTerm (es : List Tarski.ClassElement) : RenderM Term := do
   let xs ← es.toArray.mapM elementTerm
