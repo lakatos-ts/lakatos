@@ -4998,6 +4998,20 @@
         "budget": 0
       }
     },
+    "test/language/expressions/super": {
+      "pass": 83,
+      "fail": 5,
+      "unsupported": 4,
+      "timeout": 0,
+      "harnessError": 0,
+      "notRun": {
+        "noStrict": 2,
+        "raw": 0,
+        "async": 0,
+        "module": 0,
+        "budget": 0
+      }
+    },
     "test/language/expressions/tagged-template": {
       "pass": 19,
       "fail": 3,
