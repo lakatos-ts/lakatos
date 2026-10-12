@@ -6,6 +6,14 @@ inputs:
     description: Also build the thales-emit binary.
     default: "false"
 
+outputs:
+  cache-key:
+    description: The exact Lake cache key for this tree; the push-to-main warmer saves under it.
+    value: ${{ steps.restore.outputs.cache-primary-key }}
+  cache-hit:
+    description: "'true' when that exact key was restored, so there is nothing new to save."
+    value: ${{ steps.restore.outputs.cache-hit }}
+
 runs:
   using: composite
   steps:
@@ -39,16 +47,21 @@ runs:
       shell: bash
 
     # Restore only. The push-to-main warmer is the single writer; several
-    # jobs saving one key race and all but one fail.
+    # jobs saving one key race and all but one fail. The key is a
+    # compatibility prefix (toolchain, lakefiles, manifests) and a digest of
+    # every Lean source lake reads: a cache is immutable, so each main build
+    # needs a key of its own, and the prefix lets a miss restore the newest
+    # compatible build for lake to bring up to date.
     - name: Restore Lake build artifacts
+      id: restore
       uses: actions/cache/restore@v6
       with:
         path: |
           thales/.lake/build
           tarski/.lake/build
-        key: lake-v3-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'thales/lakefile.lean', 'thales/lake-manifest.json') }}
+        key: lake-v4-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'tarski/lake-manifest.json', 'thales/lakefile.lean', 'thales/lake-manifest.json') }}-${{ hashFiles('tarski/*.lean', 'tarski/Js/**/*.lean', 'tarski/Tarski/**/*.lean', 'tarski/Test/**/*.lean', 'thales/*.lean', 'thales/ThalesDsl/**/*.lean', 'thales/ThalesEmit/**/*.lean', 'thales/Test/**/*.lean') }}
         restore-keys: |
-          lake-v3-${{ runner.os }}-
+          lake-v4-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'tarski/lake-manifest.json', 'thales/lakefile.lean', 'thales/lake-manifest.json') }}-
 
     - name: Build
       run: lake build
