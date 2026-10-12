@@ -530,6 +530,13 @@ jobs:
         timeout-minutes: 300
         run: sh scripts/test262-full.sh
 
+      # The renderers write what prettier would, so a table prettier would
+      # rewrite is a renderer bug: fail here, before a pull request spends
+      # the full CI matrix finding it in the Format job.
+      - name: Check the table is formatted
+        working-directory: .
+        run: npx prettier --check tarski/test262/results.md tarski/test262/results.json
+
       # The table is committed only when it changed, so an unchanged week
       # leaves no commit behind. The push to `main` is tried first and
       # falls back to a pull request: the `main` ruleset (read 2026-09-14)
