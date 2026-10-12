@@ -767,15 +767,21 @@ private def literalOf (props : List PropDef) : String :=
         "property":{"type":"PrivateIdentifier","name":"x"}}}"#)
   == toString (repr [Stmt.exprStmt (.privateMember (.ident "o") "x")])
 
--- `#x in o` still leaves the slice: `in` is an operator now, but the
--- bridge already refused the bare `#x` in place, since a private name is
--- not an expression.
+-- `#x in o` is the brand check, the one place a private name stands alone.
 #guard decode (script
     r#"{"type":"ExpressionStatement","expression":{
         "type":"BinaryExpression","operator":"in",
-        "left":{"type":"Unsupported","kind":"PrivateIdentifier"},
+        "left":{"type":"PrivateIdentifier","name":"x"},
         "right":{"type":"Identifier","name":"o"}}}"#)
-  == "unsupported: PrivateIdentifier"
+  == toString (repr [Stmt.exprStmt (.privateIn "x" (.ident "o"))])
+
+-- A private name beside any other operator is a broken producer.
+#guard decode (script
+    r#"{"type":"ExpressionStatement","expression":{
+        "type":"BinaryExpression","operator":"+",
+        "left":{"type":"PrivateIdentifier","name":"x"},
+        "right":{"type":"Identifier","name":"o"}}}"#)
+  == "malformed: BinaryExpression + has a PrivateIdentifier operand"
 
 -- `new.target` likewise; #486 owns the syntax.
 #guard decode (script

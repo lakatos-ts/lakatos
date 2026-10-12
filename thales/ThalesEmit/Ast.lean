@@ -158,6 +158,8 @@ partial def exprTerm : Tarski.Expr → RenderM Term
     ctorApp "index" #[← exprTerm object, ← exprTerm key]
   | .privateMember object name => do
     ctorApp "privateMember" #[← exprTerm object, strTerm name]
+  | .privateIn name object => do
+    ctorApp "privateIn" #[strTerm name, ← exprTerm object]
   | .superMember name => ctorApp "superMember" #[strTerm name]
   | .superIndex key => do ctorApp "superIndex" #[← exprTerm key]
   | .superCall args => do ctorApp "superCall" #[← exprsTerm args]

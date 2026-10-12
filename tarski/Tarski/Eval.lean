@@ -240,7 +240,7 @@ new refusal is written against a list rather than invented.
 | a prototype change on a non-extensible object      | `TypeError`      | `#<Object> is not extensible`                                 |
 | a prototype change on `Object.prototype`           | `TypeError`      | `Immutable prototype object '#<Object>' cannot have their prototype set` |
 | a prototype change that would make a cycle         | `TypeError`      | `Cyclic __proto__ value`                                      |
-| `in` with a non-object right operand               | `TypeError`      | `Cannot use 'in' operator to search for '{key}' in {v}`       |
+| `in` with a non-object right operand (`{key}` is `#x` for a brand check) | `TypeError` | `Cannot use 'in' operator to search for '{key}' in {v}` |
 | `delete` of a bare identifier                      | `SyntaxError`    | `Delete of an unqualified identifier in strict mode.`         |
 | `Function.prototype.toString` off a function       | `TypeError`      | `Function.prototype.toString requires that 'this' be a Function` |
 | `Function.prototype.bind` off a function           | `TypeError`      | `Bind must be called on a function`                           |
@@ -830,6 +830,7 @@ def mentionsArgumentsExpr : Expr → Bool
   | .member object _ => mentionsArgumentsExpr object
   | .index object key => mentionsArgumentsExpr object || mentionsArgumentsExpr key
   | .privateMember object _ => mentionsArgumentsExpr object
+  | .privateIn _ object => mentionsArgumentsExpr object
   | .superMember _ => false
   | .superIndex key => mentionsArgumentsExpr key
   | .superCall args => mentionsArgumentsExprs args
@@ -1691,6 +1692,16 @@ def evalExpr (env : Env) : Expr → EvalM Value
   | .privateMember object name => do
     let o ← evalExpr env object
     readPrivate env o name
+  | .privateIn name object => do
+    -- 13.10.1: the right operand first; presence only, so a getter is not called.
+    let r ← evalExpr env object
+    match r with
+    | .obj o => do
+      let k ← privateName env name
+      pure (.prim (.bool ((← readObj o).getPrivate k).isSome))
+    | _ =>
+      throwJsError .typeError
+        s!"Cannot use 'in' operator to search for '#{name}' in {formatValue r}"
   | .superMember name => do
     let (parent, receiver) ← superBase env
     superRead parent receiver name

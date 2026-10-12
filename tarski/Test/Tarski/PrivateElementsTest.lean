@@ -220,3 +220,75 @@ class Q extends P { probe() { return this.#m(); } }
             [.returnStmt (some (.call (.privateMember .this "m") []))] ] },
       .exprStmt (.call (.member (.new (.ident "Q") []) "probe") []) ]
   == "uncaught: SyntaxError: Private field '#m' must be declared in an enclosing class"
+
+/-! ## The brand check `#x in o` -/
+
+/-- ```js
+class A {
+  #f = 1;
+  #m() {}
+  get #g() { throw new Error("called"); }
+  static #s = 1;
+  static f(o) { return #f in o; }
+  static m(o) { return #m in o; }
+  static g(o) { return #g in o; }
+  static s(o) { return #s in o; }
+}
+``` -/
+private def brandIn : Stmt :=
+  cls "A"
+    [ .field false (.«private» "f") (some (.numLit 1.0)),
+      .method .method false (.«private» "m") [] [],
+      .method .getter false (.«private» "g") []
+        [.throwStmt (.new (.ident "Error") [.strLit "called"])],
+      .field true (.«private» "s") (some (.numLit 1.0)),
+      .method .method true "f" ["o"] [.returnStmt (some (.privateIn "f" (.ident "o")))],
+      .method .method true "m" ["o"] [.returnStmt (some (.privateIn "m" (.ident "o")))],
+      .method .method true "g" ["o"] [.returnStmt (some (.privateIn "g" (.ident "o")))],
+      .method .method true "s" ["o"] [.returnStmt (some (.privateIn "s" (.ident "o")))] ]
+
+private def askA (member : String) (arg : Expr) : List Stmt :=
+  [brandIn, .exprStmt (.call (.member (.ident "A") member) [arg])]
+
+-- A field, a method, and an accessor are each found on an instance.
+#guard outcome (askA "f" (.new (.ident "A") [])) == "true"
+#guard outcome (askA "m" (.new (.ident "A") [])) == "true"
+-- Presence only: the getter is not called.
+#guard outcome (askA "g" (.new (.ident "A") [])) == "true"
+
+-- An object without the element answers false.
+#guard outcome (askA "f" (.objectLit [])) == "false"
+
+-- A static element is on the constructor, not on an instance.
+#guard outcome (askA "s" (.ident "A")) == "true"
+#guard outcome (askA "s" (.new (.ident "A") [])) == "false"
+
+-- A primitive right operand is a TypeError.
+#guard outcome (askA "f" (.numLit 1.0))
+  == "uncaught: TypeError: Cannot use 'in' operator to search for '#f' in 1"
+#guard outcome (askA "f" .nullLit)
+  == "uncaught: TypeError: Cannot use 'in' operator to search for '#f' in null"
+
+/-- ```js
+class O {
+  #x;
+  static inner() { return class I { #x; static h(o) { return #x in o; } }; }
+}
+``` -/
+private def shadow : Stmt :=
+  cls "O"
+    [ .field false (.«private» "x") none,
+      .method .method true "inner" []
+        [.returnStmt (some (.classExpr
+          { name := some "I", superClass := none,
+            elements :=
+              [ .field false (.«private» "x") none,
+                .method .method true "h" ["o"]
+                  [.returnStmt (some (.privateIn "x" (.ident "o")))] ] }))] ]
+
+-- `O.inner().h(new O())`: the inner `#x` is a name of its own.
+#guard outcome
+    [ shadow,
+      .exprStmt (.call (.member (.call (.member (.ident "O") "inner") []) "h")
+        [.new (.ident "O") []]) ]
+  == "false"

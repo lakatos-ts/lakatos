@@ -100,6 +100,7 @@ literal already share. -/
 #guard rendersSyntax (exprTerm (.index (.ident "o") (.strLit "p")))
   `(.index (.ident "o") (.strLit "p"))
 #guard rendersSyntax (exprTerm (.privateMember .this "v")) `(.privateMember .this "v")
+#guard rendersSyntax (exprTerm (.privateIn "v" .this)) `(.privateIn "v" .this)
 #guard rendersSyntax (exprTerm (.superMember "p")) `(.superMember "p")
 #guard rendersSyntax (exprTerm (.superIndex (.ident "k"))) `(.superIndex (.ident "k"))
 #guard rendersSyntax (exprTerm (.superCall [.ident "x"])) `(.superCall [.ident "x"])

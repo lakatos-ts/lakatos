@@ -34,9 +34,9 @@ early error this epic does not check.
 
 Classes arrive whole. What a class may spell and the AST may not is
 refused here by name: a numeric or computed key, an `async` or
-generator member, an `accessor` field, and a decorator.
-`new.target` and `#x in o` never reach this file — the bridge has no
-node for either, so each arrives as a placeholder.
+generator member, an `accessor` field, and a decorator. `new.target`
+never reaches this file — the bridge has no node for it, so it arrives
+as a placeholder.
 
 A string literal is decoded from its `raw` source text, not from its
 `value`: `Lean.Json` replaces a lone surrogate with U+FFFD, so `"\uD800"`
@@ -363,8 +363,16 @@ partial def decodeExpr (j : Json) : DecodeM Expr := do
     else
       pure (.unary (← unaryOp (← strField j "operator")) (← decodeExpr (← field j "argument")))
   | "BinaryExpression" =>
-    pure (.binary (← binaryOp (← strField j "operator"))
-      (← decodeExpr (← field j "left")) (← decodeExpr (← field j "right")))
+    let op ← strField j "operator"
+    let left ← field j "left"
+    -- `#x in o` is the one place a private name stands alone.
+    if (← nodeType left) == "PrivateIdentifier" then
+      if op == "in" then
+        pure (.privateIn (← strField left "name") (← decodeExpr (← field j "right")))
+      else
+        bad s!"BinaryExpression {op} has a PrivateIdentifier operand"
+    else
+      pure (.binary (← binaryOp op) (← decodeExpr left) (← decodeExpr (← field j "right")))
   | "LogicalExpression" =>
     pure (.logical (← logicalOp (← strField j "operator"))
       (← decodeExpr (← field j "left")) (← decodeExpr (← field j "right")))
