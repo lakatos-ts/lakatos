@@ -12,8 +12,8 @@ one witness per `@ensures`, so `lake build TarskiTest` checks the
 fragment those proofs are about without running Node.
 
 What is refused rather than evaluated is `Tarski/Decode.lean`'s business
-and pinned there: a computed key, a decorator, `new.target`, and
-`#x in o` never reach an AST. Private methods and accessors are
+and pinned there: a computed key, a decorator, and `new.target` never
+reach an AST. Private methods and accessors are
 `Test/Tarski/PrivateElementsTest.lean`'s. What is *out of scope* is
 descriptors (#389), so `Object.keys` still lists a method and a
 class's `name` does not exist; its `length` is #393's and does, which
@@ -962,3 +962,60 @@ private def superAssign : List Stmt :=
           .method .method "m" [] [.returnStmt (some (.superIndex (.ident "key")))] ]),
       .exprStmt (.call (.member (.ident "o") "m") []) ]
   == "p1"
+
+/-! ## `delete super.x` -/
+
+-- `class A {} class B extends A { m() { return delete super.x; } } new B().m()`
+#guard outcome
+    [ cls "A" [],
+      subcls "B" "A" [ .method .method false "m" []
+        [.returnStmt (some (.delete (.superMember "x")))] ],
+      .exprStmt (.call (.member (.new (.ident "B") []) "m") []) ]
+  == "uncaught: ReferenceError: Unsupported reference to 'super'"
+
+-- A home object with a null prototype still throws: the base is never read.
+-- `class C { static m() { delete super.x; } } Object.setPrototypeOf(C, null); C.m()`
+#guard outcome
+    [ cls "C" [ .method .method true "m" [] [.exprStmt (.delete (.superMember "x"))] ],
+      .exprStmt (.call (.member (.ident "Object") "setPrototypeOf") [.ident "C", .nullLit]),
+      .exprStmt (.call (.member (.ident "C") "m") []) ]
+  == "uncaught: ReferenceError: Unsupported reference to 'super'"
+
+-- Before `super()` the `this` read fails first.
+-- `class A {} class B extends A { constructor() { delete super.x; super(); } } new B()`
+#guard outcome
+    [ cls "A" [],
+      .classDecl "B"
+        { name := some "B", superClass := some (.ident "A"),
+          elements := [.ctor [] [ .exprStmt (.delete (.superMember "x")),
+                                  .exprStmt (.superCall []) ]] },
+      .exprStmt (.new (.ident "B") []) ]
+  == ("uncaught: ReferenceError: Must call super constructor in derived class " ++
+      "before accessing 'this' or returning from derived constructor")
+
+-- The key runs but is never converted: `toString` would add "s".
+-- `let log = ""; const key = {};`
+-- `key.toString = function () { log += "s"; return "x"; };`
+-- `function k() { log += "k"; return key; }`
+-- `class A {} class B extends A { m() { delete super[k()]; } }`
+-- `try { new B().m(); } catch (e) { log += e.constructor.name; } log`
+#guard outcome
+    [ .varDecl .«let» [{ target := "log", init := some (.strLit "") }],
+      letConst "key" (.objectLit []),
+      .exprStmt (.assign (.member (.ident "key") "toString")
+        (.funcExpr none []
+          [ .exprStmt (.compoundAssign .add (.ident "log") (.strLit "s")),
+            .returnStmt (some (.strLit "x")) ])),
+      .funcDecl "k" []
+        [ .exprStmt (.compoundAssign .add (.ident "log") (.strLit "k")),
+          .returnStmt (some (.ident "key")) ],
+      cls "A" [],
+      subcls "B" "A" [ .method .method false "m" []
+        [.exprStmt (.delete (.superIndex (.call (.ident "k") [])))] ],
+      .tryStmt [ .exprStmt (.call (.member (.new (.ident "B") []) "m") []) ]
+        (some { param := some "e",
+                body := [ .exprStmt (.compoundAssign .add (.ident "log")
+                  (.member (.member (.ident "e") "constructor") "name")) ] })
+        none,
+      .exprStmt (.ident "log") ]
+  == "kReferenceError"

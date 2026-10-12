@@ -732,14 +732,8 @@ describe("parseScript", () => {
     validate(program);
   });
 
-  // Neither has a node in the slice, so each leaves it whole.
-  it("refuses `#x in o` and `new.target`", () => {
-    const brand = parseScript(
-      '"use strict";\nclass A {\n  #x;\n  static has(o) { return #x in o; }\n}\n',
-      "b.js",
-    );
-    expect(JSON.stringify(brand)).toContain('"kind":"PrivateIdentifier"');
-    validate(brand);
+  // It has no node in the slice, so it leaves it whole.
+  it("refuses `new.target`", () => {
     const meta = parseScript(
       '"use strict";\nfunction f() { return new.target; }\n',
       "nt.js",
@@ -918,6 +912,18 @@ describe("parseScript", () => {
         property: { type: "PrivateIdentifier", name: "x" },
       },
     });
+    validate(program);
+  });
+
+  // `#x in o` is the one place a private name stands alone.
+  it("emits a private name as the left operand of in", () => {
+    const program = parseScript(
+      '"use strict";\nclass A { #x; static h(o) { return #x in o; } }\n',
+      "pin.js",
+    );
+    expect(JSON.stringify(program)).toContain(
+      '"left":{"type":"PrivateIdentifier","name":"x"}',
+    );
     validate(program);
   });
 

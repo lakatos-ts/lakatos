@@ -472,7 +472,12 @@
             "instanceof"
           ]
         },
-        "left": { "$ref": "#/definitions/Expression" },
+        "left": {
+          "anyOf": [
+            { "$ref": "#/definitions/Expression" },
+            { "$ref": "#/definitions/PrivateIdentifier" }
+          ]
+        },
         "right": { "$ref": "#/definitions/Expression" }
       },
       "required": ["type", "operator", "left", "right"],
@@ -927,7 +932,7 @@
     },
 
     "PrivateIdentifier": {
-      "description": "A `#name`, with the `#` stripped as ESTree has it. Not an `Expression` either: a bare private name is legal only as the left operand of `in`, which is outside the slice, so the bridge emits `Unsupported` there and this node appears only as a member access's property.",
+      "description": "A `#name`, with the `#` stripped as ESTree has it. Not an `Expression`: it appears as a member access's property and as the left operand of `in`, the brand check.",
       "type": "object",
       "properties": {
         "type": { "const": "PrivateIdentifier" },

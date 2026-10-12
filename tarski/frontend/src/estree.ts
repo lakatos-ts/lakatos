@@ -134,7 +134,7 @@ export interface UpdateExpression {
 export interface BinaryExpression {
   type: "BinaryExpression";
   operator: string;
-  left: Expression;
+  left: Expression | PrivateIdentifier;
   right: Expression;
 }
 
@@ -157,7 +157,8 @@ export interface Super {
 }
 
 /** A `#name`, which is not an expression either: it may only be a
- * member access's property. `name` is ESTree's — without the `#`. */
+ * member access's property or the left operand of `in`. `name` is
+ * ESTree's — without the `#`. */
 export interface PrivateIdentifier {
   type: "PrivateIdentifier";
   name: string;
@@ -1395,7 +1396,10 @@ function expression(node: ts.Expression, sf: ts.SourceFile): Expression {
     return {
       type: "BinaryExpression",
       operator,
-      left: expression(node.left, sf),
+      left:
+        operator === "in" && ts.isPrivateIdentifier(node.left)
+          ? { type: "PrivateIdentifier", name: node.left.text.slice(1) }
+          : expression(node.left, sf),
       right: expression(node.right, sf),
     };
   }

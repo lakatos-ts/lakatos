@@ -17,7 +17,8 @@ object-literal directories #395 added, the seven `Symbol`, `JSON`, and
 `*Error` directories #392 added, `test/built-ins/String`, which #391
 added, the ten iterator, `for`-`of`, spread, and array-literal
 directories #394 added, the forty-eight `Array` directories #390
-added, and `test/language/expressions/super`, which #601 added — and
+added, `test/language/expressions/super`, which #601 added, and the `in`
+and `delete` directories #599 added — and
 `tarski/frontend/tests/test262-failures.test.ts` holds this file and
 `tarski/test262/expected.json` together: each directory named here is a key
 of that file, every directory with a positive `fail` count appears, and the
@@ -213,6 +214,11 @@ and filed (#512), and 1 `JSON.stringify` writing a lone surrogate as
 U+FFFD rather than its `\u` escape, because the JSON text is a Lean
 `String` (#522). **Not one is a symbol, a JSON text, or an `Error` member
 answering the wrong thing.**
+
+**The two directories #599 added are 55 pass, 4 fail, and 7
+unsupported.** Not one failure is the brand check or `delete`: 2 are
+`RegExp`, 1 `eval`, and 1 a top-level `this` with no global object
+(#487).
 
 ## The table
 
@@ -562,12 +568,15 @@ answering the wrong thing.**
 | `test/language/expressions/class/subclass-builtins`                   | 1     | out-of-scope | regular expressions are excluded by the epic                                                                        | #376  |
 | `test/language/expressions/class/subclass-builtins`                   | 1     | out-of-scope | the `Function` constructor is excluded by the epic                                                                  | #376  |
 | `test/language/expressions/conditional`                               | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
+| `test/language/expressions/delete`                                    | 2     | out-of-scope | regular expressions are excluded by the epic                                                                        | #376  |
+| `test/language/expressions/delete`                                    | 1     | builtin      | there is no global object, so a top-level `this` is `undefined`                                                     | #487  |
 | `test/language/expressions/division`                                  | 11    | builtin      | the global `isNaN` and `isFinite` are not in the realm                                                              | #441  |
 | `test/language/expressions/division`                                  | 2     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/expressions/division`                                  | 1     | bug          | the left operand is not converted fully before the right one                                                        | #436  |
 | `test/language/expressions/function`                                  | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/expressions/greater-than`                              | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/expressions/greater-than-or-equal`                     | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
+| `test/language/expressions/in`                                        | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/expressions/less-than`                                 | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/expressions/less-than-or-equal`                        | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/expressions/logical-and`                               | 2     | builtin      | the global `isNaN` and `isFinite` are not in the realm                                                              | #441  |
