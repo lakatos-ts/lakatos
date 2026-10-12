@@ -606,6 +606,18 @@ private def onlyStandard (n : Name) : CoreM Bool := do
 
 /-- info: true -/
 #guard_msgs in
+#eval onlyStandard ``Tarski.superHome
+
+/-- info: true -/
+#guard_msgs in
+#eval onlyStandard ``Tarski.superParent
+
+/-- info: true -/
+#guard_msgs in
+#eval onlyStandard ``Tarski.superRef
+
+/-- info: true -/
+#guard_msgs in
 #eval onlyStandard ``Tarski.superRead
 
 /-- info: true -/
