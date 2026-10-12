@@ -105,8 +105,8 @@ test/built-ins/String
 
 # Iterators, for-of, spread, and destructuring (#394). Spread has no
 # directory of its own at the pin: its tests are the `spread-*` files
-# under `call` (already here), `new`, `array`, and `super`, and `super`
-# stays out with the rest of #384's leftovers. The `dstr` subtree of
+# under `call` (already here), `new`, `array`, and `super`, which has a
+# block of its own below. The `dstr` subtree of
 # every directory above ratchets with this block.
 test/language/statements/for-of
 test/language/expressions/array
@@ -117,3 +117,7 @@ test/built-ins/ArrayIteratorPrototype
 # them. fromAsync is async and not run; the ES2023 members are the
 # follow-up's.
 test/built-ins/Array
+
+# Super calls and super property references (#601), the class
+# directory #384 left out.
+test/language/expressions/super

@@ -16,8 +16,8 @@ instantiation, jump, and `arguments` directories #393 added, the two
 object-literal directories #395 added, the seven `Symbol`, `JSON`, and
 `*Error` directories #392 added, `test/built-ins/String`, which #391
 added, the ten iterator, `for`-`of`, spread, and array-literal
-directories #394 added, and the forty-eight `Array` directories #390
-added — and
+directories #394 added, the forty-eight `Array` directories #390
+added, and `test/language/expressions/super`, which #601 added — and
 `tarski/frontend/tests/test262-failures.test.ts` holds this file and
 `tarski/test262/expected.json` together: each directory named here is a key
 of that file, every directory with a positive `fail` count appears, and the
@@ -68,7 +68,7 @@ left are filed rather than classified under a closed issue — #531,
 `%IteratorPrototype%` carrying no `@@toStringTag` — and #533 is the
 destructuring evaluation order the two order tests see.
 
-The 1,665 failures below, by owner: 1,036 what #376 excludes (`eval`,
+The 1,670 failures below, by owner: 1,040 what #376 excludes (`eval`,
 `Date`, `RegExp`, `Proxy`, `Reflect`, typed arrays, the keyed
 collections, explicit resource management, the `Iterator` constructor and
 its helpers, `Error.prototype.stack`, `JSON.rawJSON` and the reviver's
@@ -82,8 +82,8 @@ the global `isNaN` and `isFinite` (#441), 18 ToLength of an infinite
 `Array.from` over an iterable (#531), 13 `Math.clz32`/`imul` (#440), 10
 the `@@split`, `@@replace`, and `@@match` lookups the `String` methods
 skip (#523), 5 `Array.prototype[@@unscopables]` (#524), 5 `Math.random`
-(#445), 2 `%IteratorPrototype%`'s `@@toStringTag` (#532), and 20 the nine
-filed defects (#436, #460, #496, #499, #512, #516, #520, #522, and
+(#445), 2 `%IteratorPrototype%`'s `@@toStringTag` (#532), and 21 the ten
+filed defects (#436, #460, #476, #496, #499, #512, #516, #520, #522, and
 #533).
 
 **Two class evaluations were wrong** when the class directories were
@@ -106,6 +106,14 @@ which the field half of the same test fails first.
 **Static blocks moved 29 tests from unsupported to pass** and none to
 fail: 14 of them under the class directories and the rest scattered
 through `function`, `object`, the declarations, and `try`.
+
+**`test/language/expressions/super` joined the slice at 83 pass and 5
+fail.** Four of the five read a super property through direct `eval`;
+the fifth is `super()` against a parent that is not a constructor, which
+throws before evaluating its arguments where 13.3.7.1 evaluates them
+first (#476). The four `getsuperbase-before-topropertykey` tests, which
+pin `super[k]` reading the home object before converting `k`, pass, and
+the slice now holds them there.
 
 **Super member writes moved 7 tests from unsupported to pass** and none
 to fail: 3 under the class directories, 3 under `assignment`, and 1
@@ -580,6 +588,8 @@ answering the wrong thing.**
 | `test/language/expressions/subtraction`                               | 9     | builtin      | the global `isNaN` and `isFinite` are not in the realm                                                              | #441  |
 | `test/language/expressions/subtraction`                               | 1     | bug          | the left operand is not converted fully before the right one                                                        | #436  |
 | `test/language/expressions/subtraction`                               | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
+| `test/language/expressions/super`                                     | 4     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
+| `test/language/expressions/super`                                     | 1     | bug          | `super()` with a non-constructor parent throws before evaluating its arguments                                      | #476  |
 | `test/language/expressions/tagged-template`                           | 3     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/expressions/template-literal`                          | 1     | out-of-scope | `eval` is excluded by the epic                                                                                      | #376  |
 | `test/language/expressions/unary-minus`                               | 3     | builtin      | the global `isNaN` and `isFinite` are not in the realm                                                              | #441  |
