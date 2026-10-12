@@ -267,15 +267,14 @@ private def classSlice : Program :=
           "property":{"type":"Identifier","name":"x"}}}}"#)
   == toString (repr [Stmt.exprStmt (.delete (.member (.ident "o") "x"))])
 
--- `delete super.x` is refused by name: the specification makes it a
--- `ReferenceError`, which is semantics this AST does not carry.
+-- `delete super.x` decodes; the evaluator raises the `ReferenceError`.
 #guard decode (script
     r#"{"type":"ExpressionStatement","expression":{
         "type":"UnaryExpression","operator":"delete","prefix":true,
         "argument":{"type":"MemberExpression","computed":false,
           "object":{"type":"Super"},
           "property":{"type":"Identifier","name":"x"}}}}"#)
-  == "unsupported: UnaryExpression delete super"
+  == toString (repr [Stmt.exprStmt (.delete (.superMember "x"))])
 
 -- A target the slice cannot assign through reports itself: the bridge's
 -- placeholder for the member access is what names the refusal.

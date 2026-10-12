@@ -34,7 +34,7 @@ early error this epic does not check.
 
 Classes arrive whole. What a class may spell and the AST may not is
 refused here by name: a numeric or computed key, an `async` or
-generator member, an `accessor` field, a decorator, and `delete super.x`.
+generator member, an `accessor` field, and a decorator.
 `new.target` and `#x in o` never reach this file — the bridge has no
 node for either, so each arrives as a placeholder.
 
@@ -357,14 +357,9 @@ partial def decodeExpr (j : Json) : DecodeM Expr := do
   | "Identifier" => pure (identExpr (← strField j "name"))
   | "UnaryExpression" =>
     -- `delete` is not a `UnaryOp`: it takes a reference rather than a
-    -- value, so it is an `Expr` of its own. A `super` member operand is
-    -- refused by name — `delete super.x` is a `ReferenceError` at
-    -- runtime in the specification, which is semantics this AST does not
-    -- carry.
+    -- value, so it is an `Expr` of its own.
     if (← strField j "operator") == "delete" then
-      match ← decodeExpr (← field j "argument") with
-      | .superMember _ | .superIndex _ => throw (.unsupported "UnaryExpression delete super")
-      | operand => pure (.delete operand)
+      pure (.delete (← decodeExpr (← field j "argument")))
     else
       pure (.unary (← unaryOp (← strField j "operator")) (← decodeExpr (← field j "argument")))
   | "BinaryExpression" =>

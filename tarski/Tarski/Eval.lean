@@ -211,6 +211,7 @@ new refusal is written against a list rather than invented.
 | a parent whose `prototype` is neither an object nor `null` | `TypeError` | `Class extends value does not have valid prototype property {p}` |
 | `this` read, or a derived constructor finishing, before `super()` | `ReferenceError` | `Must call super constructor in derived class before accessing 'this' or returning from derived constructor` |
 | `super()` a second time                            | `ReferenceError` | `Super constructor may only be called once`                   |
+| `delete` of a `super` property                     | `ReferenceError` | `Unsupported reference to 'super'`                            |
 | a derived constructor returning a non-`undefined` primitive | `TypeError` | `Derived constructors may only return object or undefined`   |
 | `super` where no method is active                  | `SyntaxError`    | `'super' keyword unexpected here`                             |
 | the parent of a derived class not a constructor    | `TypeError`      | `Super constructor null of anonymous class is not a constructor` |
@@ -1713,6 +1714,15 @@ def evalExpr (env : Env) : Expr → EvalM Value
       let base ← evalExpr env object
       let k ← evalExpr env key
       pure (.prim (.bool (← deleteProp base (← toPropertyKey k))))
+    -- 13.5.1.2 step 5.b: the super reference is built (`this` read, the
+    -- key evaluated but not converted) and then refused.
+    | .superMember _ => do
+      let _ ← superBase env
+      throwJsError .referenceError "Unsupported reference to 'super'"
+    | .superIndex key => do
+      let _ ← superBase env
+      let _ ← evalExpr env key
+      throwJsError .referenceError "Unsupported reference to 'super'"
     | e => do
       let _ ← evalExpr env e
       pure (.prim (.bool true))
