@@ -32,11 +32,9 @@ runs:
         lint: false
         use-github-cache: false
 
-    # Restore only; the push-to-main warmer is the single writer. The key is
-    # a compatibility prefix (toolchain, lakefile, manifest) and a digest of
-    # every Lean source lake reads: a cache is immutable, so each main build
-    # needs a key of its own, and the prefix lets a miss restore the newest
-    # compatible build for lake to bring up to date.
+    # Restore only; the push-to-main warmer is the single writer. Caches are
+    # immutable, so the key digests the Lean sources; the prefix (toolchain,
+    # lakefile, manifest) is the compatibility fallback.
     - name: Restore Lake build artifacts
       id: restore
       uses: actions/cache/restore@v6

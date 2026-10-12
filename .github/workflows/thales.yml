@@ -14,6 +14,8 @@ on:
       - "tsconfig.json"
       - "tsconfig.base.json"
       - ".github/workflows/thales.yml"
+      # The setup action owns the Lake cache key; a change there must warm.
+      - ".github/actions/thales-setup/**"
   # No path filter: this job is a required check on main, and a required
   # check that never reports reads as pending forever, not as skipped. The
   # push trigger above stays filtered — nothing gates on it.
