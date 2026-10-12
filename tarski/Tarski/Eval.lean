@@ -1731,8 +1731,7 @@ def evalExpr (env : Env) : Expr → EvalM Value
       let _ ← superBase env
       throwJsError .referenceError "Unsupported reference to 'super'"
     | .superIndex key => do
-      let _ ← superBase env
-      let _ ← evalExpr env key
+      let _ ← superRef env key
       throwJsError .referenceError "Unsupported reference to 'super'"
     | e => do
       let _ ← evalExpr env e
