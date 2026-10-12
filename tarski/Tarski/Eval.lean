@@ -1694,8 +1694,7 @@ def evalExpr (env : Env) : Expr → EvalM Value
     let (parent, receiver) ← superBase env
     superRead parent receiver name
   | .superIndex key => do
-    let (parent, receiver) ← superBase env
-    let k ← evalExpr env key
+    let (parent, receiver, k) ← superRef env key
     superRead parent receiver (← toPropertyKey k)
   | .superCall args => evalSuperCall env args
   | .classExpr cls => evalClass env cls ""
@@ -1804,8 +1803,7 @@ def evalExpr (env : Env) : Expr → EvalM Value
       superWrite parent receiver name v
       pure v
     | .superIndex key => do
-      let (parent, receiver) ← superBase env
-      let k ← evalExpr env key
+      let (parent, receiver, k) ← superRef env key
       let v ← evalExpr env value
       superWrite parent receiver (← toPropertyKey k) v
       pure v
@@ -1852,8 +1850,8 @@ def evalExpr (env : Env) : Expr → EvalM Value
       superWrite parent receiver name result
       pure result
     | .superIndex key => do
-      let (parent, receiver) ← superBase env
-      let k ← toPropertyKey (← evalExpr env key)
+      let (parent, receiver, kv) ← superRef env key
+      let k ← toPropertyKey kv
       let l ← superRead parent receiver k
       let r ← evalExpr env value
       let result ← applyCoercing op l r
@@ -1896,8 +1894,8 @@ def evalExpr (env : Env) : Expr → EvalM Value
       superWrite parent receiver name (.prim (.num stepped))
       pure (.prim (.num (if isPrefix then stepped else old)))
     | .superIndex key => do
-      let (parent, receiver) ← superBase env
-      let k ← toPropertyKey (← evalExpr env key)
+      let (parent, receiver, kv) ← superRef env key
+      let k ← toPropertyKey kv
       let old ← toNumberValue (← superRead parent receiver k)
       let stepped := op.step old
       superWrite parent receiver k (.prim (.num stepped))
@@ -2044,8 +2042,7 @@ def evalLeafRef (env : Env) : Target → EvalM LeafRef
     let (parent, receiver) ← superBase env
     pure (.superProp parent receiver name)
   | .superIndex key => do
-    let (parent, receiver) ← superBase env
-    let k ← evalExpr env key
+    let (parent, receiver, k) ← superRef env key
     pure (.superProp parent receiver (← toPropertyKey k))
   partial_fixpoint
 
@@ -2431,8 +2428,7 @@ def evalCallee (env : Env) : Expr → EvalM (Value × Value)
     let f ← superRead parent receiver name
     pure (f, receiver)
   | .superIndex key => do
-    let (parent, receiver) ← superBase env
-    let k ← evalExpr env key
+    let (parent, receiver, k) ← superRef env key
     let f ← superRead parent receiver (← toPropertyKey k)
     pure (f, receiver)
   | callee => do
@@ -5894,26 +5890,41 @@ def writePrivate (env : Env) (base : Value) (name : String) (v : Value) : EvalM 
       s!"Cannot write private member #{name} to an object whose class did not declare it"
   partial_fixpoint
 
-/-- MakeSuperPropertyReference's first two steps (13.3.7.2): the object
-the read will go through — the home object's *prototype* — and the
-current `this`, which is the receiver a getter found there will see.
-
-**Both are taken before the property expression runs.** The
-specification reads the `this` binding at step 2 and evaluates the key
-at step 3, so `super[super()]` inside a derived constructor is the dead
-zone's `ReferenceError` and not a read through whatever that `super()`
-would have bound. `super` where no home object is bound is a
-`SyntaxError` — an early error in the specification, which tsc leaves to
-its checker and this epic reports at the point of use. -/
-def superBase (env : Env) : EvalM (Option Ref × Value) := do
+/-- The home object, or the `SyntaxError` for `super` where none is bound:
+an early error in the specification, which tsc leaves to its checker and
+this evaluator reports at the point of use. -/
+def superHome (env : Env) : EvalM Value :=
   match Env.lookup env homeName with
   | none => throwJsError .syntaxError "'super' keyword unexpected here"
-  | some hr => do
-    let home ← readCell homeName hr
-    let receiver ← evalExpr env .this
-    match home with
-    | .obj h => pure ((← readObj h).proto, receiver)
-    | _ => pure (none, receiver)
+  | some hr => readCell homeName hr
+
+/-- GetSuperBase (9.1.1.3.5): the home object's prototype, the object a
+super reference searches from. -/
+def superParent (home : Value) : EvalM (Option Ref) :=
+  match home with
+  | .obj h => do pure (← readObj h).proto
+  | _ => pure none
+
+/-- MakeSuperPropertyReference (13.3.7.2) for `super.name`: the parent
+the search runs from and the current `this`, which a getter found there
+will see. `this` is read before anything else, so inside a derived
+constructor's dead zone the reference is the `ReferenceError`. -/
+def superBase (env : Env) : EvalM (Option Ref × Value) := do
+  let home ← superHome env
+  let receiver ← evalExpr env .this
+  pure (← superParent home, receiver)
+  partial_fixpoint
+
+/-- The same for `super[key]`, in 13.3.7.1's order: `this`, then the key
+expression, then the prototype. So `super[super()]` is the dead zone with
+the key unevaluated, and a key that moves the home object's prototype
+is seen. The key is answered as a *value*: ToPropertyKey belongs to the
+read or write, after the prototype. -/
+def superRef (env : Env) (key : Expr) : EvalM (Option Ref × Value × Value) := do
+  let home ← superHome env
+  let receiver ← evalExpr env .this
+  let k ← evalExpr env key
+  pure (← superParent home, receiver, k)
   partial_fixpoint
 
 /-- The read itself, once `superBase` has the two halves of the
@@ -6447,8 +6458,8 @@ def bindForIn (env : Env) (left : ForInLeft) (v : Value) : EvalM Env := do
     superWrite parent receiver name v
     pure env
   | .target (.superIndex key) => do
-    let (parent, receiver) ← superBase env
-    superWrite parent receiver (← toPropertyKey (← evalExpr env key)) v
+    let (parent, receiver, k) ← superRef env key
+    superWrite parent receiver (← toPropertyKey k) v
     pure env
   partial_fixpoint
 

@@ -889,3 +889,76 @@ private def superAssign : List Stmt :=
       .exprStmt (.call (.member (.new (.ident "C") []) "m") []),
       .exprStmt (.call (.member (.ident "log") "join") []) ]
   == "rhs,key"
+
+-- The home object's prototype is read *after* the key expression
+-- (13.3.7.1: GetThisBinding, the key, then MakeSuperPropertyReference),
+-- so a key that moves the prototype writes through the new one:
+-- `let res; const p1 = { set p(v) { res = "p1"; } }; const p2 = { set p(v) { res = "p2"; } };`
+-- `const kf = () => { Object.setPrototypeOf(o, p2); return "p"; };`
+-- `const o = { __proto__: p1, m() { super[kf()] = 1; } }; o.m(); res;`
+#guard outcome
+    [ .varDecl .«let» [{ target := "res", init := none }],
+      letConst "p1" (.objectLit [ .method .setter "p" ["v"]
+        [.exprStmt (.assign (.ident "res") (.strLit "p1"))] ]),
+      letConst "p2" (.objectLit [ .method .setter "p" ["v"]
+        [.exprStmt (.assign (.ident "res") (.strLit "p2"))] ]),
+      letConst "kf" (.arrow [] (.block
+        [ .exprStmt (.call (.member (.ident "Object") "setPrototypeOf") [.ident "o", .ident "p2"]),
+          .returnStmt (some (.strLit "p")) ])),
+      letConst "o" (.objectLit
+        [ .proto (.ident "p1"),
+          .method .method "m" []
+            [.exprStmt (.assign (.superIndex (.call (.ident "kf") [])) (.numLit 1.0))] ]),
+      .exprStmt (.call (.member (.ident "o") "m") []),
+      .exprStmt (.ident "res") ]
+  == "p2"
+
+-- The read form, same order:
+-- `const p1 = { get p() { return "p1"; } }; const p2 = { get p() { return "p2"; } };`
+-- `const kf = () => { Object.setPrototypeOf(o, p2); return "p"; };`
+-- `const o = { __proto__: p1, m() { return super[kf()]; } }; o.m();`
+#guard outcome
+    [ letConst "p1" (.objectLit [ .method .getter "p" [] [.returnStmt (some (.strLit "p1"))] ]),
+      letConst "p2" (.objectLit [ .method .getter "p" [] [.returnStmt (some (.strLit "p2"))] ]),
+      letConst "kf" (.arrow [] (.block
+        [ .exprStmt (.call (.member (.ident "Object") "setPrototypeOf") [.ident "o", .ident "p2"]),
+          .returnStmt (some (.strLit "p")) ])),
+      letConst "o" (.objectLit
+        [ .proto (.ident "p1"),
+          .method .method "m" [] [.returnStmt (some (.superIndex (.call (.ident "kf") [])))] ]),
+      .exprStmt (.call (.member (.ident "o") "m") []) ]
+  == "p2"
+
+-- The call form, same order, and the callee still runs on the receiver:
+-- `const p1 = { p() { return "p1"; } }; const p2 = { p() { return this === o; } };`
+-- `const kf = () => { Object.setPrototypeOf(o, p2); return "p"; };`
+-- `const o = { __proto__: p1, m() { return super[kf()](); } }; o.m();`
+#guard outcome
+    [ letConst "p1" (.objectLit [ .method .method "p" [] [.returnStmt (some (.strLit "p1"))] ]),
+      letConst "p2" (.objectLit [ .method .method "p" []
+        [.returnStmt (some (.binary .strictEq .this (.ident "o")))] ]),
+      letConst "kf" (.arrow [] (.block
+        [ .exprStmt (.call (.member (.ident "Object") "setPrototypeOf") [.ident "o", .ident "p2"]),
+          .returnStmt (some (.strLit "p")) ])),
+      letConst "o" (.objectLit
+        [ .proto (.ident "p1"),
+          .method .method "m" [] [.returnStmt (some (.call (.superIndex (.call (.ident "kf") [])) []))] ]),
+      .exprStmt (.call (.member (.ident "o") "m") []) ]
+  == "true"
+
+-- But ToPropertyKey runs at the read, *after* the prototype is taken, so
+-- a key whose `toString` moves the prototype still reads through the old one:
+-- `const p1 = { get p() { return "p1"; } }; const p2 = { get p() { return "p2"; } };`
+-- `const key = { toString() { Object.setPrototypeOf(o, p2); return "p"; } };`
+-- `const o = { __proto__: p1, m() { return super[key]; } }; o.m();`
+#guard outcome
+    [ letConst "p1" (.objectLit [ .method .getter "p" [] [.returnStmt (some (.strLit "p1"))] ]),
+      letConst "p2" (.objectLit [ .method .getter "p" [] [.returnStmt (some (.strLit "p2"))] ]),
+      letConst "key" (.objectLit [ .method .method "toString" []
+        [ .exprStmt (.call (.member (.ident "Object") "setPrototypeOf") [.ident "o", .ident "p2"]),
+          .returnStmt (some (.strLit "p")) ] ]),
+      letConst "o" (.objectLit
+        [ .proto (.ident "p1"),
+          .method .method "m" [] [.returnStmt (some (.superIndex (.ident "key")))] ]),
+      .exprStmt (.call (.member (.ident "o") "m") []) ]
+  == "p1"
