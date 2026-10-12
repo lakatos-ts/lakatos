@@ -580,8 +580,6 @@ jobs:
           Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
           This arrives as a pull request because the \`main\` ruleset requires status checks with no bypass actor, so the job's own commit cannot be pushed to \`main\`. A pull request opened by \`GITHUB_TOKEN\` gets no CI run until it is closed and reopened, or pushed to.
-
-          🤖 Generated with [Claude Code](https://claude.com/claude-code)
           BODY
           number=$(gh pr list --head test262-results --state open --json number --jq '.[0].number // empty')
           if [ -z "$number" ]; then
