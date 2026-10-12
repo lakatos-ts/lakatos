@@ -4676,6 +4676,20 @@
         "budget": 0
       }
     },
+    "test/language/expressions/delete": {
+      "pass": 37,
+      "fail": 3,
+      "unsupported": 2,
+      "timeout": 0,
+      "harnessError": 0,
+      "notRun": {
+        "noStrict": 25,
+        "raw": 0,
+        "async": 0,
+        "module": 0,
+        "budget": 0
+      }
+    },
     "test/language/expressions/division": {
       "pass": 24,
       "fail": 14,
@@ -4770,6 +4784,20 @@
         "noStrict": 1,
         "raw": 0,
         "async": 0,
+        "module": 0,
+        "budget": 0
+      }
+    },
+    "test/language/expressions/in": {
+      "pass": 18,
+      "fail": 1,
+      "unsupported": 5,
+      "timeout": 0,
+      "harnessError": 0,
+      "notRun": {
+        "noStrict": 2,
+        "raw": 0,
+        "async": 1,
         "module": 0,
         "budget": 0
       }

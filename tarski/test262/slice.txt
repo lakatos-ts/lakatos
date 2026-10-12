@@ -121,3 +121,8 @@ test/built-ins/Array
 # Super calls and super property references (#601), the class
 # directory #384 left out.
 test/language/expressions/super
+
+# The brand check `#x in o` and `delete` of a super reference, with the
+# rest of `in` and `delete` beside them.
+test/language/expressions/in
+test/language/expressions/delete
