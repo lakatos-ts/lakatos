@@ -486,8 +486,13 @@ type Align = "left" | "right";
 function markdownTable(
   header: readonly string[],
   align: readonly Align[],
-  rows: readonly (readonly string[])[],
+  unescaped: readonly (readonly string[])[],
 ): string {
+  // A `|` inside a cell would open a new one: the unsupported kinds
+  // `|=` and `||=` are spelled `\|`, and prettier pads the escaped text.
+  const rows = unescaped.map((row) =>
+    row.map((cell) => cell.replaceAll("|", "\\|")),
+  );
   // Three is prettier's floor: a rule needs `---` or `--:` to be one.
   const widths = header.map((cell) => Math.max(3, cell.length));
   for (const row of rows) {
