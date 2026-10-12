@@ -485,6 +485,27 @@ describe("renderMarkdown", () => {
     expect(markdown).toContain(`| ${long} |`);
     expect(await format(markdown, { parser: "markdown" })).toBe(markdown);
   });
+
+  it("is prettier-clean when an unsupported kind carries a pipe", async () => {
+    const markdown = renderMarkdown(
+      summaryOf(
+        [
+          ran("test/a/b", "one.js", {
+            class: "unsupported",
+            kind: "AssignmentExpression ||=",
+          }),
+          ran("test/a/b", "two.js", {
+            class: "unsupported",
+            kind: "BinaryExpression |",
+          }),
+        ],
+        COMMIT,
+      ),
+    );
+    expect(markdown).toContain("| AssignmentExpression \\|\\|= |     1 |");
+    expect(markdown).toContain("| BinaryExpression \\|        |     1 |");
+    expect(await format(markdown, { parser: "markdown" })).toBe(markdown);
+  });
 });
 
 describe("renderJson", () => {

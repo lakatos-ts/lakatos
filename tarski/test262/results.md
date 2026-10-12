@@ -140,18 +140,18 @@ The evaluator run against test262 at `419d3e0a2273ba01a3bfcbec423f2801425b8e93`,
 | BinaryExpression >>>           |    44 |
 | BinaryExpression &             |    38 |
 | BinaryExpression >>            |    37 |
-| AssignmentExpression |=        |    32 |
+| AssignmentExpression \|=       |    32 |
 | AssignmentExpression &=        |    31 |
 | AssignmentExpression <<=       |    31 |
 | AssignmentExpression >>=       |    31 |
 | AssignmentExpression ^=        |    31 |
-| BinaryExpression |             |    29 |
+| BinaryExpression \|            |    29 |
 | MethodDefinition numeric key   |    29 |
 | BinaryExpression ^             |    28 |
 | ArrowFunctionExpression async  |    27 |
 | AssignmentExpression &&=       |    22 |
 | AssignmentExpression ??=       |    22 |
-| AssignmentExpression ||=       |    22 |
+| AssignmentExpression \|\|=     |    22 |
 | LogicalExpression ??           |    22 |
 | UnaryExpression ~              |    17 |
 | Decorator                      |    14 |
