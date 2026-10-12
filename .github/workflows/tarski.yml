@@ -11,6 +11,8 @@ on:
       - "thales/tests/exe-e2e.test.ts"
       - "thales/tests/exe-fixtures.test.ts"
       - ".github/workflows/tarski.yml"
+      # The setup action owns the Lake cache key; a change there must warm.
+      - ".github/actions/tarski-setup/**"
   # No path filter: this job is a required check on main, and a required
   # check that never reports reads as pending forever, not as skipped. The
   # push trigger above stays filtered — nothing gates on it.
@@ -368,15 +370,19 @@ jobs:
         uses: actions/checkout@v7
 
       - uses: ./.github/actions/tarski-setup
+        id: setup
 
       - name: Build the evaluator's binary
         run: lake build tarski
 
       - name: Save Lake build artifacts
+        # A cache is immutable: when the exact key was restored, the build
+        # it holds is this one, and saving again can only fail.
+        if: steps.setup.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
           path: tarski/.lake/build
-          key: tarski-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean') }}
+          key: ${{ steps.setup.outputs.cache-key }}
 
       # The test262 clone is warmed here too, keyed by the pin rather than
       # by the tree, so a slice job restores it instead of cloning.
@@ -479,39 +485,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 26
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install Lean toolchain
-        uses: leanprover/lean-action@v1
-        with:
-          lake-package-directory: tarski
-          auto-config: false
-          build: false
-          test: false
-          lint: false
-          use-github-cache: false
-
-      # Restore only; the push-to-main warmer is the single writer.
-      - name: Restore Lake build artifacts
-        uses: actions/cache/restore@v6
-        with:
-          path: tarski/.lake/build
-          key: tarski-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean') }}
-          restore-keys: |
-            tarski-${{ runner.os }}-
-
-      - name: Install npm dependencies
-        working-directory: .
-        run: npm ci
-
-      - name: Build the TypeScript
-        working-directory: .
-        run: npm run build
+      - uses: ./.github/actions/tarski-setup
 
       - name: Build the evaluator's binary
         run: lake build tarski
