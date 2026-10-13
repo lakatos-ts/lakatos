@@ -149,3 +149,142 @@ describe("ci-scope select", () => {
     }
   });
 });
+
+type Needs = Record<
+  string,
+  { result: string; outputs?: Record<string, string> }
+>;
+
+const gate = (workflow: string, needs: Needs) =>
+  spawnSync("node", [script, "gate", workflow], {
+    cwd: root,
+    encoding: "utf8",
+    input: JSON.stringify(needs),
+  });
+
+const thalesNeeds = (
+  selected: { lean: string; parity: string },
+  results: Record<string, string>,
+): Needs => ({
+  changes: { result: "success", outputs: selected },
+  "lean-tests": { result: results["lean-tests"] ?? "skipped" },
+  "verdict-channel": { result: results["verdict-channel"] ?? "skipped" },
+  envelopes: { result: results.envelopes ?? "skipped" },
+  "prove-e2e": { result: results["prove-e2e"] ?? "skipped" },
+  "verdict-corpus": { result: results["verdict-corpus"] ?? "skipped" },
+});
+
+const allThales = {
+  "lean-tests": "success",
+  "verdict-channel": "success",
+  envelopes: "success",
+  "prove-e2e": "success",
+  "verdict-corpus": "success",
+};
+
+describe("ci-scope gate", () => {
+  it("passes when everything was selected and succeeded", () => {
+    const r = gate(
+      "thales",
+      thalesNeeds({ lean: "true", parity: "false" }, allThales),
+    );
+    expect(r.status, r.stderr).toBe(0);
+  });
+
+  it("passes when nothing was selected and everything was skipped", () => {
+    const r = gate(
+      "thales",
+      thalesNeeds({ lean: "false", parity: "false" }, {}),
+    );
+    expect(r.status, r.stderr).toBe(0);
+  });
+
+  it("passes when only the parity host was selected and ran", () => {
+    const r = gate(
+      "thales",
+      thalesNeeds(
+        { lean: "false", parity: "true" },
+        { "prove-e2e": "success" },
+      ),
+    );
+    expect(r.status, r.stderr).toBe(0);
+  });
+
+  it("passes for tarski with only the exe suite selected", () => {
+    const r = gate("tarski", {
+      changes: { result: "success", outputs: { lean: "false", exe: "true" } },
+      "lean-tests": { result: "skipped" },
+      "test262-slice": { result: "skipped" },
+      "runner-e2e": { result: "success" },
+    });
+    expect(r.status, r.stderr).toBe(0);
+  });
+
+  it.each(["failure", "cancelled"])(
+    "rejects a selected job that ended in %s, naming it",
+    (result) => {
+      const r = gate(
+        "thales",
+        thalesNeeds(
+          { lean: "true", parity: "false" },
+          { ...allThales, envelopes: result },
+        ),
+      );
+      expect(r.status).toBe(1);
+      expect(r.stderr).toContain(`envelopes: ${result}, expected success`);
+    },
+  );
+
+  it("rejects a selected job that was skipped", () => {
+    const r = gate(
+      "thales",
+      thalesNeeds(
+        { lean: "true", parity: "false" },
+        { ...allThales, "verdict-corpus": "skipped" },
+      ),
+    );
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("verdict-corpus: skipped, expected success");
+  });
+
+  it("rejects an unselected job that ran", () => {
+    const r = gate(
+      "thales",
+      thalesNeeds(
+        { lean: "false", parity: "false" },
+        { "lean-tests": "success" },
+      ),
+    );
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("lean-tests: success, expected skipped");
+  });
+
+  it("rejects a changes job that did not succeed", () => {
+    const needs = thalesNeeds({ lean: "true", parity: "false" }, {});
+    needs.changes = { result: "failure" };
+    const r = gate("thales", needs);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("changes job did not succeed: failure");
+  });
+
+  it("rejects a changes job that answered for only some groups", () => {
+    const needs = thalesNeeds({ lean: "true", parity: "false" }, allThales);
+    needs.changes = { result: "success", outputs: { lean: "true" } };
+    const r = gate("thales", needs);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("no answer for parity");
+  });
+
+  it("rejects a job the table does not know, and a known job missing", () => {
+    const extra = thalesNeeds({ lean: "true", parity: "false" }, allThales);
+    extra["verdict-channel-4"] = { result: "success" };
+    expect(gate("thales", extra).stderr).toContain(
+      "verdict-channel-4: not a job this gate knows",
+    );
+    const missing = thalesNeeds({ lean: "true", parity: "false" }, allThales);
+    delete missing["prove-e2e"];
+    const r = gate("thales", missing);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("prove-e2e: missing, expected success");
+  });
+});

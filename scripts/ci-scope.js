@@ -86,6 +86,37 @@ function select(workflow, paths, all) {
   return out;
 }
 
+// null when the run matches the selection; otherwise one line per problem.
+function gate(workflow, needs) {
+  const { groups, jobs } = WORKFLOWS[workflow];
+  const changes = needs.changes;
+  if (!changes || changes.result !== "success") {
+    return `the changes job did not succeed: ${changes?.result ?? "missing"}`;
+  }
+  const selected = {};
+  for (const group of Object.keys(groups)) {
+    const answer = changes.outputs?.[group];
+    if (answer !== "true" && answer !== "false") {
+      return `the changes job gave no answer for ${group}`;
+    }
+    selected[group] = answer === "true";
+  }
+  const problems = [];
+  for (const [job, jobGroups] of Object.entries(jobs)) {
+    const expected = jobGroups.some((g) => selected[g]) ? "success" : "skipped";
+    const result = needs[job]?.result ?? "missing";
+    if (result !== expected) {
+      problems.push(`${job}: ${result}, expected ${expected}`);
+    }
+  }
+  for (const job of Object.keys(needs)) {
+    if (job !== "changes" && !(job in jobs)) {
+      problems.push(`${job}: not a job this gate knows`);
+    }
+  }
+  return problems.length ? problems.join("\n") : null;
+}
+
 function usage() {
   process.stderr.write(
     "usage: ci-scope.js select <thales|tarski> [--all] | gate <thales|tarski> | patterns\n",
@@ -109,6 +140,15 @@ if (mode === "patterns") {
   for (const [group, on] of Object.entries(chosen)) {
     process.stdout.write(`${group}=${on}\n`);
   }
+} else if (mode === "gate" && workflow in WORKFLOWS) {
+  const problem = gate(workflow, JSON.parse(readFileSync(0, "utf8")));
+  if (problem !== null) {
+    process.stderr.write(problem + "\n");
+    process.exit(1);
+  }
+  process.stdout.write(
+    `every selected ${workflow} job succeeded and no other ran\n`,
+  );
 } else {
   usage();
 }
