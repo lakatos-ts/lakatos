@@ -16,9 +16,11 @@ on:
       - ".github/workflows/thales.yml"
       # The setup action owns the Lake cache key; a change there must warm.
       - ".github/actions/thales-setup/**"
-  # No path filter: this job is a required check on main, and a required
-  # check that never reports reads as pending forever, not as skipped. The
-  # push trigger above stays filtered — nothing gates on it.
+  # No path filter here: the gate job is a required check on main, and a
+  # required check that never reports reads as pending forever. The
+  # `changes` job below selects which Lean jobs the diff needs, and the
+  # gate reports either way. The push trigger above stays filtered;
+  # nothing gates on it.
   pull_request:
   # The merge queue builds each candidate on top of main and runs these
   # same jobs on it; the required checks report from this event too.
@@ -42,9 +44,45 @@ defaults:
     working-directory: thales
 
 jobs:
+  changes:
+    # The complete diff of the event: a pull request's own commits, or a
+    # queue candidate's, which is every entry batched ahead of it. A
+    # rename counts as a deletion and an addition, so a Lean file moved
+    # out of the tree still selects. When the diff cannot be computed,
+    # every job runs.
+    name: Changed paths
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      lean: ${{ steps.scope.outputs.lean }}
+      parity: ${{ steps.scope.outputs.parity }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Select the jobs the diff needs
+        id: scope
+        working-directory: .
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+        run: |
+          if git diff --name-only --no-renames "$BASE...$HEAD" > changed.txt; then
+            echo "changed paths:"
+            cat changed.txt
+            node scripts/ci-scope.js select thales < changed.txt | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "the diff from $BASE to $HEAD could not be computed; running everything"
+            node scripts/ci-scope.js select thales --all | tee -a "$GITHUB_OUTPUT"
+          fi
+
   lean-tests:
     name: Lean tests
-    if: github.event_name != 'push'
+    needs: changes
+    if: needs.changes.outputs.lean == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -62,7 +100,8 @@ jobs:
 
   verdict-channel:
     name: Verdict channel ${{ matrix.shard }}/3
-    if: github.event_name != 'push'
+    needs: changes
+    if: needs.changes.outputs.lean == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -85,7 +124,8 @@ jobs:
 
   envelopes:
     name: Envelope expectations ${{ matrix.shard }}/3
-    if: github.event_name != 'push'
+    needs: changes
+    if: needs.changes.outputs.lean == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -109,7 +149,9 @@ jobs:
 
   prove-e2e:
     name: Prove end to end
-    if: github.event_name != 'push'
+    needs: changes
+    # Also the parity suite's host, so a pabst change runs this job alone.
+    if: needs.changes.outputs.lean == 'true' || needs.changes.outputs.parity == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -131,7 +173,8 @@ jobs:
 
   verdict-corpus:
     name: Verdict corpus ${{ matrix.shard }}/3
-    if: github.event_name != 'push'
+    needs: changes
+    if: needs.changes.outputs.lean == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -193,21 +236,25 @@ jobs:
     # context that never reports blocks every pull request.
     name: Build + verdict channel
     if: always() && github.event_name != 'push'
-    needs: [lean-tests, verdict-channel, envelopes, prove-e2e, verdict-corpus]
+    needs:
+      [
+        changes,
+        lean-tests,
+        verdict-channel,
+        envelopes,
+        prove-e2e,
+        verdict-corpus,
+      ]
     runs-on: ubuntu-latest
     steps:
-      # `needs` alone does not fail a dependent job when a dependency is
-      # cancelled or skipped, so a cancelled job would report this required
-      # check green. Assert each result explicitly.
-      - name: Assert every job succeeded
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # `needs` alone does not fail this job when a dependency failed, was
+      # cancelled, or was skipped. The script holds the selection table,
+      # so it knows which skips were the plan and which were not.
+      - name: Assert every selected job succeeded and no other ran
         working-directory: .
-        run: |
-          results='${{ join(needs.*.result, ',') }}'
-          echo "job results: $results"
-          case "$results" in
-            *failure* | *cancelled* | *skipped*)
-              echo "at least one thales job did not succeed"
-              exit 1
-              ;;
-          esac
-          echo "all thales jobs succeeded"
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: printf '%s' "$NEEDS" | node scripts/ci-scope.js gate thales
