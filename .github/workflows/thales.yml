@@ -45,10 +45,11 @@ defaults:
 
 jobs:
   changes:
-    # The complete diff of the event: a pull request's own commits, or a
-    # queue candidate's, which is every entry batched ahead of it. A
+    # The diff of the event: a pull request's own commits, or a queue
+    # candidate's own entry on top of what the queue already tested. A
     # rename counts as a deletion and an addition, so a Lean file moved
-    # out of the tree still selects. When the diff cannot be computed,
+    # out of the tree still selects; the listing is NUL-separated so a
+    # non-ASCII path arrives unquoted. When the diff cannot be computed,
     # every job runs.
     name: Changed paths
     if: github.event_name != 'push'
@@ -70,9 +71,9 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
           HEAD: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
         run: |
-          if git diff --name-only --no-renames "$BASE...$HEAD" > changed.txt; then
+          if git diff -z --name-only --no-renames "$BASE...$HEAD" > changed.txt; then
             echo "changed paths:"
-            cat changed.txt
+            tr '\0' '\n' < changed.txt
             node scripts/ci-scope.js select thales < changed.txt | tee -a "$GITHUB_OUTPUT"
           else
             echo "the diff from $BASE to $HEAD could not be computed; running everything"

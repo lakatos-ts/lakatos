@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -286,5 +293,75 @@ describe("ci-scope gate", () => {
     const r = gate("thales", missing);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("prove-e2e: missing, expected success");
+  });
+});
+
+// The workflows feed the script git's own listing, NUL-separated: git
+// otherwise C-quotes a path with a non-ASCII byte, and a quoted path
+// matches nothing.
+describe("ci-scope select over git's listing", () => {
+  const git = (cwd: string, ...args: string[]): Buffer =>
+    execFileSync("git", args, { cwd, stdio: "pipe" });
+
+  const diffOf = (files: string[]): Buffer => {
+    const repo = mkdtempSync(path.join(tmpdir(), "ci-scope-"));
+    try {
+      git(repo, "init", "--quiet");
+      git(repo, "config", "user.email", "test@example.com");
+      git(repo, "config", "user.name", "Test");
+      writeFileSync(path.join(repo, "README.md"), "one\n");
+      git(repo, "add", ".");
+      git(repo, "commit", "--quiet", "-m", "one");
+      const base = git(repo, "rev-parse", "HEAD").toString().trim();
+      for (const f of files) {
+        mkdirSync(path.dirname(path.join(repo, f)), { recursive: true });
+        writeFileSync(path.join(repo, f), "two\n");
+      }
+      git(repo, "add", ".");
+      git(repo, "commit", "--quiet", "-m", "two");
+      return git(
+        repo,
+        "diff",
+        "-z",
+        "--name-only",
+        "--no-renames",
+        `${base}...HEAD`,
+      );
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  };
+
+  const selectFrom = (workflow: string, listing: Buffer) =>
+    Object.fromEntries(
+      execFileSync("node", [script, "select", workflow], {
+        cwd: root,
+        encoding: "utf8",
+        input: listing,
+      })
+        .trim()
+        .split("\n")
+        .map((line) => line.split("=")),
+    );
+
+  it("an exact-file pattern matches a NUL-terminated path", () => {
+    const listing = diffOf(["package-lock.json"]);
+    expect(selectFrom("thales", listing)).toEqual({
+      lean: "true",
+      parity: "false",
+    });
+    expect(selectFrom("tarski", listing)).toEqual({
+      lean: "true",
+      exe: "false",
+    });
+  });
+
+  it("a path with a non-ASCII byte still selects", () => {
+    const listing = diffOf(["thales/ThalesDsl/café.lean", "docs/über.md"]);
+    expect(listing.toString("utf8")).not.toContain('"');
+    expect(selectFrom("thales", listing)).toEqual({
+      lean: "true",
+      parity: "false",
+    });
   });
 });

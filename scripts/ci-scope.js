@@ -135,7 +135,11 @@ if (mode === "patterns") {
   }
   process.stdout.write([...all].join("\n") + "\n");
 } else if (mode === "select" && workflow in WORKFLOWS) {
-  const paths = readFileSync(0, "utf8").split("\n").filter(Boolean);
+  // NUL-separated from `git diff -z`, so a non-ASCII path arrives as
+  // itself rather than C-quoted; newline-separated by hand.
+  const paths = readFileSync(0, "utf8")
+    .split(/[\0\n]/)
+    .filter(Boolean);
   const chosen = select(workflow, paths, flag === "--all");
   for (const [group, on] of Object.entries(chosen)) {
     process.stdout.write(`${group}=${on}\n`);
