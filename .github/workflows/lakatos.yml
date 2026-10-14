@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "core/**"
+      - "spec/**"
       - "tests/**"
       - "lemma/**"
       - "pabst/**"

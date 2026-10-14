@@ -20,7 +20,7 @@ export function qualifiedName(
  * identifiers joined by `#` (instance) / `.` (static). Segments are ASCII
  * TypeScript identifiers; unicode identifiers (e.g. `précis`) are legal
  * TypeScript but not matched — a known gap, kept so the pattern stays within
- * JSON Schema's ECMA-regex subset (schemas/envelope.schema.json and
+ * JSON Schema's ECMA-regex subset (spec/envelope.schema.json and
  * pabst/schemas/issue.schema.json each embed it; a sync test keeps
  * every spelling identical).
  */
