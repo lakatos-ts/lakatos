@@ -120,8 +120,8 @@ envelope the bin would print and the exit code it would return; pass
 `pabst` prints a single JSON envelope to **stdout**; **stderr**
 carries only progress and crashes. The envelope's shape — one entry per
 annotation, each with an SZS status — is documented in the
-[root README](../../README.md) and pinned by
-[`core/schemas/envelope.schema.json`](../../core/schemas/envelope.schema.json). The
+[root README](../README.md) and pinned by
+[`spec/envelope.schema.json`](../spec/envelope.schema.json). The
 failure detail pabst attaches to a flagged annotation is the engine's own
 issue format ([`schemas/issue.schema.json`](schemas/issue.schema.json)):
 

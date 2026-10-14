@@ -6,8 +6,7 @@
   "license": "MIT",
   "files": [
     "dist/*.js",
-    "dist/*.d.ts",
-    "schemas"
+    "dist/*.d.ts"
   ],
   "engines": {
     "node": ">=24"
@@ -41,8 +40,7 @@
     "./runner": {
       "types": "./dist/runner.d.ts",
       "default": "./dist/runner.js"
-    },
-    "./schemas/envelope.schema.json": "./schemas/envelope.schema.json"
+    }
   },
   "publishConfig": {
     "access": "public"

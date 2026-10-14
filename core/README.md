@@ -5,7 +5,9 @@ annotation language, no engine.
 
 - `envelope` — the result of one run: annotation identities, per-annotation
   results with their SZS status, the model field, and the envelope itself.
-  `schemas/envelope.schema.json` is the same contract as JSON Schema.
+  The same contract as JSON Schema is the repo's
+  [`spec/envelope.schema.json`](../spec/envelope.schema.json); it does not
+  ship in this package.
 - `szs` — the status vocabulary (a subset of the
   [SZS ontology](https://tptp.org/UserDocs/SZSOntology/)), the prove
   subset, and the refuter's issue kinds.

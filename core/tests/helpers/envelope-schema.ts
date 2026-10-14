@@ -6,7 +6,7 @@ import { expect } from "vitest";
 const schema = JSON.parse(
   readFileSync(
     fileURLToPath(
-      new URL("../../schemas/envelope.schema.json", import.meta.url),
+      new URL("../../../spec/envelope.schema.json", import.meta.url),
     ),
     "utf8",
   ),

@@ -54,8 +54,10 @@ README says how to install and use it on its own.
 - [`@lakatos/lemma`](lemma/) — the Lemma annotation language: its
   [spec](lemma/spec/), and the discovery, extraction, parsing, and
   typecheck gate both engines share.
-- [`@lakatos/core`](core/) — the shared runtime: the result envelope and
-  its schema, the SZS vocabulary, interrupt handling, and run directories.
+- [`@lakatos/core`](core/) — the shared runtime: the result envelope,
+  the SZS vocabulary, interrupt handling, and run directories. The
+  envelope's JSON Schema, the output contract both engines honor, is
+  [`spec/envelope.schema.json`](spec/envelope.schema.json).
 
 Properties are written in [Lemma](lemma/spec/), a little specification
 language embedded in JSDoc; annotated files remain ordinary TypeScript
@@ -72,7 +74,7 @@ back.
 ## The result envelope
 
 Every pabst and thales run prints one JSON envelope on stdout (schema:
-[`core/schemas/envelope.schema.json`](core/schemas/envelope.schema.json)),
+[`spec/envelope.schema.json`](spec/envelope.schema.json)),
 listing every scraped annotation with an [SZS ontology](https://tptp.org/UserDocs/SZSOntology/)
 status:
 

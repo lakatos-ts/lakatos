@@ -2,7 +2,7 @@
 
 Monorepo for lakatos: proofs and refutations for TypeScript. `README.md` (Layout, Architecture) is the tour; each package's own `CLAUDE.md` loads when you work under it.
 
-Start from the bins — `pabst/src/cli.ts` (refute), `thales/frontend/src/cli.ts` (prove), `thales/frontend/src/exe-cli.ts` (`thales-exe`, one file on the tarski evaluator) — and `core/src/envelope.ts` + `core/src/szs.ts` (the per-annotation output contract, schema in `core/schemas/`).
+Start from the bins — `pabst/src/cli.ts` (refute), `thales/frontend/src/cli.ts` (prove), `thales/frontend/src/exe-cli.ts` (`thales-exe`, one file on the tarski evaluator) — and `core/src/envelope.ts` + `core/src/szs.ts` (the per-annotation output contract, whose JSON Schema is `spec/envelope.schema.json`).
 
 ## Layering
 

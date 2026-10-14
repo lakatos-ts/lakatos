@@ -59,7 +59,7 @@ compile is refused. Artifacts land in `.lakatos/<run>/thales/`.
 
 Stdout is one JSON envelope, one entry per annotation with its SZS status
 (the shape is pinned by
-[`core/schemas/envelope.schema.json`](../core/schemas/envelope.schema.json));
+[`spec/envelope.schema.json`](../spec/envelope.schema.json));
 stderr carries progress and diagnostics. The exit status is 0 when nothing
 was refuted, 1 when something was, and 2 on bad input, an engine failure,
 or an interrupted run.

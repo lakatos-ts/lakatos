@@ -513,7 +513,7 @@ describe("envelope schema", () => {
   it("gives every status a shape, and no shape a status off the list", () => {
     const schema = readFileSync(
       fileURLToPath(
-        new URL("../schemas/envelope.schema.json", import.meta.url),
+        new URL("../../spec/envelope.schema.json", import.meta.url),
       ),
       "utf8",
     );
@@ -536,7 +536,7 @@ describe("envelope schema", () => {
     const schema = JSON.parse(
       readFileSync(
         fileURLToPath(
-          new URL("../schemas/envelope.schema.json", import.meta.url),
+          new URL("../../spec/envelope.schema.json", import.meta.url),
         ),
         "utf8",
       ),
@@ -556,7 +556,7 @@ describe("envelope schema", () => {
     const schema = JSON.parse(
       readFileSync(
         fileURLToPath(
-          new URL("../schemas/envelope.schema.json", import.meta.url),
+          new URL("../../spec/envelope.schema.json", import.meta.url),
         ),
         "utf8",
       ),
@@ -843,7 +843,7 @@ describe("envelope schema", () => {
     const schema = JSON.parse(
       readFileSync(
         fileURLToPath(
-          new URL("../schemas/envelope.schema.json", import.meta.url),
+          new URL("../../spec/envelope.schema.json", import.meta.url),
         ),
         "utf8",
       ),
