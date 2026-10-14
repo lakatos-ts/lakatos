@@ -1,10 +1,16 @@
 name: Lean update
 
-# Weekly check for a new Lean release and dependency drift. On a clean
-# build the action opens a PR with the bumped toolchain/manifest; on a
-# failed build it files an issue. PRs opened with the default token do
-# not trigger the CI workflow — close and reopen (or push to the branch)
-# to run it.
+# Weekly check for a new stable Lean release and dependency drift. tarski
+# owns the toolchain pin; thales's lean-toolchain is a symlink to it, and
+# thales is the package the pin has to build. The action handles `lake
+# update` in tarski and never touches the pin: its "latest tagged
+# release" includes release candidates, and the pin follows stable
+# releases only, so a step of our own resolves the latest stable release.
+# Whatever changed, thales is built before anything is opened: a clean
+# build opens a pull request with the bumped pin and manifest, a failed
+# one files an issue carrying the errors and opens no pull request. Pull
+# requests opened with the default token do not trigger the CI workflow:
+# close and reopen (or push to the branch) to run it.
 
 on:
   schedule:
@@ -15,7 +21,7 @@ jobs:
   update-lean:
     name: Update Lean toolchain + dependencies
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     permissions:
       contents: write
       pull-requests: write
@@ -24,11 +30,106 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Update Lean and dependencies
+      # Dependencies only. The action installs elan, which the steps
+      # below rely on. tarski has no dependencies today, so this is a
+      # no-op until it gains one; when it does, a dependency that breaks
+      # tarski is the action's own issue, and one that builds tarski
+      # reaches the thales build below through the changed manifest.
+      - name: Update dependencies
+        id: deps
         uses: leanprover-community/lean-update@main
         with:
-          # tarski owns the toolchain pin; thales's lean-toolchain is a
-          # symlink to it, whose own diff never changes when the pin does.
           lake_package_directory: tarski
-          on_update_succeeds: pr
+          update_lean_toolchain: never
+          on_update_succeeds: silent
           on_update_fails: issue
+
+      # GitHub's `latest` release excludes pre-releases, which is the
+      # stable-only filter the action does not offer. `lake update` under
+      # the new toolchain refreshes the manifest's version the way the
+      # action's own bump would have.
+      - name: Resolve the latest stable release
+        id: resolve
+        if: steps.deps.outputs.result != 'update-fail'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest="leanprover/lean4:$(gh api repos/leanprover/lean4/releases/latest --jq .tag_name)"
+          current=$(cat tarski/lean-toolchain)
+          echo "pinned $current, latest stable $latest"
+          if [ "$latest" != "$current" ]; then
+            echo "$latest" > tarski/lean-toolchain
+            (cd tarski && lake update)
+          fi
+          if git diff --quiet -- tarski/lean-toolchain tarski/lake-manifest.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "toolchain=$latest" >> "$GITHUB_OUTPUT"
+
+      # Building thales builds tarski. The tests and the emitter are the
+      # targets CI builds beyond the default; a removed constant in a test
+      # file is as much a break as one in the library.
+      - name: Build thales
+        id: build
+        if: steps.resolve.outputs.changed == 'true'
+        continue-on-error: true
+        working-directory: thales
+        run: |
+          lake build 2>&1 | tee "$RUNNER_TEMP/thales-build.log"
+          lake build ThalesDslTest thales-emit 2>&1 | tee -a "$RUNNER_TEMP/thales-build.log"
+
+      - name: Open a pull request
+        if: steps.resolve.outputs.changed == 'true' && steps.build.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOOLCHAIN: ${{ steps.resolve.outputs.toolchain }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tarski/lean-toolchain tarski/lake-manifest.json
+          git commit -m "Lean ${TOOLCHAIN#leanprover/lean4:}"
+          git push --force origin HEAD:refs/heads/auto-update-lean/patch
+          cat > "$RUNNER_TEMP/pr-body.md" <<BODY
+          \`tarski/lean-toolchain\` moves to \`$TOOLCHAIN\`, the latest stable release, and thales builds on it: \`lake build\`, \`ThalesDslTest\`, and \`thales-emit\`.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          A pull request opened by \`GITHUB_TOKEN\` gets no CI run until it is closed and reopened, or pushed to.
+          BODY
+          number=$(gh pr list --head auto-update-lean/patch --state open --json number --jq '.[0].number // empty')
+          if [ -z "$number" ]; then
+            gh pr create --base main --head auto-update-lean/patch \
+              --title "Lean ${TOOLCHAIN#leanprover/lean4:}" \
+              --label auto-update-lean \
+              --body-file "$RUNNER_TEMP/pr-body.md"
+          else
+            gh pr edit "$number" --title "Lean ${TOOLCHAIN#leanprover/lean4:}" --body-file "$RUNNER_TEMP/pr-body.md"
+          fi
+
+      # One open issue at a time, as the action does for its own failures.
+      - name: File an issue
+        if: steps.resolve.outputs.changed == 'true' && steps.build.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOOLCHAIN: ${{ steps.resolve.outputs.toolchain }}
+        run: |
+          number=$(gh issue list --label auto-update-lean-fail --state open --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            echo "issue #$number is already open"
+            exit 0
+          fi
+          {
+            echo "\`$TOOLCHAIN\` is the latest stable release and tarski builds on it, but thales does not, so no pull request was opened."
+            echo
+            echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            echo '```'
+            grep -E '^(error|✖)' "$RUNNER_TEMP/thales-build.log" | head -40
+            echo '```'
+          } > "$RUNNER_TEMP/issue-body.md"
+          gh issue create \
+            --title "Lean ${TOOLCHAIN#leanprover/lean4:} breaks the thales build" \
+            --label auto-update-lean-fail \
+            --body-file "$RUNNER_TEMP/issue-body.md"
