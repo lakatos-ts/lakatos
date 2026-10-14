@@ -151,14 +151,19 @@ def refusalLines (reason message : String) (diagnostics : Array Lemma.Diagnostic
       "tarski: the program does not type check under lakatos's required options"
     else s!"tarski: {message}")
 
+/-- lemma's document for `file`, or why there is none. Exit 1 is the
+program's uncaught throw, so no failure on the way to a program may
+escape as an exception: every one is an answer here. -/
+def checkTs (file : String) : IO (Except String (Array Lemma.Document)) := do
+  try
+    match ← Lemma.resolve with
+    | .error msg => return .error msg
+    | .ok bin => Lemma.check bin #[file]
+  catch e => return .error (toString e)
+
 /-- `tarski <file.ts>`: through lemma's gate, then `exec`. -/
 def runTs (file : String) : IO UInt32 := do
-  let bin ← match ← Lemma.resolve with
-    | .ok bin => pure bin
-    | .error msg =>
-      IO.eprintln s!"tarski: {msg}"
-      return 2
-  let docs ← match ← Lemma.check bin #[file] with
+  let docs ← match ← checkTs file with
     | .ok docs => pure docs
     | .error msg =>
       IO.eprintln s!"tarski: {msg}"

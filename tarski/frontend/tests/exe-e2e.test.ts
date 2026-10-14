@@ -1,11 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import {
   chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -72,6 +73,16 @@ function project(
   return { dir, run: (...args) => tarski(dir, args) };
 }
 
+// Every suite below runs the binary, so it is built once, ahead of all of
+// them, whichever are selected.
+beforeAll(() => {
+  if (!e2e) return;
+  const built = ensureBinary(findTarskiRoot());
+  expect(built.kind, JSON.stringify(built)).toBe("ready");
+  if (built.kind === "ready") binary = built.binary;
+  expect(existsSync(path.join(LEMMA, "dist", "cli.js"))).toBe(true);
+}, FIRST_TIMEOUT_MS);
+
 const scratch: string[] = [];
 afterAll(() => {
   for (const d of scratch) rmSync(d, { recursive: true, force: true });
@@ -84,10 +95,6 @@ function tracked<T extends { dir: string }>(p: T): T {
 describe.runIf(e2e)("tarski <file.ts>", () => {
   let p: ReturnType<typeof project>;
   beforeAll(() => {
-    const built = ensureBinary(findTarskiRoot());
-    expect(built.kind, JSON.stringify(built)).toBe("ready");
-    if (built.kind === "ready") binary = built.binary;
-    expect(existsSync(path.join(LEMMA, "dist", "cli.js"))).toBe(true);
     p = tracked(
       project({
         // #386's example, verbatim.
@@ -256,6 +263,7 @@ describe.runIf(e2e)("tarski without LAKATOS_LEMMA", () => {
         "#!/bin/sh",
         'echo "$@" >> "$FAKE_NPM_LOG"',
         'if [ -n "$FAKE_NPM_FAIL" ]; then echo "npm error 404 Not Found" >&2; exit 1; fi',
+        'if [ -n "$FAKE_NPM_SLEEP" ]; then sleep "$FAKE_NPM_SLEEP"; fi',
         'pkg="$3/node_modules/@lakatos/lemma"',
         'mkdir -p "$pkg"',
         `printf '{"name":"@lakatos/lemma","version":"%s"}' "\${FAKE_NPM_VERSION:-0.2.0}" > "$pkg/package.json"`,
@@ -265,6 +273,12 @@ describe.runIf(e2e)("tarski without LAKATOS_LEMMA", () => {
     );
     chmodSync(npm, 0o755);
     p = tracked(project({ "clean.ts": 'console.log("a", 1);\n' }));
+  });
+
+  it("answers exit 2, not an uncaught 1, when HOME is empty", () => {
+    const r = run({ HOME: "" });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toMatch(/^tarski: HOME is not set/);
   });
 
   it("explains a failed install and names the override", () => {
@@ -307,5 +321,102 @@ describe.runIf(e2e)("tarski without LAKATOS_LEMMA", () => {
     const before = installs();
     expect(run().code).toBe(0);
     expect(installs()).toBe(before + 1);
+  });
+
+  // Cold-cache runs racing, as parallel test262 workers will: each
+  // installs, the first rename wins, and every run uses a whole copy.
+  it("lets runs racing on a cold cache all succeed", async () => {
+    rmSync(cache(), { recursive: true, force: true });
+    const { LAKATOS_LEMMA: _, ...rest } = process.env;
+    const env = {
+      ...rest,
+      HOME: home,
+      PATH: `${fakeBin}${path.delimiter}${process.env.PATH ?? ""}`,
+      FAKE_NPM_LOG: log,
+      FAKE_NPM_LEMMA: LEMMA,
+      FAKE_NPM_SLEEP: "1",
+    };
+    const codes = await Promise.all(
+      Array.from(
+        { length: 6 },
+        () =>
+          new Promise<number | null>((resolve) => {
+            const child = spawn(binary, ["clean.ts"], {
+              cwd: p.dir,
+              env,
+              stdio: "ignore",
+            });
+            child.on("close", resolve);
+          }),
+      ),
+    );
+    expect(codes).toEqual([0, 0, 0, 0, 0, 0]);
+    const parent = path.dirname(cache());
+    expect(readdirSync(parent)).toEqual(["lemma@0.2.0"]);
+  });
+});
+
+/** A stand-in lemma checkout whose bin is `script`. */
+function fakeLemma(script: string): string {
+  const dir = mkdtempSync(path.join(tmpdir(), "tarski-fake-lemma-"));
+  scratch.push(dir);
+  mkdirSync(path.join(dir, "dist"));
+  writeFileSync(path.join(dir, "dist", "cli.js"), script);
+  return dir;
+}
+
+describe.runIf(e2e)("tarski when lemma misbehaves", () => {
+  let p: ReturnType<typeof project>;
+  beforeAll(() => {
+    p = tracked(project({ "a.ts": "console.log(1);\n" }));
+  });
+  const withLemma = (dir: string): Run =>
+    tarski(p.dir, ["a.ts"], { ...process.env, LAKATOS_LEMMA: dir });
+
+  it("reports a lemma checkout with no bin built", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "tarski-no-dist-"));
+    scratch.push(dir);
+    const r = withLemma(dir);
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("has no");
+    expect(r.stderr).toContain("build lemma first");
+  });
+
+  it("reports a crash with lemma's own stderr, exit 2", () => {
+    const r = withLemma(fakeLemma('throw new Error("emitter bug");\n'));
+    expect(r.code).toBe(2);
+    expect(r.stdout).toBe("");
+    expect(r.stderr).toContain("tarski: lemma answered for");
+    expect(r.stderr).toContain("emitter bug");
+  });
+
+  it("does not run a program lemma crashed after printing", () => {
+    const doc = {
+      schemaVersion: 0,
+      file: "a.ts",
+      gated: true,
+      outcome: "program",
+      program: { type: "Program", body: [] },
+    };
+    const r = withLemma(
+      fakeLemma(
+        `process.stdout.write(${JSON.stringify(JSON.stringify(doc) + "\n")});\n` +
+          'throw new Error("late crash");\n',
+      ),
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("which is a crash");
+    expect(r.stderr).toContain("late crash");
+  });
+
+  it("refuses a document of another version", () => {
+    const doc = { schemaVersion: 1, file: "a.ts" };
+    const r = withLemma(
+      fakeLemma(`console.log(${JSON.stringify(JSON.stringify(doc))});\n`),
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain(
+      "lemma document version 1, but this executable reads version 0",
+    );
   });
 });

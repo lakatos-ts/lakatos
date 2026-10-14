@@ -13,6 +13,12 @@ package `@lakatos/thales`: a `thales [files-or-globs...]` bin and a
 calls the same API. Its stderr notes now say `thales:`. It still runs
 only from a lakatos checkout with the Lean toolchain.
 
+The `thales-exe` bin is gone: running one TypeScript file on the tarski
+evaluator is the Lean binary's own `tarski <file.ts>` now, which reaches
+lemma's typecheck gate as a subprocess. It also refuses a file whose
+`@ensures` formula Lemma cannot read, as `thales` does, where
+`thales-exe` ran it.
+
 After 0.7, the next headline candidate is **provably-safe array
 indexing**, re-deferred from 0.7 (see ADR-0002). Two contexts:
 literal-index into a literal/known-length array (`[10, 20, 30][1]`) and

@@ -55,52 +55,73 @@ def packageVersion (pkg : System.FilePath) : IO (Option String) := do
 private def useOverride : String :=
   "set LAKATOS_LEMMA to a built lemma checkout to use one instead"
 
+/-- An environment variable, with an empty value read as unset: Lean's
+`"" / x` is the absolute `/x`, which is never what an empty `HOME` or
+`LAKATOS_LEMMA` meant. -/
+def envVar (name : String) : IO (Option String) := do
+  match ← IO.getEnv name with
+  | some "" => pure none
+  | v => pure v
+
+/-- Whether a package directory holds the pinned release, bin and all. -/
+def isPinned (pkg : System.FilePath) : IO Bool := do
+  return (← (binIn pkg).pathExists) && (← packageVersion pkg) == some version
+
 /-- Install the pinned release under `cache`, whole or not at all: npm
-writes into a sibling directory, which is renamed into place only once
-the installed version is the pinned one. -/
+writes into a sibling staging directory, which is renamed into place only
+once the installed version is the pinned one, and removed whatever
+happens. Runs racing on a cold cache each install; the first rename wins
+and the others use its copy. Any IO failure is an answer, never an
+exception. -/
 def install (cache : System.FilePath) : IO (Except String Unit) := do
   let parent := cache.parent.getD "."
-  IO.FS.createDirAll parent
   let staging := parent / s!".lemma@{version}.{← IO.Process.getPID}"
-  if ← staging.pathExists then IO.FS.removeDirAll staging
-  let out ←
-    try
-      IO.Process.output
-        { cmd := "npm"
-          args := #["install", "--prefix", toString staging, "--no-audit",
-                    "--no-fund", "--no-save", s!"@lakatos/lemma@{version}"] }
+  let cleanup : IO Unit :=
+    try if ← staging.pathExists then IO.FS.removeDirAll staging
+    catch _ => pure ()
+  try
+    IO.FS.createDirAll parent
+    cleanup
+    let out ← IO.Process.output
+      { cmd := "npm"
+        args := #["install", "--prefix", toString staging, "--no-audit",
+                  "--no-fund", "--no-save", s!"@lakatos/lemma@{version}"] }
+    if out.exitCode != 0 then
+      return .error s!"npm could not install @lakatos/lemma@{version} into {cache}:\n{out.stderr.trimAsciiEnd}\n{useOverride}"
+    let got ← packageVersion (installedPackage staging)
+    unless got == some version do
+      return .error s!"npm installed @lakatos/lemma {got.getD "(no version)"}, not the pinned {version}; {useOverride}"
+    try IO.FS.rename staging cache
     catch e =>
-      return .error s!"could not run npm to install @lakatos/lemma@{version}: {e}; {useOverride}"
-  let cleanup := do if ← staging.pathExists then IO.FS.removeDirAll staging
-  if out.exitCode != 0 then
-    cleanup
-    return .error s!"npm could not install @lakatos/lemma@{version} into {cache}:\n{out.stderr.trimAsciiEnd}\n{useOverride}"
-  let got ← packageVersion (installedPackage staging)
-  unless got == some version do
-    cleanup
-    return .error s!"npm installed @lakatos/lemma {got.getD "(no version)"}, not the pinned {version}; {useOverride}"
-  -- Another run may have finished the same install first; its copy is
-  -- as good as this one.
-  if ← cache.pathExists then
-    cleanup
+      -- Another run moved its own install into place first; its copy is
+      -- as good as this one.
+      unless ← isPinned (installedPackage cache) do
+        return .error s!"could not move the lemma install into {cache}: {e}; {useOverride}"
     return .ok ()
-  IO.FS.rename staging cache
-  return .ok ()
+  catch e =>
+    return .error s!"could not install @lakatos/lemma@{version} into {cache}: {e}; {useOverride}"
+  finally cleanup
 
 /-- lemma's bin, from the override or the cache, installing the pinned
-release first if it is not there. -/
+release first if it is not there. Any IO failure is an answer, never an
+exception. -/
 def resolve : IO (Except String System.FilePath) := do
-  if let some dir ← IO.getEnv "LAKATOS_LEMMA" then
+  if let some dir ← envVar "LAKATOS_LEMMA" then
     let bin := binIn dir
     if ← bin.pathExists then return .ok bin
     return .error s!"LAKATOS_LEMMA={dir} has no {bin}: build lemma first (npm run build from the repo root)"
-  let some home ← IO.getEnv "HOME"
+  let some home ← envVar "HOME"
     | return .error s!"HOME is not set, so there is no cache to install lemma into; {useOverride}"
   let cache := cacheDir home
   let pkg := installedPackage cache
-  if (← (binIn pkg).pathExists) && (← packageVersion pkg) == some version then
+  if ← isPinned pkg then return .ok (binIn pkg)
+  try
+    if ← cache.pathExists then IO.FS.removeDirAll cache
+  catch e =>
+    -- Another run may be replacing the same stale copy.
+    unless ← isPinned pkg do
+      return .error s!"could not clear the stale lemma at {cache}: {e}; {useOverride}"
     return .ok (binIn pkg)
-  if ← cache.pathExists then IO.FS.removeDirAll cache
   match ← install cache with
   | .error msg => return .error msg
   | .ok () => return .ok (binIn pkg)
@@ -166,32 +187,43 @@ def decodeLines (out : String) : Except String (Array Document) :=
   (out.splitOn "\n").toArray.filter (!·.all Char.isWhitespace)
     |>.mapM fun line => Json.parse line >>= decodeDocument
 
-/-- Run lemma's bin with `args` (a subcommand and its files; `--jsonl` is
-added) and decode a document per file. lemma answers 0 or 1 with a
-document per file either way; anything else is a failure to run it at
-all, and its stderr is the reason. -/
-def run (bin : System.FilePath) (args : Array String) :
+/-- Run lemma's bin on `files` (`--jsonl` is added after the subcommand's
+`args`) and decode a document per file, in order. lemma answers 0 when
+every file has a program and 1 when one was refused, with a document per
+file either way. Anything else — another status, a document missing or
+out of order, or a 1 with nothing refused, which is Node's status for a
+crash — is a failure to run lemma at all, and its stderr is the reason. -/
+def run (bin : System.FilePath) (args files : Array String) :
     IO (Except String (Array Document)) := do
   let out ←
     try
-      IO.Process.output { cmd := "node", args := #[toString bin, "--jsonl"] ++ args }
+      IO.Process.output
+        { cmd := "node", args := #[toString bin, "--jsonl"] ++ args ++ files }
     catch e =>
       return .error s!"could not run node on lemma ({bin}): {e}"
+  let failed (why : String) : Except String (Array Document) :=
+    .error s!"lemma {why}:\n{out.stderr.trimAsciiEnd}"
   unless out.exitCode == 0 || out.exitCode == 1 do
-    return .error s!"lemma exited {out.exitCode}:\n{out.stderr.trimAsciiEnd}"
+    return failed s!"exited {out.exitCode}"
   match decodeLines out.stdout with
-  | .ok docs => return .ok docs
   | .error msg => return .error s!"lemma printed a document this executable cannot read: {msg}"
+  | .ok docs =>
+    unless docs.map (·.file) == files do
+      return failed s!"answered for {docs.map (·.file)}, not for {files}"
+    let refused := docs.any fun | .refused .. => true | .program .. => false
+    if out.exitCode == 1 && !refused then
+      return failed "exited 1 with every file answered, which is a crash"
+    return .ok docs
 
 /-- `lemma check` on `files`, under the shared gate cache `tsbuildinfo`. -/
 def check (bin : System.FilePath) (files : Array String)
     (tsbuildinfo : String := ".lakatos/typecheck.tsbuildinfo") :
     IO (Except String (Array Document)) :=
-  run bin (#["check", "--tsbuildinfo", tsbuildinfo] ++ files)
+  run bin #["check", "--tsbuildinfo", tsbuildinfo] files
 
 /-- `lemma parse` on `files`: no gate, nothing stripped. -/
 def parse (bin : System.FilePath) (files : Array String) :
     IO (Except String (Array Document)) :=
-  run bin (#["parse"] ++ files)
+  run bin #["parse"] files
 
 end Tarski.Lemma
