@@ -17,7 +17,9 @@ export const SCHEMA_VERSION = 0;
 
 /** Why a file has no program. */
 export type RefusalReason =
-  /** The file could not be read. */
+  /** `parse` could not read the file. `check` never says this: a file
+   * the type check did not read is `outside-program`, whether or not it
+   * exists. */
   | "unreadable"
   /** No tsconfig.json, so no options to type check under. */
   | "no-tsconfig"
@@ -129,14 +131,20 @@ const NOT_CLEAN =
  * checked once, under its own tsconfig.json with lakatos's required
  * options forced on top, and each file the check covered has its types
  * stripped and is parsed. `tsBuildInfoFile` is the gate's cache, as
- * `typecheckProject` takes it.
+ * `typecheckProject` takes it; a relative path is taken from `cwd`, like
+ * the files.
  */
 export function checkDocuments(
   files: readonly string[],
   cwd: string,
   tsBuildInfoFile?: string,
 ): CheckedDocument[] {
-  const check = typecheckProject(cwd, tsBuildInfoFile);
+  const check = typecheckProject(
+    cwd,
+    tsBuildInfoFile === undefined
+      ? undefined
+      : path.resolve(cwd, tsBuildInfoFile),
+  );
   return files.map((file) => {
     if (check.kind === "missing")
       return refused(file, true, "no-tsconfig", NO_TSCONFIG);

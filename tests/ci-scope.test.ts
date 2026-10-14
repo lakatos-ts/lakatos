@@ -60,13 +60,14 @@ describe("ci-scope select", () => {
     },
   );
 
-  it.each(["lemma/src/estree.ts", "lemma/schemas/tarski-estree.schema.json"])(
-    "a parser bridge change (%s) runs all of tarski too",
-    (p) => {
-      expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
-      expect(select("tarski", [p])).toEqual({ lean: "true", exe: "true" });
-    },
-  );
+  it.each([
+    "lemma/src/estree.ts",
+    "lemma/schemas/tarski-estree.schema.json",
+    "lemma/package.json",
+  ])("a parser bridge change (%s) runs all of tarski too", (p) => {
+    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
+    expect(select("tarski", [p])).toEqual({ lean: "true", exe: "true" });
+  });
 
   it("a thales Lean change runs thales and nothing in tarski", () => {
     const paths = ["thales/ThalesDsl/Emit.lean"];

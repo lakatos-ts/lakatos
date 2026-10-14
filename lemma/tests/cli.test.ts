@@ -1,9 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { main } from "../src/cli.js";
+import { checkDocuments } from "../src/document.js";
 import { useTempProject } from "./helpers/temp-project.js";
 import { schemaValidator } from "./helpers/schema-validator.js";
 
@@ -163,6 +165,32 @@ describe("lemma check", () => {
       reason: "outside-program",
       gated: true,
     });
+  });
+});
+
+describe("lemma check: files the check did not read", () => {
+  const dir = useTempProject("lemma-cli-cache-", {
+    "src/a.ts": "export const a = 1;\n",
+  });
+
+  it("calls a missing file outside the program, not unreadable", () => {
+    const r = invoke("check", "--jsonl", "src/nope.ts");
+    expect(r.status).toBe(1);
+    expect(lines(r.stdout)[0]).toMatchObject({ reason: "outside-program" });
+  });
+
+  it("takes a relative --tsbuildinfo from the project, not the process", () => {
+    const elsewhere = mkdtempSync(path.join(tmpdir(), "lemma-cli-away-"));
+    process.chdir(elsewhere);
+    try {
+      const [d] = checkDocuments(["src/a.ts"], dir, "cache/tc.tsbuildinfo");
+      expect(d).toMatchObject({ outcome: "program" });
+      expect(existsSync(path.join(dir, "cache/tc.tsbuildinfo"))).toBe(true);
+      expect(existsSync(path.join(elsewhere, "cache"))).toBe(false);
+    } finally {
+      process.chdir(dir);
+      rmSync(elsewhere, { recursive: true, force: true });
+    }
   });
 });
 

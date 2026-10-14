@@ -8,6 +8,8 @@ on:
       # The test262 runner parses with lemma's bridge.
       - "lemma/src/**"
       - "lemma/schemas/**"
+      - "lemma/package.json"
+      - "lemma/tsconfig.json"
       # thales-exe's gated suites run in this workflow's runner job.
       - "thales/frontend/src/exe.ts"
       - "thales/frontend/src/exe-cli.ts"

@@ -28,7 +28,7 @@
         "outcome": { "const": "program" },
         "script": {
           "type": "string",
-          "description": "The script the program was parsed from, when that is not the file's own text: the TypeScript with its types stripped. Present exactly when gated."
+          "description": "The script the program was parsed from, when that is not the file's own text: the TypeScript with its types stripped. `lemma check` always carries it and `lemma parse` never does."
         },
         "program": { "$ref": "tarski-estree.schema.json#/definitions/Program" }
       }
@@ -42,6 +42,7 @@
         "gated": true,
         "outcome": { "const": "refused" },
         "reason": {
+          "description": "Why there is no program. `unreadable` comes only from `lemma parse`: under `lemma check`, a file the type check did not read is `outside-program`, whether or not it exists.",
           "enum": [
             "unreadable",
             "no-tsconfig",
