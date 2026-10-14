@@ -64,12 +64,13 @@ const WORKFLOWS = {
         ".github/actions/tarski-setup/",
         ...SHARED,
       ],
-      // thales-exe, its suites, and every fixture they run against Node.
+      // What `tarski <file.ts>`'s suites run besides tarski itself: the
+      // lemma checkout it gates through, and every fixture the comparison
+      // runs against Node.
       exe: [
-        "thales/frontend/",
-        "thales/tests/",
-        "core/",
         "lemma/",
+        "thales/tests/fixtures/",
+        "thales/tests/conformance/",
         "pabst/tests/fixtures/",
       ],
     },

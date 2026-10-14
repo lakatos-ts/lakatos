@@ -5,8 +5,7 @@
   "type": "module",
   "license": "MIT",
   "bin": {
-    "thales": "dist/cli.js",
-    "thales-exe": "dist/exe-cli.js"
+    "thales": "dist/cli.js"
   },
   "files": [
     "dist/*.js",
@@ -36,8 +35,7 @@
   },
   "dependencies": {
     "@lakatos/core": "^0.1.0",
-    "@lakatos/lemma": "^0.1.0",
-    "@lakatos/tarski": "^0.1.0"
+    "@lakatos/lemma": "^0.1.0"
   },
   "publishConfig": {
     "access": "public"

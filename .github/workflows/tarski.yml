@@ -10,11 +10,6 @@ on:
       - "lemma/schemas/**"
       - "lemma/package.json"
       - "lemma/tsconfig.json"
-      # thales-exe's gated suites run in this workflow's runner job.
-      - "thales/frontend/src/exe.ts"
-      - "thales/frontend/src/exe-cli.ts"
-      - "thales/tests/exe-e2e.test.ts"
-      - "thales/tests/exe-fixtures.test.ts"
       - ".github/workflows/tarski.yml"
       # The setup action owns the Lake cache key; a change there must warm.
       - ".github/actions/tarski-setup/**"
@@ -373,7 +368,8 @@ jobs:
   runner-e2e:
     name: Runner and exe end to end
     needs: changes
-    # Also thales-exe's host, so a thales or fixture change runs this job alone.
+    # Also `tarski <file.ts>`'s host, so a lemma or fixture change runs this
+    # job alone.
     if: needs.changes.outputs.lean == 'true' || needs.changes.outputs.exe == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -387,9 +383,9 @@ jobs:
         run: lake build tarski
 
       # The suites that need the real binary: what ties the fake binary the
-      # unit tests run to the real one, `thales-exe`'s own transcript, and
-      # the comparison of every `@ensures` fixture in the repo against
-      # Node. Serialized, because two forks would race `lake build`.
+      # unit tests run to the real one, `tarski <file.ts>` through lemma's
+      # gate, and the comparison of every `@ensures` fixture in the repo
+      # against Node. Serialized, because two forks would race `lake build`.
       - name: Runner and exe end to end
         timeout-minutes: 10
         working-directory: .
@@ -398,8 +394,8 @@ jobs:
         run: |
           npx vitest run --no-file-parallelism \
             tarski/frontend/tests/test262-e2e.test.ts \
-            thales/tests/exe-e2e.test.ts \
-            thales/tests/exe-fixtures.test.ts
+            tarski/frontend/tests/exe-e2e.test.ts \
+            tarski/frontend/tests/exe-fixtures.test.ts
 
   warm-cache:
     # A push to main gates nothing: every commit arrives through the merge

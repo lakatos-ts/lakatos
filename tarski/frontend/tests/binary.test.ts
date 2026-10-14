@@ -3,7 +3,6 @@ import * as path from "node:path";
 import {
   BUILD_TIMEOUT_MS,
   ensureBinary,
-  runDocument,
   type Spawn,
   type SpawnOutcome,
 } from "../src/binary.js";
@@ -111,22 +110,5 @@ describe("ensureBinary", () => {
     expect(defaultBinary("/r")).toBe(
       path.join("/r", ".lake", "build", "bin", "tarski"),
     );
-  });
-});
-
-describe("runDocument", () => {
-  // No timeout: a program that diverges hangs as it would under `node`,
-  // and the Ctrl-C that ends the user's wait ends both processes.
-  it("runs the document under exec with no timeout", () => {
-    const { spawn, calls } = recording({ status: 0, stdout: "0.25\n" });
-    const r = runDocument("/bin/tarski", "/tmp/t.json", spawn);
-    expect(r.stdout).toBe("0.25\n");
-    expect(calls).toEqual([
-      {
-        cmd: "/bin/tarski",
-        args: ["exec", "/tmp/t.json"],
-        opts: { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 },
-      },
-    ]);
   });
 });

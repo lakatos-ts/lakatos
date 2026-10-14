@@ -52,13 +52,17 @@ describe("ci-scope select", () => {
     expect(select("tarski", paths)).toEqual({ lean: "false", exe: "true" });
   });
 
-  it.each(["core/src/envelope.ts", "lemma/tests/cli.test.ts"])(
-    "a shared package change (%s) runs all of thales and the exe suite",
-    (p) => {
-      expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
-      expect(select("tarski", [p])).toEqual({ lean: "false", exe: "true" });
-    },
-  );
+  it("a lemma change runs all of thales and the exe suite", () => {
+    const p = "lemma/tests/cli.test.ts";
+    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
+    expect(select("tarski", [p])).toEqual({ lean: "false", exe: "true" });
+  });
+
+  it("a core change runs all of thales and nothing in tarski", () => {
+    const p = "core/src/envelope.ts";
+    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
+    expect(select("tarski", [p])).toEqual({ lean: "false", exe: "false" });
+  });
 
   it.each([
     "lemma/src/estree.ts",
@@ -75,10 +79,18 @@ describe("ci-scope select", () => {
     expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
   });
 
-  it("a thales front-end change runs thales and the exe suite", () => {
-    const paths = ["thales/frontend/src/exe.ts"];
+  it("a thales front-end change runs thales and nothing in tarski", () => {
+    const paths = ["thales/frontend/src/prove.ts", "thales/tests/run.test.ts"];
     expect(select("thales", paths)).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", paths)).toEqual({ lean: "false", exe: "true" });
+    expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
+  });
+
+  it.each([
+    "thales/tests/fixtures/tracer.ts",
+    "thales/tests/conformance/theorem/stacked-blocks.ts",
+  ])("a thales fixture (%s) also runs the exe fixture suite", (p) => {
+    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
+    expect(select("tarski", [p])).toEqual({ lean: "false", exe: "true" });
   });
 
   it("a tarski change runs both workflows in full", () => {

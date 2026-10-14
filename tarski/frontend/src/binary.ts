@@ -1,12 +1,11 @@
-// The evaluator binary as a dependency: locate it, build it, run one
-// document through it.
+// The evaluator binary as a dependency: locate it and build it, for the
+// suites that run the real binary (`exe-e2e`, `exe-fixtures`).
 //
-// This is `thales-exe`'s side of the seam, and it lives in tarski's own
-// tree rather than beside thales's `run.ts` because the layering forbids
-// tarski from importing an engine. The two are deliberately alike — one
-// `lake build` under a timeout, ENOENT read as a missing toolchain, a
-// nonzero status carried out with both streams — and thales's copy is the
-// model, not a module to share.
+// It lives in tarski's own tree rather than beside thales's `run.ts`
+// because the layering forbids tarski from importing an engine. The two
+// are deliberately alike — one `lake build` under a timeout, ENOENT read
+// as a missing toolchain, a nonzero status carried out with both streams —
+// and thales's copy is the model, not a module to share.
 
 import { spawnSync } from "node:child_process";
 import { defaultBinary } from "./test262/paths.js";
@@ -90,21 +89,4 @@ export function ensureBinary(
     };
   }
   return { kind: "ready", binary: defaultBinary(root) };
-}
-
-/**
- * One document through `tarski exec`. There is no timeout: a program that
- * diverges hangs exactly as it would under `node`, and the Ctrl-C that
- * ends the user's wait ends both processes. The buffer is large because
- * the program's whole stdout arrives at once.
- */
-export function runDocument(
-  binary: string,
-  documentPath: string,
-  spawn: Spawn = spawnSync,
-): SpawnOutcome {
-  return spawn(binary, ["exec", documentPath], {
-    encoding: "utf8",
-    maxBuffer: 256 * 1024 * 1024,
-  });
 }

@@ -1,5 +1,6 @@
 import Lean.Data.Json
 import Tarski.Decode
+import Tarski.Lemma
 
 /-! The emission IR: the shapes `lemma/schemas/thales-emission.schema.json`
 fixes, decoded strictly — an unknown kind or a missing field is a decode
@@ -687,9 +688,9 @@ def decodeEmission (j : Json) : Except String Emission := do
          declarations := ← (← getArr j "declarations").mapM decodeDecl
          obligations := ← (← getArr j "obligations").mapM decodeObligation }
 
-/-- The lemma document version this renderer reads: `SCHEMA_VERSION` in
-`lemma/src/document.ts`. -/
-def lemmaSchemaVersion : Nat := 0
+/-- The lemma document version this renderer reads: tarski's, which every
+executable that reads lemma shares. -/
+def lemmaSchemaVersion : Nat := Tarski.Lemma.schemaVersion
 
 /-- Decode a `lemma check` document down to the emission it carries. A
 document of another version fails by name before anything else is read,

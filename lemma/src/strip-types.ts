@@ -2,10 +2,10 @@
 // by tsc's transpile step, module syntax removed, and `"use strict";` on
 // top.
 //
-// Two callers hand the bridge the same text. `thales-exe` runs the
-// document on the evaluator; thales's emitter attaches a declaration's
-// closure to its emission, so the artifact's AST is what the evaluator
-// would run. It lives here because it is the bridge's input, and one
+// Two callers hand the bridge the same text. `lemma check` hands the
+// document to `tarski <file.ts>`, which runs it on the evaluator;
+// thales's emitter attaches a declaration's closure to its emission, so
+// the artifact's AST is what the evaluator would run. It lives here because it is the bridge's input, and one
 // function should have one home.
 
 import ts from "typescript";

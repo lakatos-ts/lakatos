@@ -36,20 +36,21 @@ README says how to install and use it on its own.
   ```
 
 - [`@lakatos/thales`](thales/) — proof. The `thales` bin renders
-  annotated TypeScript as plain Lean 4 and attempts a proof per property;
-  `thales-exe` runs one TypeScript file on the tarski evaluator, behind
-  the same typecheck gate. Both need a lakatos checkout with the Lean
-  toolchain ([elan](https://github.com/leanprover/elan)), built once with
-  `npm install && npm run build`, and run from your project's directory:
+  annotated TypeScript as plain Lean 4 and attempts a proof per property.
+  It needs a lakatos checkout with the Lean toolchain
+  ([elan](https://github.com/leanprover/elan)), built once with
+  `npm install && npm run build`, and runs from your project's directory:
 
   ```bash
   node path/to/lakatos/thales/dist/cli.js src/foo.ts
-  node path/to/lakatos/thales/dist/exe-cli.js src/foo.ts
   ```
 
 - [`@lakatos/tarski`](tarski/) — the JavaScript semantics: the Lean
   library the proofs are stated against, an evaluator over the same
-  definitions, and the `tarski-test262` bin.
+  definitions, the `tarski` executable, which runs one TypeScript file on
+  that evaluator behind thales's typecheck gate
+  ([running a file](tarski/README.md#running-a-file-tarski-filets)), and
+  the `tarski-test262` bin.
 - [`@lakatos/lemma`](lemma/) — the Lemma annotation language and the
   TypeScript front end both engines share: its [spec](lemma/spec/), the
   discovery, extraction, parsing, and typecheck gate, the parser bridge

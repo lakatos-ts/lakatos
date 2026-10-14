@@ -1,7 +1,7 @@
 {
   "name": "@lakatos/tarski",
   "version": "0.1.1",
-  "description": "The JavaScript semantics behind lakatos: the evaluator binary's runner and the test262 harness",
+  "description": "The JavaScript semantics behind lakatos: the test262 harness for the evaluator binary",
   "type": "module",
   "license": "MIT",
   "bin": {
