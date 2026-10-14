@@ -1,11 +1,12 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
+  admittedDocument,
+  type ClassifiedAnnotation,
   type InvalidAnnotation,
   mirrorPath,
   type RawAnnotation,
 } from "@lakatos/lemma";
-import { type ClassifiedAnnotation, emitModule } from "./emission.js";
 
 export interface EmissionArtifact {
   sourceFile: string;
@@ -19,29 +20,26 @@ export interface EmissionArtifact {
   classified: ClassifiedAnnotation[];
 }
 
-/** Emit each source file's per-declaration JSON into `outRoot`, via
- * `mirrorPath` — the same source-tree mirroring the run directory uses.
- * The .lean artifact is rendered later by thales-emit, inside the engine
- * run; a file whose annotations are all classified frontend-side never
- * reaches Lean at all. */
+/** Write each source file's lemma document, whose `emission` carries the
+ * per-declaration JSON, into `outRoot`, via `mirrorPath` — the same
+ * source-tree mirroring the run directory uses. The .lean artifact is
+ * rendered later by thales-emit, inside the engine run; a file whose
+ * annotations are all classified frontend-side never reaches Lean at
+ * all. */
 export function writeEmissionArtifacts(
   files: string[],
   outRoot: string,
   refused: ReadonlySet<string> = new Set(),
 ): EmissionArtifact[] {
   return files.map((file) => {
-    const { emission, annotations, invalid, classified } = emitModule(
-      fs.readFileSync(file, "utf8"),
-      file,
-      undefined,
-      refused,
-    );
+    const { document, emitted } = admittedDocument(file, refused);
+    const { emission, annotations, invalid, classified } = emitted;
     if (annotations.length === 0) {
       return { sourceFile: file, annotations, invalid, classified };
     }
     const jsonFile = mirrorPath(file, outRoot, ".json");
     fs.mkdirSync(path.dirname(jsonFile), { recursive: true });
-    fs.writeFileSync(jsonFile, JSON.stringify(emission), "utf8");
+    fs.writeFileSync(jsonFile, JSON.stringify(document), "utf8");
     const leanFile =
       emission.obligations.length > 0
         ? mirrorPath(file, outRoot, ".lean")

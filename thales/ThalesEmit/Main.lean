@@ -4,8 +4,9 @@ import ThalesEmit.Artifact
 -- `main` loads this module at runtime; importing it makes Lake build it.
 import ThalesEmit
 
-/-! The `thales-emit` executable: one emission JSON in, one readable
-`.lean` artifact out. Any failure — unreadable file, schema mismatch, a
+/-! The `thales-emit` executable: one lemma document in (what `lemma
+check` prints for a file), one readable `.lean` artifact out of the
+emission it carries. Any failure — unreadable file, schema mismatch, a
 shape outside the slice — is one message on stderr and exit 1; the
 artifact is only written whole. -/
 
@@ -13,12 +14,12 @@ open Lean ThalesEmit
 
 unsafe def main (args : List String) : IO UInt32 := do
   let [inPath, outPath] := args
-    | IO.eprintln "usage: thales-emit <emission.json> <out.lean>"
+    | IO.eprintln "usage: thales-emit <document.json> <out.lean>"
       return 1
   try
     let text ← IO.FS.readFile inPath
     let emission ←
-      match Json.parse text >>= decodeEmission with
+      match Json.parse text >>= decodeDocument with
       | .error msg =>
         IO.eprintln s!"thales-emit: {inPath}: {msg}"
         return 1

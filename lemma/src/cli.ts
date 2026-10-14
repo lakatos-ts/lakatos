@@ -21,8 +21,10 @@ print the checked-program document for each file (the schema is
 schemas/lemma-document.schema.json in this package).
 
   check  type check the project under ./tsconfig.json with lakatos's
-         required options (strict) forced on top, then strip each
-         file's types and parse what is left as a script.
+         required options (strict) forced on top, read each file's
+         @ensures annotations, then strip its types and parse what is
+         left as a script; the document also carries thales's emission
+         for the file.
   parse  parse each file as a JavaScript script, exactly as written,
          with no type check.
 
@@ -44,7 +46,7 @@ function usage(): number {
   return 2;
 }
 
-export function main(argv: readonly string[], cwd = process.cwd()): number {
+export function main(argv: readonly string[]): number {
   let parsed;
   try {
     parsed = parseArgs({
@@ -74,8 +76,8 @@ export function main(argv: readonly string[], cwd = process.cwd()): number {
 
   const documents: CheckedDocument[] =
     command === "check"
-      ? checkDocuments(files, cwd, values.tsbuildinfo)
-      : files.map((f) => parseDocument(f, cwd));
+      ? checkDocuments(files, values.tsbuildinfo)
+      : files.map((f) => parseDocument(f));
   for (const d of documents)
     process.stdout.write(
       values.jsonl

@@ -4,7 +4,8 @@
 // composed as JS.
 
 import ts from "typescript";
-import type { Binder, Formula } from "@lakatos/lemma";
+import type { Binder } from "./binder.js";
+import type { Formula } from "./formula-ast.js";
 
 /** The proper name of each SyntaxKind: plain reverse lookup can land on a
  * First-/Last- range marker sharing the same value, so pick the first

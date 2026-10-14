@@ -104,7 +104,7 @@ function refuseFiles(
 /** Extract and parse every formula once. A formula the parsers cannot read
  * is a compile error, so it aborts the run; a clamp-emptied interval parses
  * and stays for the engines to contain per annotation. */
-function readFormulas(files: string[]): ParsedFile[] {
+export function readFormulas(files: string[]): ParsedFile[] {
   return files.map((file) => {
     const { exports, classes, annotations } = extract(file);
     const parsed: ParsedAnnotation[] = annotations.map((raw) => {

@@ -1,7 +1,7 @@
 {
   "name": "@lakatos/lemma",
   "version": "0.1.0",
-  "description": "The Lemma annotation language and lakatos's TypeScript front end: discovery of annotated files, @ensures extraction, the formula parser, binder domains, the typecheck gate, the parser bridge to ESTree, and the lemma bin that prints a checked-program document per file.",
+  "description": "The Lemma annotation language and lakatos's TypeScript front end: discovery of annotated files, @ensures extraction, the formula parser, binder domains, the typecheck gate, the parser bridge to ESTree, thales's emitter, and the lemma bin that prints a checked-program document per file.",
   "type": "module",
   "license": "MIT",
   "bin": {

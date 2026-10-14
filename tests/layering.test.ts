@@ -254,8 +254,26 @@ describe("import layering", () => {
     ) as { files: { path: string }[] }[];
     const paths = packed!.files.map((f) => f.path);
     expect(paths).toContain("dist/cli.js");
-    expect(paths).toContain("schemas/thales-emission.schema.json");
     expect(paths.filter((p) => p.endsWith(".tsbuildinfo"))).toEqual([]);
+  });
+
+  // The emission is a lemma document's field now, so its schema ships
+  // with lemma's, which it references.
+  it("lemma's tarball ships every schema the document references", () => {
+    const [packed] = JSON.parse(
+      execFileSync("npm", ["pack", "--dry-run", "--json", "-w", "lemma"], {
+        cwd: root,
+        encoding: "utf8",
+      }),
+    ) as { files: { path: string }[] }[];
+    const paths = packed!.files.map((f) => f.path);
+    for (const schema of [
+      "lemma-document.schema.json",
+      "tarski-estree.schema.json",
+      "thales-emission.schema.json",
+    ])
+      expect(paths).toContain(`schemas/${schema}`);
+    expect(existsSync(path.join(root, "thales/schemas"))).toBe(false);
   });
 
   it("every workspace package publishes publicly", () => {

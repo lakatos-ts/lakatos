@@ -53,8 +53,9 @@ README says how to install and use it on its own.
 - [`@lakatos/lemma`](lemma/) — the Lemma annotation language and the
   TypeScript front end both engines share: its [spec](lemma/spec/), the
   discovery, extraction, parsing, and typecheck gate, the parser bridge
-  to the evaluator's ESTree, and the `lemma` bin, which prints one
-  checked-program document per file.
+  to the evaluator's ESTree, thales's emitter, and the `lemma` bin,
+  which prints one checked-program document per file (for now carrying
+  the emitter's per-declaration JSON as its `emission`).
 - [`@lakatos/core`](core/) — the shared runtime: the result envelope,
   the SZS vocabulary, interrupt handling, and run directories. The
   envelope's JSON Schema, the output contract both engines honor, is

@@ -1,18 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { main } from "../src/cli.js";
-import { checkDocuments } from "../src/document.js";
+import { admittedDocument } from "../src/document.js";
 import { useTempProject } from "./helpers/temp-project.js";
 import { schemaValidator } from "./helpers/schema-validator.js";
 
 const validate = schemaValidator(
   new URL("../schemas/lemma-document.schema.json", import.meta.url),
   "lemma document",
-  [new URL("../schemas/tarski-estree.schema.json", import.meta.url)],
+  [
+    new URL("../schemas/tarski-estree.schema.json", import.meta.url),
+    new URL("../schemas/thales-emission.schema.json", import.meta.url),
+  ],
 );
 
 const fixture = (name: string): string =>
@@ -179,18 +181,64 @@ describe("lemma check: files the check did not read", () => {
     expect(lines(r.stdout)[0]).toMatchObject({ reason: "outside-program" });
   });
 
-  it("takes a relative --tsbuildinfo from the project, not the process", () => {
-    const elsewhere = mkdtempSync(path.join(tmpdir(), "lemma-cli-away-"));
-    process.chdir(elsewhere);
-    try {
-      const [d] = checkDocuments(["src/a.ts"], dir, "cache/tc.tsbuildinfo");
-      expect(d).toMatchObject({ outcome: "program" });
-      expect(existsSync(path.join(dir, "cache/tc.tsbuildinfo"))).toBe(true);
-      expect(existsSync(path.join(elsewhere, "cache"))).toBe(false);
-    } finally {
-      process.chdir(dir);
-      rmSync(elsewhere, { recursive: true, force: true });
-    }
+  it("writes the gate's cache where --tsbuildinfo says", () => {
+    const r = invoke(
+      "check",
+      "--tsbuildinfo",
+      "cache/tc.tsbuildinfo",
+      "src/a.ts",
+    );
+    expect(r.status).toBe(0);
+    expect(existsSync(path.join(dir, "cache/tc.tsbuildinfo"))).toBe(true);
+  });
+});
+
+describe("lemma check: the emission", () => {
+  useTempProject("lemma-cli-emit-", {
+    "src/f.ts":
+      "/** @ensures{id} forall (x: int ∈ [0, 5)) { f(x) === x } */\n" +
+      "export function f(x: number): number { return x; }\n",
+    "src/typo.ts":
+      "/** @ensures{id} forall (x: int ∈ [0, 5)) { g(x) === x } */\n" +
+      "export function f(x: number): number { return x; }\n",
+    "src/bad.ts":
+      "/** @ensures{p} forall (n: int) { forall (m: int) { f(n) === m } } */\n" +
+      "export function f(x: number): number { return x; }\n",
+  });
+
+  it("carries thales's emission for a gated file, as thales writes it", () => {
+    const r = invoke("check", "src/f.ts");
+    expect(r.status).toBe(0);
+    const d = parsed(r.stdout);
+    expect(d.emission).toMatchObject({
+      file: "src/f.ts",
+      obligations: [{ function: "f", property: "id" }],
+    });
+    expect(d).toEqual(
+      JSON.parse(JSON.stringify(admittedDocument("src/f.ts").document)),
+    );
+  });
+
+  it("leaves out an annotation whose formula does not type", () => {
+    const r = invoke("check", "src/typo.ts");
+    expect(r.status).toBe(0);
+    expect(parsed(r.stdout).emission).toMatchObject({ obligations: [] });
+  });
+
+  it("refuses a file with a formula Lemma cannot read", () => {
+    const r = invoke("check", "--jsonl", "src/bad.ts", "src/f.ts");
+    expect(r.status).toBe(1);
+    const [bad, ok] = lines(r.stdout);
+    expect(bad).toMatchObject({ outcome: "refused", reason: "annotation" });
+    expect(bad!.message).toMatch(/^src\/bad\.ts:1: @ensures\{p\}: /);
+    expect(ok).toMatchObject({ outcome: "program" });
+  });
+});
+
+describe("lemma parse: no emission", () => {
+  it("documents a script with no emission", () => {
+    const r = invoke("parse", fixture("arithmetic.js"));
+    expect(parsed(r.stdout)).not.toHaveProperty("emission");
   });
 });
 

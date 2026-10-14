@@ -30,6 +30,10 @@
           "type": "string",
           "description": "The script the program was parsed from, when that is not the file's own text: the TypeScript with its types stripped. `lemma check` always carries it and `lemma parse` never does."
         },
+        "emission": {
+          "$ref": "thales-emission.schema.json",
+          "description": "thales's emission IR for the file, on every `lemma check` document whose file passed the gate; never from `lemma parse`."
+        },
         "program": { "$ref": "tarski-estree.schema.json#/definitions/Program" }
       }
     },
@@ -42,16 +46,21 @@
         "gated": true,
         "outcome": { "const": "refused" },
         "reason": {
-          "description": "Why there is no program. `unreadable` comes only from `lemma parse`: under `lemma check`, a file the type check did not read is `outside-program`, whether or not it exists.",
+          "description": "Why there is no program. `unreadable` comes only from `lemma parse`: under `lemma check`, a file the type check did not read is `outside-program`, whether or not it exists. `annotation` is a `@ensures` formula Lemma cannot read, which, like a compile error, leaves the file with no program.",
           "enum": [
             "unreadable",
             "no-tsconfig",
             "typecheck",
             "outside-program",
+            "annotation",
             "syntax"
           ]
         },
         "message": { "type": "string" },
+        "emission": {
+          "$ref": "thales-emission.schema.json",
+          "description": "As on a program: a file can pass the gate and still have its stripped script refused by the parser, which is an internal disagreement and not the file's fault, so the emission stays."
+        },
         "diagnostics": {
           "type": "array",
           "description": "The gate's findings, for a typecheck refusal. `file` is relative to the directory the check ran in, and absent, with `line`, for a project-level finding.",

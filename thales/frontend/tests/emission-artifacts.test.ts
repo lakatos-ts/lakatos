@@ -2,9 +2,8 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { emitModule } from "../src/emission.js";
 import { writeEmissionArtifacts } from "../src/emission-artifacts.js";
-import { annotationKey } from "@lakatos/lemma";
+import { admittedDocument, annotationKey } from "@lakatos/lemma";
 
 const OUT = "out";
 
@@ -48,13 +47,21 @@ describe("writeEmissionArtifacts", () => {
     expect(fs.existsSync(path.join(OUT, "sub", "a.ts.json"))).toBe(false);
   });
 
-  test("writes one emission JSON per annotated file, mirrored", () => {
+  test("writes one lemma document per annotated file, mirrored", () => {
     const source = path.join("sub", "a.ts");
     const [a] = writeEmissionArtifacts([source], OUT);
     expect(a!.jsonFile).toBe(path.join(OUT, "sub", "a.ts.json"));
     expect(a!.leanFile).toBe(path.join(OUT, "sub", "a.ts.lean"));
     const written = JSON.parse(fs.readFileSync(a!.jsonFile!, "utf8"));
-    expect(written).toEqual(emitModule(ANNOTATED, source).emission);
+    // What `lemma check` prints for the file: thales-emit reads the
+    // emission out of it.
+    expect(written).toEqual(admittedDocument(source).document);
+    expect(written).toMatchObject({
+      schemaVersion: 0,
+      gated: true,
+      outcome: "program",
+      emission: { file: source, obligations: [{ property: "q" }] },
+    });
     expect(a!.annotations).toHaveLength(1);
     expect(a!.classified).toEqual([]);
     // The .lean artifact is thales-emit's to render, not the frontend's.

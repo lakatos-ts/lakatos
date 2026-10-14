@@ -105,14 +105,16 @@ describe("cli prove, plain pipeline", () => {
       ]),
     );
     expect(env.annotations).toHaveLength(2);
-    // The emission JSON is the run's artifact; only mappable declarations
-    // reach it.
-    const emission = JSON.parse(
+    // The run's artifact is the file's lemma document, whose emission
+    // only mappable declarations reach.
+    const document = JSON.parse(
       fs.readFileSync(
         path.join(announcedRunDir(stderr), "thales", "mixed.ts.json"),
         "utf8",
       ),
     );
+    expect(document).toMatchObject({ schemaVersion: 0, outcome: "program" });
+    const { emission } = document;
     expect(emission.declarations.map((d: { name: string }) => d.name)).toEqual([
       "huge",
       "small",

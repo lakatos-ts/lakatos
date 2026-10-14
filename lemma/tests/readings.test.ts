@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { parseBody } from "@lakatos/lemma";
+import { parseBody } from "../src/formula-parser.js";
 import { chainReading, connectiveJs } from "../src/readings.js";
 
 describe("connectiveJs", () => {
