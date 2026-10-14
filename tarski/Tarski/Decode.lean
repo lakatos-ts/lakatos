@@ -1,7 +1,7 @@
 import Lean.Data.Json
 import Tarski.Ast
 
-/-! Decoding `schemas/tarski-estree.schema.json` into the AST.
+/-! Decoding `lemma/schemas/tarski-estree.schema.json` into the AST.
 
 Strict in both directions: a node kind outside the slice is
 `unsupported`, and a node kind inside it with the wrong shape is

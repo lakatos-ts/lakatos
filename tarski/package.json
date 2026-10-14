@@ -1,7 +1,7 @@
 {
   "name": "@lakatos/tarski",
   "version": "0.1.1",
-  "description": "The JavaScript semantics behind lakatos: the TypeScript-to-ESTree bridge, the evaluator binary's runner, and the test262 harness",
+  "description": "The JavaScript semantics behind lakatos: the evaluator binary's runner and the test262 harness",
   "type": "module",
   "license": "MIT",
   "bin": {
@@ -9,8 +9,7 @@
   },
   "files": [
     "dist/**/*.js",
-    "dist/**/*.d.ts",
-    "schemas"
+    "dist/**/*.d.ts"
   ],
   "engines": {
     "node": ">=24"
@@ -28,11 +27,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./schemas/tarski-estree.schema.json": "./schemas/tarski-estree.schema.json"
+    }
   },
   "dependencies": {
-    "typescript": "^6.0.3"
+    "@lakatos/lemma": "^0.1.0"
   },
   "publishConfig": {
     "access": "public"

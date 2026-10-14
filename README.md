@@ -49,11 +49,12 @@ README says how to install and use it on its own.
 
 - [`@lakatos/tarski`](tarski/) — the JavaScript semantics: the Lean
   library the proofs are stated against, an evaluator over the same
-  definitions, the TypeScript parser bridge to it, and the
-  `tarski-test262` bin.
-- [`@lakatos/lemma`](lemma/) — the Lemma annotation language: its
-  [spec](lemma/spec/), and the discovery, extraction, parsing, and
-  typecheck gate both engines share.
+  definitions, and the `tarski-test262` bin.
+- [`@lakatos/lemma`](lemma/) — the Lemma annotation language and the
+  TypeScript front end both engines share: its [spec](lemma/spec/), the
+  discovery, extraction, parsing, and typecheck gate, the parser bridge
+  to the evaluator's ESTree, and the `lemma` bin, which prints one
+  checked-program document per file.
 - [`@lakatos/core`](core/) — the shared runtime: the result envelope,
   the SZS vocabulary, interrupt handling, and run directories. The
   envelope's JSON Schema, the output contract both engines honor, is

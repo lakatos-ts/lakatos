@@ -34,7 +34,7 @@ const expectValidEmission = schemaValidator(
   // schema's `$id` to the ESTree schema's own.
   [
     new URL(
-      "../../../tarski/schemas/tarski-estree.schema.json",
+      "../../../lemma/schemas/tarski-estree.schema.json",
       import.meta.url,
     ),
   ],

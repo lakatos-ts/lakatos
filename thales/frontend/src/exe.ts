@@ -8,14 +8,13 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
+import { parseScript, stripTypes } from "@lakatos/lemma";
 import {
   type BinaryResult,
   ensureBinary,
   findTarskiRoot,
-  parseScript,
   runDocument,
   type SpawnOutcome,
-  stripTypes,
 } from "@lakatos/tarski";
 
 export type ExeOutcome =

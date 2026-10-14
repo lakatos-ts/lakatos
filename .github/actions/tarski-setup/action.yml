@@ -13,8 +13,8 @@ runs:
   using: composite
   steps:
     # The runner is TypeScript and the binary is Lean, and the checks these
-    # jobs run need both. The bridge's own vitest suites still run in
-    # `lakatos.yml`.
+    # jobs run need both. The parser bridge's own vitest suites, in lemma,
+    # run in `lakatos.yml`.
     - name: Install Node
       uses: actions/setup-node@v7
       with:

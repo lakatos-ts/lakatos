@@ -51,8 +51,12 @@ const WORKFLOWS = {
   },
   tarski: {
     groups: {
+      // The test262 runner parses with lemma's bridge, so a change to the
+      // bridge or the schema it emits to moves the slice's table.
       lean: [
         "tarski/",
+        "lemma/src/",
+        "lemma/schemas/",
         ".github/workflows/tarski.yml",
         ".github/actions/tarski-setup/",
         ...SHARED,

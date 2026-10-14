@@ -15,10 +15,10 @@ import {
   type Program,
   type Statement,
   stripTypes,
-} from "@lakatos/tarski";
+} from "@lakatos/lemma";
 
 const expectValidProgram = schemaValidator(
-  new URL("../../../tarski/schemas/tarski-estree.schema.json", import.meta.url),
+  new URL("../../../lemma/schemas/tarski-estree.schema.json", import.meta.url),
   "a declaration's ast",
 );
 

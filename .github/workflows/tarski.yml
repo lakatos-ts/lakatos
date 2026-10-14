@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "tarski/**"
+      # The test262 runner parses with lemma's bridge.
+      - "lemma/src/**"
+      - "lemma/schemas/**"
       # thales-exe's gated suites run in this workflow's runner job.
       - "thales/frontend/src/exe.ts"
       - "thales/frontend/src/exe-cli.ts"
@@ -115,7 +118,7 @@ jobs:
           fi
 
       # The seam end to end: these documents are the parser bridge's
-      # output, byte for byte (tarski/frontend/tests/bridge-cli.test.ts
+      # output, byte for byte (tarski/frontend/tests/lean-fixtures.test.ts
       # holds the two copies together), and the binary is what reads them.
       - name: Run a script
         run: |

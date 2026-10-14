@@ -1,9 +1,9 @@
 import Tarski.Decode
 
-/-! The decoder against `schemas/tarski-estree.schema.json`.
+/-! The decoder against `lemma/schemas/tarski-estree.schema.json`.
 
 The seam has two halves, and only one of them is checked in TypeScript:
-`tarski/frontend/tests/estree.test.ts` proves the bridge emits documents
+`lemma/tests/estree.test.ts` proves the bridge emits documents
 the schema accepts, and this file proves the Lean side reads exactly
 those documents — and refuses everything else in the way the binary's
 exit codes distinguish. An `unsupported` outcome says the evaluator does

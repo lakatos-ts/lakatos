@@ -19,8 +19,12 @@ lemma/spec/
 # bd rewrites its own config and metadata
 .beads/
 
-# the evaluator's fixtures: parser inputs kept in the shape they test, and
+# the parser bridge's fixtures: inputs kept in the shape they test, and
 # goldens that are the bridge's output byte for byte
+lemma/tests/fixtures/
+
+# the evaluator's fixtures: a fake test262 tree and binary for the runner,
+# and the Lean tests' copies of the bridge's goldens
 tarski/frontend/tests/fixtures/
 tarski/Test/Tarski/fixtures/
 

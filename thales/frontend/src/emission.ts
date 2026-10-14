@@ -34,7 +34,7 @@ import {
   resolveImport,
 } from "./module-graph.js";
 import { attachAsts, bridgeModule, type ModuleScript } from "./emission-ast.js";
-import type { Program } from "@lakatos/tarski";
+import type { Program } from "@lakatos/lemma";
 
 /** A JS expression in the shapes the plain-Lean emitter renders. The
  * frontend records operator text verbatim; what an operator means is the

@@ -6,5 +6,6 @@
     "rootDir": "frontend/src",
     "outDir": "dist"
   },
-  "include": ["frontend/src"]
+  "include": ["frontend/src"],
+  "references": [{ "path": "../lemma" }]
 }

@@ -148,17 +148,17 @@ describe("import layering", () => {
     expect(existsSync(path.join(root, "engines/pabst"))).toBe(false);
   });
 
-  it("tarski names no other workspace package", () => {
+  it("tarski names no workspace package but lemma, its parser bridge", () => {
     const offenders = [
       ...tsFiles(path.join(root, "tarski/frontend/src")),
       ...tsFiles(path.join(root, "tarski/frontend/tests")),
     ].filter((f) =>
-      /["']@lakatos\/(?!tarski[/"'])/.test(readFileSync(f, "utf8")),
+      /["']@lakatos\/(?!(?:tarski|lemma)["'])/.test(readFileSync(f, "utf8")),
     );
     expect(offenders).toEqual([]);
   });
 
-  it("tarski is a workspace package with the test262 bin and the ESTree schema", () => {
+  it("tarski is a workspace package with the test262 bin, depending on lemma alone", () => {
     const pkg = JSON.parse(
       readFileSync(path.join(root, "tarski/package.json"), "utf8"),
     ) as {
@@ -169,15 +169,12 @@ describe("import layering", () => {
     };
     expect(pkg.name).toBe("@lakatos/tarski");
     expect(pkg.bin).toEqual({ "tarski-test262": "dist/test262/cli.js" });
-    expect(Object.keys(pkg.exports).sort()).toEqual([
-      ".",
-      "./schemas/tarski-estree.schema.json",
-    ]);
+    expect(Object.keys(pkg.exports)).toEqual(["."]);
     expect(
       Object.keys(pkg.dependencies ?? {}).filter((d) =>
         d.startsWith("@lakatos/"),
       ),
-    ).toEqual([]);
+    ).toEqual(["@lakatos/lemma"]);
     const rootPkg = JSON.parse(
       readFileSync(path.join(root, "package.json"), "utf8"),
     ) as { bin?: Record<string, string> };
