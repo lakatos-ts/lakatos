@@ -25,6 +25,27 @@ def numParamJson (name : String) : Json :=
      ("obligations", Json.arr #[])]))
   matches .error "property not found: name"
 
+-- thales-emit reads a lemma document: the version first, then the
+-- emission it carries.
+def emptyEmissionJson : Json :=
+  Json.mkObj [("file", "t.ts"), ("declarations", Json.arr #[]),
+              ("obligations", Json.arr #[])]
+#guard
+  (decodeDocument (Json.mkObj
+    [("schemaVersion", (0 : Nat)), ("emission", emptyEmissionJson)]))
+  matches .ok { file := "t.ts", declarations := #[], obligations := #[] }
+#guard
+  (decodeDocument (Json.mkObj
+    [("schemaVersion", (1 : Nat)), ("emission", emptyEmissionJson)]))
+  matches .error "lemma document version 1, but thales-emit reads version 0"
+#guard (decodeDocument (Json.mkObj [("emission", emptyEmissionJson)])) matches .error _
+#guard
+  (decodeDocument (Json.mkObj
+    [("schemaVersion", (0 : Nat)), ("outcome", "refused")]))
+  matches .error "the lemma document carries no emission: its file did not pass the gate, or it came from `lemma parse`"
+-- A bare emission is not a document.
+#guard (decodeDocument emptyEmissionJson) matches .error _
+
 -- The unary-operator and binder-domain IR decodes strictly.
 #guard
   (decodeExpr (Json.mkObj

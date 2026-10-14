@@ -1,5 +1,5 @@
 // The declaration's own AST: the ESTree of its dependency closure, as
-// tarski's parser bridge produced it.
+// the parser bridge (`estree.ts`) produced it.
 //
 // The emitter never writes a node. Each module's stripped text goes
 // through the bridge once, and a declaration's closure is a *selection*
@@ -16,12 +16,8 @@
 // modules both declare, a name one module uses free that another declares,
 // and a module the bridge could not parse each answer `undefined` instead.
 
-import {
-  parseScript,
-  type Program,
-  type Statement,
-  stripTypes,
-} from "@lakatos/lemma";
+import { parseScript, type Program, type Statement } from "./estree.js";
+import { stripTypes } from "./strip-types.js";
 import { type ModelRef } from "./module-graph.js";
 
 /** One walked module: the qualifier its models carry (empty for the

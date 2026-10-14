@@ -1,21 +1,22 @@
 import * as path from "node:path";
 import ts from "typescript";
+import type { Binder } from "./binder.js";
 import {
-  annotationKey,
-  type Binder,
   clampedEndpoints,
-  EmptyAfterClampError,
-  extractFromSource,
   intInterval,
-  type InvalidAnnotation,
   isClassDomain,
-  LemmaError,
-  parseBody,
-  parsePrefix,
-  qualifiedName,
-  type RawAnnotation,
   unsupportedRangeReason,
-} from "@lakatos/lemma";
+} from "./domains.js";
+import { LemmaError } from "./errors.js";
+import {
+  extractFromSource,
+  type InvalidAnnotation,
+  type RawAnnotation,
+} from "./extract.js";
+import { parseBody } from "./formula-parser.js";
+import { parsePrefix } from "./prefix-parser.js";
+import { annotationKey, qualifiedName } from "./qualified-name.js";
+import { EmptyAfterClampError } from "./range.js";
 import {
   bindingIdentifiers,
   chainReading,
@@ -34,7 +35,7 @@ import {
   resolveImport,
 } from "./module-graph.js";
 import { attachAsts, bridgeModule, type ModuleScript } from "./emission-ast.js";
-import type { Program } from "@lakatos/lemma";
+import type { Program } from "./estree.js";
 
 /** A JS expression in the shapes the plain-Lean emitter renders. The
  * frontend records operator text verbatim; what an operator means is the
@@ -173,7 +174,7 @@ export interface EmitFunction {
    * through a callee that does. A valueless opaque compiles to `pure`, so
    * without this compiled evaluation would prove straight through one. */
   noncomputable?: true;
-  /** The ESTree of the declaration's dependency closure as tarski's bridge
+  /** The ESTree of the declaration's dependency closure as the parser bridge
    * produced it, a strict script; absent when no closed script could be
    * assembled (see `emission-ast.ts`). */
   ast?: Program;
@@ -219,7 +220,7 @@ export interface EmitClass {
   ctor: { params: EmitParam[]; body: EmitStmt[]; noncomputable?: true };
   getters: EmitGetter[];
   methods: EmitMethod[];
-  /** The ESTree of the class's dependency closure as tarski's bridge
+  /** The ESTree of the class's dependency closure as the parser bridge
    * produced it, a strict script; absent when no closed script could be
    * assembled (see `emission-ast.ts`). The members share it: a member's
    * replay runs the class's own program. */
@@ -244,7 +245,7 @@ export interface EmitConstant {
    * source's derivation rather than a value the reader must re-derive. */
   init: EmitExpr;
   source: string;
-  /** The ESTree of the constant's dependency closure as tarski's bridge
+  /** The ESTree of the constant's dependency closure as the parser bridge
    * produced it, a strict script; absent when no closed script could be
    * assembled (see `emission-ast.ts`). */
   ast?: Program;

@@ -17,8 +17,10 @@ other annotation still gets a real proof attempt.
 The engine is elaboration-based, in the language-oriented-programming
 tradition:
 
-1. **Front end (TypeScript).** The TS compiler API parses the target file;
-   each declaration it can model becomes per-declaration JSON, which the
+1. **Front end (TypeScript, in [lemma](../lemma/)).** The TS compiler API
+   parses the target file; each declaration it can model becomes
+   per-declaration JSON, carried in lemma's checked-program document, which
+   the
    `thales-emit` executable renders as ordinary Lean — a `def` per function
    in a computable monad, a `#thales_prove` command per annotation. What it
    cannot model it classifies itself, naming the offending construct, so

@@ -14,9 +14,8 @@ import * as path from "node:path";
 import { checker, engineRoot, frontend, repoRoot } from "./harness.js";
 import { shardOf } from "./shard.js";
 
-const { emitModule } = await frontend("emission");
 const { parseVerdicts, runArtifact } = await frontend("run");
-const { qualifiedName } = await import("@lakatos/lemma");
+const { admittedDocument, qualifiedName } = await import("@lakatos/lemma");
 // The envelope's own rule for the model field, so the store and the CLI
 // cannot drift: same build-first failure mode as the lemma import above.
 const { modelFor } = await import("@lakatos/core/envelope");
@@ -393,8 +392,6 @@ function verdictsOf(leanFile, label) {
 }
 
 for (const [i, fixture] of fixtures.entries()) {
-  const text = fs.readFileSync(fixture, "utf8");
-
   // Timeout fixtures are graded the way the corpus harness grades them:
   // under a reduced heartbeat budget, where Timeout is deterministic and
   // cheap.
@@ -417,13 +414,14 @@ for (const [i, fixture] of fixtures.entries()) {
     process.env.LAKATOS_PROVE_VALIDATE_HEARTBEATS = "1";
   }
 
-  // Emit JSON, render with thales-emit, run the artifact, and join the
-  // Lean verdicts with the frontend's own classifications in annotation
-  // order.
-  const { emission, annotations, classified } = emitModule(text, fixture);
-  const jsonFile = path.join(tmp, `emission-${i}.json`);
+  // Write the file's lemma document, render its emission with
+  // thales-emit, run the artifact, and join the Lean verdicts with the
+  // frontend's own classifications in annotation order.
+  const { document, emitted } = admittedDocument(fixture);
+  const { annotations, classified } = emitted;
+  const jsonFile = path.join(tmp, `document-${i}.json`);
   const leanFile = path.join(tmp, `artifact-${i}.lean`);
-  fs.writeFileSync(jsonFile, JSON.stringify(emission));
+  fs.writeFileSync(jsonFile, JSON.stringify(document));
   const emit = spawnSync(emitBin, [jsonFile, leanFile], {
     cwd: engineRoot,
     encoding: "utf8",

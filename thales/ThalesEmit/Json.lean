@@ -1,7 +1,7 @@
 import Lean.Data.Json
 import Tarski.Decode
 
-/-! The emission IR: the shapes `schemas/thales-emission.schema.json`
+/-! The emission IR: the shapes `lemma/schemas/thales-emission.schema.json`
 fixes, decoded strictly — an unknown kind or a missing field is a decode
 error naming the offender, and the whole run fails cleanly on it. -/
 
@@ -686,5 +686,23 @@ def decodeEmission (j : Json) : Except String Emission := do
   pure { file := ← getStr j "file"
          declarations := ← (← getArr j "declarations").mapM decodeDecl
          obligations := ← (← getArr j "obligations").mapM decodeObligation }
+
+/-- The lemma document version this renderer reads: `SCHEMA_VERSION` in
+`lemma/src/document.ts`. -/
+def lemmaSchemaVersion : Nat := 0
+
+/-- Decode a `lemma check` document down to the emission it carries. A
+document of another version fails by name before anything else is read,
+and so does one with no emission: a file the gate refused, or one from
+`lemma parse`. -/
+def decodeDocument (j : Json) : Except String Emission := do
+  match (← j.getObjVal? "schemaVersion").getNat? with
+  | .ok v =>
+    unless v == lemmaSchemaVersion do
+      throw s!"lemma document version {v}, but thales-emit reads version {lemmaSchemaVersion}"
+  | .error _ => throw "the lemma document's schemaVersion is not a version number"
+  match j.getObjVal? "emission" with
+  | .ok e => decodeEmission e
+  | .error _ => throw "the lemma document carries no emission: its file did not pass the gate, or it came from `lemma parse`"
 
 end ThalesEmit

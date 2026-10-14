@@ -11,25 +11,7 @@
 // evaluator at all, and parse-phase negatives are not scored.
 
 import ts from "typescript";
-
-/** The proper name of each SyntaxKind: plain reverse lookup can land on a
- * First-/Last- range marker sharing the same value, so pick the first
- * non-marker name per value. Copied rather than imported from thales —
- * lemma may not depend on an engine. */
-const KIND_NAMES = new Map<number, string>();
-for (const [name, value] of Object.entries(ts.SyntaxKind)) {
-  if (
-    typeof value === "number" &&
-    !/^(First|Last)[A-Z]/.test(name) &&
-    !KIND_NAMES.has(value)
-  ) {
-    KIND_NAMES.set(value, name);
-  }
-}
-
-function kindName(kind: ts.SyntaxKind): string {
-  return KIND_NAMES.get(kind)!;
-}
+import { kindName } from "./readings.js";
 
 /** A source file that does not parse. */
 export class ParseError extends Error {

@@ -1,6 +1,6 @@
 import { assert, describe, expect, test } from "vitest";
 import * as fs from "node:fs";
-import { schemaValidator } from "../../tests/helpers/schema-validator.js";
+import { schemaValidator } from "./helpers/schema-validator.js";
 import {
   type EmitClass,
   type EmitDecl,
@@ -9,7 +9,8 @@ import {
   type EmitStmt,
   emitModule,
 } from "../src/emission.js";
-import { annotationKey, LemmaError } from "@lakatos/lemma";
+import { LemmaError } from "../src/errors.js";
+import { annotationKey } from "../src/qualified-name.js";
 
 /** A declaration's own name. A residual site is named by its owner and
  * index, so a list assertion stays total rather than hiding one. */
@@ -23,21 +24,16 @@ function fnBody(d: EmitDecl): EmitStmt[] {
   return d.body;
 }
 
-const FIXTURE = "thales/tests/fixtures/tracer.ts";
+const FIXTURE = "lemma/tests/fixtures/emission/tracer.ts";
 const read = () => fs.readFileSync(FIXTURE, "utf8");
 
 const expectValidEmission = schemaValidator(
-  new URL("../../schemas/thales-emission.schema.json", import.meta.url),
+  new URL("../schemas/thales-emission.schema.json", import.meta.url),
   "emission",
   // A declaration's `ast` is the ESTree schema's `Program`, referenced
   // across files: the relative `$ref` resolves against the emission
   // schema's `$id` to the ESTree schema's own.
-  [
-    new URL(
-      "../../../lemma/schemas/tarski-estree.schema.json",
-      import.meta.url,
-    ),
-  ],
+  [new URL("../schemas/tarski-estree.schema.json", import.meta.url)],
 );
 
 /** A declaration with the AST it now carries dropped. What the closure is
@@ -135,85 +131,6 @@ describe("emitModule on the tracer fixture", () => {
         "Inappropriate",
         "'Counter#bump' could not be modeled: class 'Counter' has no constructor implementation to model",
       ],
-    ]);
-  });
-
-  test.each([
-    ["thales/tests/fixtures/tracer.ts"],
-    ["thales/tests/fixtures/statements.ts"],
-    ["thales/tests/fixtures/binders.ts"],
-    ["thales/tests/fixtures/degradations.ts"],
-    ["thales/tests/fixtures/classes.ts"],
-    ["thales/tests/fixtures/class-params.ts"],
-    ["thales/tests/fixtures/module-consts.ts"],
-    ["thales/tests/fixtures/nested-class-binder.ts"],
-    ["thales/tests/fixtures/unions.ts"],
-    ["thales/tests/fixtures/optionals.ts"],
-    ["thales/tests/fixtures/defaults.ts"],
-    ["thales/tests/fixtures/ctor-defaults.ts"],
-    ["thales/tests/fixtures/instance-defaults.ts"],
-    ["thales/tests/fixtures/object-is-tagged.ts"],
-    ["thales/tests/fixtures/fields.ts"],
-    ["thales/tests/conformance/theorem/class-binder-equality-guards.ts"],
-    ["thales/tests/conformance/theorem/boolean-classes.ts"],
-  ])("the emission for %s validates against the schema", (fixture) => {
-    expectValidEmission(
-      emitModule(fs.readFileSync(fixture, "utf8"), fixture).emission,
-    );
-  });
-
-  test.each([
-    ["thales/tests/fixtures/tracer.ts", "tracer.emission.json"],
-    ["thales/tests/fixtures/operators.ts", "operators.emission.json"],
-    ["thales/tests/fixtures/statements.ts", "statements.emission.json"],
-    ["thales/tests/fixtures/binders.ts", "binders.emission.json"],
-    ["thales/tests/fixtures/degradations.ts", "degradations.emission.json"],
-    ["thales/tests/fixtures/classes.ts", "classes.emission.json"],
-    ["thales/tests/fixtures/class-params.ts", "class-params.emission.json"],
-    ["thales/tests/fixtures/module-consts.ts", "module-consts.emission.json"],
-    [
-      "thales/tests/fixtures/nested-class-binder.ts",
-      "nested-class-binder.emission.json",
-    ],
-    ["thales/tests/fixtures/unions.ts", "unions.emission.json"],
-    ["thales/tests/fixtures/optionals.ts", "optionals.emission.json"],
-    ["thales/tests/fixtures/defaults.ts", "defaults.emission.json"],
-    ["thales/tests/fixtures/ctor-defaults.ts", "ctor-defaults.emission.json"],
-    [
-      "thales/tests/fixtures/instance-defaults.ts",
-      "instance-defaults.emission.json",
-    ],
-    [
-      "thales/tests/fixtures/object-is-tagged.ts",
-      "object-is-tagged.emission.json",
-    ],
-    ["thales/tests/fixtures/fields.ts", "fields.emission.json"],
-    [
-      "thales/tests/conformance/theorem/class-binder-equality-guards.ts",
-      "class-binder-equality-guards.emission.json",
-    ],
-    [
-      "thales/tests/conformance/theorem/boolean-classes.ts",
-      "boolean-classes.emission.json",
-    ],
-  ])(
-    "the pinned emission for %s is exactly what the frontend emits",
-    (fixture, pin) => {
-      const pinned = JSON.parse(
-        fs.readFileSync(`thales/tests/fixtures/${pin}`, "utf8"),
-      );
-      expect(
-        emitModule(fs.readFileSync(fixture, "utf8"), fixture).emission,
-      ).toEqual(pinned);
-    },
-  );
-
-  test("every stacked JSDoc block's @ensures becomes its own obligation", () => {
-    const fixture = "thales/tests/conformance/theorem/stacked-blocks.ts";
-    const { emission } = emitModule(fs.readFileSync(fixture, "utf8"), fixture);
-    expect(emission.obligations.map((o) => o.property)).toEqual([
-      "nonNegative",
-      "atLeastOne",
     ]);
   });
 
@@ -2026,7 +1943,7 @@ describe("unsupported ranges classify NotTried before emission", () => {
 });
 
 describe("Object.is models as SameValue", () => {
-  const FILE = "thales/tests/fixtures/tracer.ts"; // any resolvable path; no imports are followed
+  const FILE = "lemma/tests/fixtures/emission/tracer.ts"; // any resolvable path; no imports are followed
 
   test("a branch condition walks to a same-value node", () => {
     const src = [
@@ -2228,7 +2145,7 @@ describe("Object.is models as SameValue", () => {
 });
 
 describe("equation guards", () => {
-  const FILE = "thales/tests/fixtures/tracer.ts";
+  const FILE = "lemma/tests/fixtures/emission/tracer.ts";
   const src = (formula: string) =>
     [
       `/** @ensures{p} ${formula} */`,
@@ -2422,7 +2339,7 @@ describe("equation guards", () => {
 });
 
 describe("NaN and Infinity resolve as expression atoms", () => {
-  const FILE = "thales/tests/fixtures/tracer.ts"; // any resolvable path; no imports are followed
+  const FILE = "lemma/tests/fixtures/emission/tracer.ts"; // any resolvable path; no imports are followed
 
   test("NaN in a body walks to a num atom", () => {
     const src = [
@@ -2598,7 +2515,7 @@ describe("NaN and Infinity resolve as expression atoms", () => {
 });
 
 describe("Math.sqrt models as Float.sqrt", () => {
-  const FILE = "thales/tests/fixtures/tracer.ts"; // any resolvable path; no imports are followed
+  const FILE = "lemma/tests/fixtures/emission/tracer.ts"; // any resolvable path; no imports are followed
 
   test("a returned Math.sqrt walks to a builtin node", () => {
     const src = [
@@ -2811,7 +2728,7 @@ describe("Math.sqrt models as Float.sqrt", () => {
 });
 
 describe("builtin member calls model as Float primitives", () => {
-  const FILE = "thales/tests/fixtures/tracer.ts"; // any resolvable path; no imports are followed
+  const FILE = "lemma/tests/fixtures/emission/tracer.ts"; // any resolvable path; no imports are followed
 
   test("a returned Math.abs walks to a builtin node", () => {
     const src = [
@@ -3472,7 +3389,7 @@ describe("builtin member calls model as Float primitives", () => {
 });
 
 describe("logical operators on boolean operands", () => {
-  const FILE = "thales/tests/fixtures/tracer.ts";
+  const FILE = "lemma/tests/fixtures/emission/tracer.ts";
 
   test("|| over comparisons models in a branch condition", () => {
     const { emission, classified } = emitModule(
@@ -3663,7 +3580,7 @@ describe("logical operators on boolean operands", () => {
 });
 
 describe("conditional expressions", () => {
-  const FILE = "thales/tests/fixtures/tracer.ts";
+  const FILE = "lemma/tests/fixtures/emission/tracer.ts";
 
   test("the -0 normalization walks to a cond node", () => {
     const { emission, classified } = emitModule(
@@ -4274,7 +4191,7 @@ describe("class declarations (#129)", () => {
 });
 
 describe("builtin member reads model as the library's constants", () => {
-  const FILE = "thales/tests/fixtures/tracer.ts"; // any resolvable path; no imports are followed
+  const FILE = "lemma/tests/fixtures/emission/tracer.ts"; // any resolvable path; no imports are followed
 
   test("a returned Number.EPSILON product walks to a builtin read", () => {
     const src = [

@@ -98,5 +98,17 @@ export { anchoredSource, regexGuardDomainError } from "./regex-guard.js";
 export * from "./estree.js";
 export { stripTypes } from "./strip-types.js";
 
-export { checkDocuments, parseDocument, SCHEMA_VERSION } from "./document.js";
+export {
+  admittedDocument,
+  checkDocuments,
+  parseDocument,
+  SCHEMA_VERSION,
+} from "./document.js";
 export type { CheckedDocument, RefusalReason } from "./document.js";
+
+export type {
+  ClassifiedAnnotation,
+  EmitDecl,
+  Emission,
+  PlainEmission,
+} from "./emission.js";

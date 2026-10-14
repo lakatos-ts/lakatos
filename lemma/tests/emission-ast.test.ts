@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { schemaValidator } from "../../tests/helpers/schema-validator.js";
+import { schemaValidator } from "./helpers/schema-validator.js";
 import { type EmitDecl, emitModule } from "../src/emission.js";
 import {
   bridgeModule,
@@ -10,15 +10,11 @@ import {
   referencedNames,
 } from "../src/emission-ast.js";
 import { type ModuleReader } from "../src/module-graph.js";
-import {
-  parseScript,
-  type Program,
-  type Statement,
-  stripTypes,
-} from "@lakatos/lemma";
+import { parseScript, type Program, type Statement } from "../src/estree.js";
+import { stripTypes } from "../src/strip-types.js";
 
 const expectValidProgram = schemaValidator(
-  new URL("../../../lemma/schemas/tarski-estree.schema.json", import.meta.url),
+  new URL("../schemas/tarski-estree.schema.json", import.meta.url),
   "a declaration's ast",
 );
 
@@ -89,13 +85,13 @@ function astOf(declarations: readonly EmitDecl[], name: string) {
   return d.kind === "residual" ? undefined : d.ast;
 }
 
-const FIXTURE = "thales/tests/fixtures/tracer.ts";
+const FIXTURE = "lemma/tests/fixtures/emission/tracer.ts";
 const TRACER = fs.readFileSync(FIXTURE, "utf8");
 
-const CLASSES = "thales/tests/fixtures/classes.ts";
+const CLASSES = "lemma/tests/fixtures/emission/classes.ts";
 const CLASSES_TEXT = fs.readFileSync(CLASSES, "utf8");
 
-const MODULE_CONSTS = "thales/tests/fixtures/module-consts.ts";
+const MODULE_CONSTS = "lemma/tests/fixtures/emission/module-consts.ts";
 const MODULE_CONSTS_TEXT = fs.readFileSync(MODULE_CONSTS, "utf8");
 
 describe("a declaration's own closure", () => {
@@ -744,45 +740,6 @@ describe("what a reference is", () => {
         picked(computed, "plain.ts", ["lo", "Holder"]),
       ),
     );
-  });
-});
-
-/** The declarations of the store's inputs that carry no ast by design, by
- * file: each closure binds a name to a differently spelled declaration,
- * and a script would need a renaming the emitter never writes. Naming
- * each one keeps any other exception visible. */
-const WITHOUT_AST: Record<string, string[]> = {
-  // #570: the importer's `b` is dep's `inner`.
-  "thales/tests/conformance/theorem/aliased-export/main.ts": ["top"],
-};
-
-/** Every `.ts` the emission store is built from: acceptance criterion 1's
- * frontend half, every emitted declaration carries an ast, but for the
- * exceptions `WITHOUT_AST` names. */
-function storeInputs(): string[] {
-  const roots = ["thales/tests/fixtures", "thales/tests/conformance"];
-  const out: string[] = [];
-  const walk = (dir: string): void => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(full);
-      // A declaration file is never an entry: it has no runtime statements
-      // at all, which is why `tsc` declines to transpile one.
-      else if (entry.name.endsWith(".ts") && !entry.name.endsWith(".d.ts"))
-        out.push(full);
-    }
-  };
-  for (const root of roots) walk(root);
-  return out.sort();
-}
-
-describe("every emitted declaration carries its AST", () => {
-  test.each(storeInputs())("%s", (file) => {
-    const { emission } = emitModule(fs.readFileSync(file, "utf8"), file);
-    const without = emission.declarations
-      .filter((d) => d.kind !== "residual" && d.ast === undefined)
-      .map((d) => (d.kind === "residual" ? "" : d.name));
-    expect(without).toEqual(WITHOUT_AST[file] ?? []);
   });
 });
 

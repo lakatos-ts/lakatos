@@ -9,7 +9,7 @@ The vocabulary below is for the rewritten engine. The previous compiler's vocabu
 ### Pipeline vocabulary
 
 **Emission**:
-The frontend pass that walks tsc's AST into per-declaration JSON, which the `thales-emit` executable renders as ordinary Lean — a `def` per function, a `#thales_prove` command per obligation. What it cannot map it does not emit: the frontend classifies that annotation itself, so the artifact only ever carries declarations with a model.
+The frontend pass (lemma's `emission.ts`) that walks tsc's AST into per-declaration JSON, which the `thales-emit` executable renders as ordinary Lean — a `def` per function, a `#thales_prove` command per obligation. What it cannot map it does not emit: the frontend classifies that annotation itself, so the artifact only ever carries declarations with a model.
 
 **Classification**:
 The frontend's own verdict on an annotation it will not emit: `Inappropriate` when the input is outside the model (an unmapped construct, a refused operator), `NotTried` when a safe-integer clamp is the sole blocker, `Error` when the engine is the one at fault. A classified annotation never reaches Lean; the CLI joins its verdict into the envelope alongside the ones Lean reports.
