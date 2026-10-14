@@ -53,5 +53,5 @@ theorem nativeTier : ((List.range 40).all fun n =>
          |>.str "_native" |>.str "native_decide" |>.str "ax_15"),
        canonicalAxiom ``propext,
        canonicalAxiom `_native.native_decide.decl_3]
-    == [``Lean.ofReduceBool, ``Lean.ofReduceBool, ``propext,
+    == [nativeAxiom, nativeAxiom, ``propext,
         `_native.native_decide.decl_3]
