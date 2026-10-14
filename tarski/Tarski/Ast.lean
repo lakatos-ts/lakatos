@@ -3,7 +3,7 @@ import Js.String.Basic
 /-! The abstract syntax of the evaluated fragment.
 
 Every constructor names the ESTree node it decodes from, so this file,
-`Tarski/Decode.lean`, and `schemas/tarski-estree.schema.json` can be read
+`Tarski/Decode.lean`, and `lemma/schemas/tarski-estree.schema.json` can be read
 against one another. A node kind outside this file is not a runtime
 error: `Decode` refuses it as `unsupported`, and that is the only place
 the word appears.

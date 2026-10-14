@@ -15,7 +15,7 @@ import {
 } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { ParseError, parseScript } from "../estree.js";
+import { type ParseError, parseScript } from "@lakatos/lemma";
 import type { Plan } from "./plan.js";
 
 /** What a test run came to. */

@@ -3,11 +3,11 @@
 `@lakatos/tarski` is the JavaScript semantics behind lakatos. The Lean
 library in this directory gives TypeScript's values and operations their
 meaning, and an evaluator over the same definitions runs a growing
-fragment of JavaScript. The package's TypeScript is the bridge to it: a
-parser over tsc that emits the evaluator's ESTree JSON (pinned by
-[`schemas/tarski-estree.schema.json`](schemas/tarski-estree.schema.json)),
-a runner for the evaluator binary, and the `tarski-test262` bin, which
-runs test262 against the evaluator.
+fragment of JavaScript. The evaluator reads ESTree JSON, which lemma's
+parser bridge produces (pinned by
+[`lemma/schemas/tarski-estree.schema.json`](../lemma/schemas/tarski-estree.schema.json)).
+The package's TypeScript is a runner for the evaluator binary and the
+`tarski-test262` bin, which runs test262 against the evaluator.
 
 The evaluator binary is built by `lake` from this directory, so the
 package needs a lakatos checkout with the Lean toolchain:

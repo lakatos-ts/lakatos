@@ -1,5 +1,5 @@
 // The parser bridge: a JavaScript file in, an ESTree-shaped document out,
-// exactly as `schemas/tarski-estree.schema.json` fixes it. The Lean side
+// exactly as `schemas/tarski-estree.schema.json` here fixes it. The Lean side
 // decodes that document; the schema is the seam, and neither language
 // parses JavaScript twice.
 //
@@ -15,7 +15,7 @@ import ts from "typescript";
 /** The proper name of each SyntaxKind: plain reverse lookup can land on a
  * First-/Last- range marker sharing the same value, so pick the first
  * non-marker name per value. Copied rather than imported from thales —
- * tarski may not depend on an engine. */
+ * lemma may not depend on an engine. */
 const KIND_NAMES = new Map<number, string>();
 for (const [name, value] of Object.entries(ts.SyntaxKind)) {
   if (

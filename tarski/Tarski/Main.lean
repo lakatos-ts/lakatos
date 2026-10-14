@@ -5,7 +5,7 @@ import Tarski.Format
 /-! The `tarski` binary: `tarski run <file.json>` and
 `tarski exec <file.json>`.
 
-One ESTree document in — the JSON `schemas/tarski-estree.schema.json`
+One ESTree document in — the JSON `lemma/schemas/tarski-estree.schema.json`
 fixes, as the parser bridge produces it — one line out: the script's
 completion value, or nothing when no statement produced one.
 

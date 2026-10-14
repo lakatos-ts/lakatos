@@ -522,8 +522,8 @@ describe("tarski-test262", () => {
   });
 });
 
-// The built file, run the way a person runs it, as `bridge-cli.test.ts`
-// does for the parser bridge. The build is the suite-wide globalSetup's.
+// The built file, run the way a person runs it, as `lemma/tests/cli.test.ts`
+// does for the lemma bin. The build is the suite-wide globalSetup's.
 describe("tarski/dist/test262/cli.js", () => {
   const cli = path.join(root, "tarski", "dist", "test262", "cli.js");
 

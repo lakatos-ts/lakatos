@@ -52,13 +52,22 @@ describe("ci-scope select", () => {
     expect(select("tarski", paths)).toEqual({ lean: "false", exe: "true" });
   });
 
-  it.each(["core/src/envelope.ts", "lemma/src/index.ts"])(
+  it.each(["core/src/envelope.ts", "lemma/tests/cli.test.ts"])(
     "a shared package change (%s) runs all of thales and the exe suite",
     (p) => {
       expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
       expect(select("tarski", [p])).toEqual({ lean: "false", exe: "true" });
     },
   );
+
+  it.each([
+    "lemma/src/estree.ts",
+    "lemma/schemas/tarski-estree.schema.json",
+    "lemma/package.json",
+  ])("a parser bridge change (%s) runs all of tarski too", (p) => {
+    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
+    expect(select("tarski", [p])).toEqual({ lean: "true", exe: "true" });
+  });
 
   it("a thales Lean change runs thales and nothing in tarski", () => {
     const paths = ["thales/ThalesDsl/Emit.lean"];

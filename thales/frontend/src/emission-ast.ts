@@ -21,7 +21,7 @@ import {
   type Program,
   type Statement,
   stripTypes,
-} from "@lakatos/tarski";
+} from "@lakatos/lemma";
 import { type ModelRef } from "./module-graph.js";
 
 /** One walked module: the qualifier its models carry (empty for the

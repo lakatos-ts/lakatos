@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lakatos.test/schemas/lemma-document.schema.json",
+  "title": "lemma checked-program document",
+  "description": "What the lemma bin prints for one input file: the program the file parses to, or why it has none. `lemma check` type checks the project first (gated: true); `lemma parse` does not (gated: false). A refused file still gets a document, so a batch reader matches every input to an answer. `schemaVersion` changes whenever a reader of an older document would misread a newer one.",
+  "type": "object",
+  "required": ["schemaVersion", "file", "gated", "outcome"],
+  "properties": {
+    "schemaVersion": { "const": 0 },
+    "file": {
+      "type": "string",
+      "description": "The path as the caller gave it."
+    },
+    "gated": {
+      "type": "boolean",
+      "description": "Whether the program passed the typecheck gate on its way here."
+    },
+    "outcome": { "enum": ["program", "refused"] }
+  },
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "required": ["program"],
+      "properties": {
+        "schemaVersion": true,
+        "file": true,
+        "gated": true,
+        "outcome": { "const": "program" },
+        "script": {
+          "type": "string",
+          "description": "The script the program was parsed from, when that is not the file's own text: the TypeScript with its types stripped. `lemma check` always carries it and `lemma parse` never does."
+        },
+        "program": { "$ref": "tarski-estree.schema.json#/definitions/Program" }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "required": ["reason", "message"],
+      "properties": {
+        "schemaVersion": true,
+        "file": true,
+        "gated": true,
+        "outcome": { "const": "refused" },
+        "reason": {
+          "description": "Why there is no program. `unreadable` comes only from `lemma parse`: under `lemma check`, a file the type check did not read is `outside-program`, whether or not it exists.",
+          "enum": [
+            "unreadable",
+            "no-tsconfig",
+            "typecheck",
+            "outside-program",
+            "syntax"
+          ]
+        },
+        "message": { "type": "string" },
+        "diagnostics": {
+          "type": "array",
+          "description": "The gate's findings, for a typecheck refusal. `file` is relative to the directory the check ran in, and absent, with `line`, for a project-level finding.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "file": { "type": "string" },
+              "line": { "type": "integer", "minimum": 1 },
+              "code": { "type": "integer" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

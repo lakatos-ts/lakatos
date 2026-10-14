@@ -11,7 +11,27 @@ reference implementation, versioned together.
   annotated files (`resolveFiles`), `@ensures` extraction (`extract`), the
   prefix and formula parsers (`parsePrefix`, `parseBody`), binder domains
   and their cardinalities, class-valued binder resolution, island typing,
-  and the strict-mode typecheck gate (`typecheckProject`).
+  the strict-mode typecheck gate (`typecheckProject`), and the parser
+  bridge from a script to the ESTree the tarski evaluator reads
+  (`parseScript`, with `stripTypes` for a TypeScript file).
+- [`schemas/`](schemas/) — `tarski-estree.schema.json`, the ESTree subset
+  the bridge emits, and `lemma-document.schema.json`, what the bin prints.
+
+The `lemma` bin is the front end as a process, for an engine that is not
+written in TypeScript. It prints one checked-program document per file:
+the program, or the reason there is none.
+
+```bash
+npx lemma check src/foo.ts            # type check the project, strip, parse
+npx lemma parse test.js               # parse as written, no type check
+npx lemma check --jsonl src/*.ts      # one compact document per line
+```
+
+`check` type checks the project under its own `tsconfig.json` with
+strict forced on top, as both engines do; `parse` is for plain
+JavaScript such as test262, where the question is what the evaluator
+covers. The exit status is 0 when every file has a program, 1 when any
+was refused, and 2 on bad usage.
 
 Install it with `npm install @lakatos/lemma`, and import the package,
 not a path: `import { parseBody } from "@lakatos/lemma"`. The barrel `src/index.ts`
