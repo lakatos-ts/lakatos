@@ -703,6 +703,6 @@ def decodeDocument (j : Json) : Except String Emission := do
   | .error _ => throw "the lemma document's schemaVersion is not a version number"
   match j.getObjVal? "emission" with
   | .ok e => decodeEmission e
-  | .error _ => throw "the lemma document carries no emission: its file did not pass the gate"
+  | .error _ => throw "the lemma document carries no emission: its file did not pass the gate, or it came from `lemma parse`"
 
 end ThalesEmit

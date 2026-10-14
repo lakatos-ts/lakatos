@@ -42,7 +42,7 @@ def emptyEmissionJson : Json :=
 #guard
   (decodeDocument (Json.mkObj
     [("schemaVersion", (0 : Nat)), ("outcome", "refused")]))
-  matches .error "the lemma document carries no emission: its file did not pass the gate"
+  matches .error "the lemma document carries no emission: its file did not pass the gate, or it came from `lemma parse`"
 -- A bare emission is not a document.
 #guard (decodeDocument emptyEmissionJson) matches .error _
 

@@ -199,8 +199,15 @@ describe("lemma check: the emission", () => {
       "/** @ensures{id} forall (x: int ∈ [0, 5)) { f(x) === x } */\n" +
       "export function f(x: number): number { return x; }\n",
     "src/typo.ts":
-      "/** @ensures{id} forall (x: int ∈ [0, 5)) { g(x) === x } */\n" +
-      "export function f(x: number): number { return x; }\n",
+      "function h(x: number): number { return x; }\n" +
+      "/** @ensures{id} forall (x: int ∈ [0, 5)) { f(x) === x }\n" +
+      " *  @ensures{bad} forall (x: int ∈ [0, 5)) { h(x) === x } */\n" +
+      "export function f(x: number): number { return h(x); }\n",
+    "src/other.ts":
+      "function h(x: number): number { return x; }\n" +
+      "/** @ensures{id} forall (x: int ∈ [0, 5)) { f(x) === x }\n" +
+      " *  @ensures{bad} forall (x: int ∈ [0, 5)) { h(x) === x } */\n" +
+      "export function f(x: number): number { return h(x); }\n",
     "src/bad.ts":
       "/** @ensures{p} forall (n: int) { forall (m: int) { f(n) === m } } */\n" +
       "export function f(x: number): number { return x; }\n",
@@ -219,10 +226,37 @@ describe("lemma check: the emission", () => {
     );
   });
 
-  it("leaves out an annotation whose formula does not type", () => {
+  it("leaves out an annotation the gate's formula typing refuses", () => {
+    // `h` is not exported, so an atom naming it is refused at the gate;
+    // the emitter alone would have made it an obligation.
+    const obligations = (d: unknown) =>
+      (d as { obligations: { property: string }[] }).obligations.map(
+        (o) => o.property,
+      );
+    expect(
+      obligations(admittedDocument("src/typo.ts").document.emission),
+    ).toEqual(["id", "bad"]);
     const r = invoke("check", "src/typo.ts");
     expect(r.status).toBe(0);
-    expect(parsed(r.stdout).emission).toMatchObject({ obligations: [] });
+    expect(obligations(parsed(r.stdout).emission)).toEqual(["id"]);
+  });
+
+  it("refuses the same annotations under every spelling of a file", () => {
+    const r = invoke(
+      "check",
+      "--jsonl",
+      "src/typo.ts",
+      "./src/typo.ts",
+      "src/other.ts",
+    );
+    expect(r.status).toBe(0);
+    expect(
+      lines(r.stdout).map((d) =>
+        (d.emission as { obligations: { property: string }[] }).obligations.map(
+          (o) => o.property,
+        ),
+      ),
+    ).toEqual([["id"], ["id"], ["id"]]);
   });
 
   it("refuses a file with a formula Lemma cannot read", () => {

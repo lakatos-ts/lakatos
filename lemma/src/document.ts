@@ -198,8 +198,13 @@ export function checkDocuments(
   const program = new Set(check.programFiles);
   const answers = new Map<string, CheckedDocument>();
   const formulas: ParsedFile[] = [];
+  // The spelling each checked file is typed under: formula typing keys
+  // its work by source file, so a file named twice is typed once, and
+  // its refusals are spelled again for every other name it was given.
+  const typedAs = new Map<string, string>();
   for (const file of files) {
-    if (!program.has(path.relative(cwd, path.resolve(file)))) {
+    const relative = path.relative(cwd, path.resolve(file));
+    if (!program.has(relative)) {
       answers.set(
         file,
         refused(
@@ -211,17 +216,42 @@ export function checkDocuments(
       );
       continue;
     }
+    let read: ParsedFile[];
     try {
-      formulas.push(...readFormulas([file]));
+      read = readFormulas([file]);
     } catch (e) {
       /* v8 ignore next -- readFormulas rethrows only what is not a
          LemmaError, which is a bug, not this file's refusal */
       if (!(e instanceof LemmaError)) throw e;
       answers.set(file, refused(file, true, "annotation", e.message));
+      continue;
     }
+    if (typedAs.has(relative)) continue;
+    typedAs.set(relative, file);
+    formulas.push(...read);
   }
   const { refused: untyped } = typeFormulas(formulas, check.checked);
-  return files.map(
-    (file) => answers.get(file) ?? admittedDocument(file, untyped).document,
-  );
+  return files.map((file) => {
+    const answer = answers.get(file);
+    if (answer !== undefined) return answer;
+    const as = typedAs.get(path.relative(cwd, path.resolve(file)))!;
+    return admittedDocument(
+      file,
+      as === file ? untyped : respelled(untyped, as, file),
+    ).document;
+  });
+}
+
+/** `keys`' annotation keys for `from`, spelled for `to` instead. */
+function respelled(
+  keys: ReadonlySet<string>,
+  from: string,
+  to: string,
+): Set<string> {
+  const out = new Set<string>();
+  for (const key of keys) {
+    const [file, ...rest] = JSON.parse(key) as string[];
+    if (file === from) out.add(JSON.stringify([to, ...rest]));
+  }
+  return out;
 }
