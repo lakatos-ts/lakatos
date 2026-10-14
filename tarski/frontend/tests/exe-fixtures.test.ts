@@ -7,22 +7,31 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
-import { executeSource, type ExeDeps } from "../frontend/src/exe.js";
-import { ensureBinary, findTarskiRoot } from "@lakatos/tarski";
+import { fileURLToPath } from "node:url";
 
-// Every `@ensures` fixture in the repo, run under `thales-exe` and under
-// Node, with the two compared. This is what says the evaluator is an
+import { parseScript, stripTypes } from "@lakatos/lemma";
+import { ensureBinary, findTarskiRoot } from "../src/index.js";
+
+// Every `@ensures` fixture in the repo, run on the tarski evaluator and
+// under Node, with the two compared. This is what says the evaluator is an
 // evaluator rather than a plausible-looking one: the same programs
 // `thales` proves theorems about, executed, with an engine as the
 // control.
 //
 // It needs the real binary, so it runs where `test262-e2e.test.ts` runs —
 // `tarski.yml`, the one job with Node and Lean — and skips elsewhere.
+//
+// Each fixture is stripped and parsed through lemma's barrel and run with
+// `tarski exec`, not with `tarski <file.ts>`: what is measured is the
+// evaluator, and no tsconfig's program holds all of these fixtures at
+// once, so the gate would refuse them before the evaluator saw one.
+// `exe-e2e.test.ts` is where the gated command is run.
 const e2e = process.env.LAKATOS_TARSKI_E2E === "1";
 
-const REPO = process.cwd();
+const REPO = fileURLToPath(new URL("../../..", import.meta.url));
 
 /** The four fixture roots. "Every `@ensures` fixture in the repo" is the
  * issue's phrase, and it is not only thales's. */
@@ -63,7 +72,7 @@ function corpus(): string[] {
  * or a regression, and either way it belongs in a diff.
  *
  * Seventeen of the corpus's two hundred and eighty. The eight
- * `ImportDeclaration` rows are the multi-file fixtures, which `exe`
+ * `ImportDeclaration` rows are the multi-file fixtures, which the evaluator
  * refuses by design — it resolves no module graph. The rest is syntax
  * outside the evaluated fragment: BigInt, a regular expression, `&`,
  * `??`, a computed *class* key, an `async` function, and an
@@ -111,7 +120,7 @@ const UNSUPPORTED: Record<string, string> = {
 const DISAGREES: Record<string, string> = {};
 
 /** One `tarski exec`, under a timeout: a fixture that diverges must not
- * take the suite with it. `exe` itself imposes none — a program hangs as
+ * take the suite with it. `tarski` itself imposes none — a program hangs as
  * it would under `node` — but a batch of 276 is a different contract. */
 const EXEC_TIMEOUT_MS = 30_000;
 
@@ -142,44 +151,47 @@ describe.runIf(e2e)(
       mkdirSync(scratch, { recursive: true });
       const binary = ensureBinary(findTarskiRoot());
       expect(binary.kind, JSON.stringify(binary)).toBe("ready");
-      const deps: ExeDeps = {
-        ensureBinary: () => binary,
-        runDocument: (bin, documentPath) =>
-          spawnSync(bin, ["exec", documentPath], {
-            encoding: "utf8",
-            timeout: EXEC_TIMEOUT_MS,
-            maxBuffer: 256 * 1024 * 1024,
-          }),
-      };
+      if (binary.kind !== "ready") return;
 
       for (const file of files) {
         const outDir = path.join(scratch, file);
-        const outcome = executeSource(
+        mkdirSync(outDir, { recursive: true });
+        const base = path.basename(file).replace(/\.ts$/, "");
+        const script = stripTypes(
           readFileSync(path.join(REPO, file), "utf8"),
           file,
-          outDir,
-          deps,
         );
-        if (outcome.kind === "unsupported") {
-          refused[file] = outcome.node;
+        const documentPath = path.join(outDir, `${base}.json`);
+        writeFileSync(path.join(outDir, `${base}.js`), script);
+        writeFileSync(documentPath, JSON.stringify(parseScript(script, file)));
+        const run = spawnSync(binary.binary, ["exec", documentPath], {
+          encoding: "utf8",
+          timeout: EXEC_TIMEOUT_MS,
+          maxBuffer: 256 * 1024 * 1024,
+        });
+        if (run.status === 3) {
+          // `unsupported: <Kind>`, as `Decode.lean` writes it.
+          refused[file] = run.stderr
+            .split("\n")[0]!
+            .replace(/^unsupported: /, "");
           continue;
         }
-        if (outcome.kind !== "ran") {
-          disagreed[file] = `exe: ${JSON.stringify(outcome)}`;
+        if (run.status !== 0 && run.status !== 1) {
+          disagreed[file] =
+            `tarski: ${run.status} ${JSON.stringify(run.stderr)}`;
           continue;
         }
         // Node runs the very same stripped text, under the extension that
         // makes it a module — the fixtures are module code.
-        const base = path.basename(file).replace(/\.ts$/, "");
         const mjs = path.join(outDir, `${base}.mjs`);
         copyFileSync(path.join(outDir, `${base}.js`), mjs);
         const node = spawnSync(process.execPath, [mjs], {
           encoding: "utf8",
           timeout: EXEC_TIMEOUT_MS,
         });
-        if (outcome.stdout !== node.stdout || outcome.status !== node.status) {
+        if (run.stdout !== node.stdout || run.status !== node.status) {
           disagreed[file] =
-            `exe ${outcome.status} ${JSON.stringify(outcome.stdout)} / ` +
+            `tarski ${run.status} ${JSON.stringify(run.stdout)} / ` +
             `node ${node.status} ${JSON.stringify(node.stdout)}`;
         }
       }
