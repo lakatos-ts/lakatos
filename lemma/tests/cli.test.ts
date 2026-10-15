@@ -276,8 +276,10 @@ describe("lemma check: the emission", () => {
   });
 
   it("refuses the same annotations under every spelling of a file", () => {
+    // Only --as-given keeps two spellings apart; patterns would merge them.
     const r = invoke(
       "check",
+      "--as-given",
       "--jsonl",
       "src/typo.ts",
       "./src/typo.ts",
@@ -581,10 +583,43 @@ describe("lemma check: discovery and globs", () => {
     "src/types.d.ts": "export declare const t: number;\n",
   });
 
-  it("an existing file is answered under the spelling it was given", () => {
-    const r = invoke("check", "--jsonl", "./src/a.ts");
+  it("a pattern naming a file resolves as admit resolves it", () => {
+    // Normalized, deduplicated, and only TypeScript sources: the spelling
+    // the envelope reports.
+    const r = invoke("check", "--jsonl", "./src/a.ts", "src/a.ts");
     expect(r.status).toBe(0);
-    expect(lines(r.stdout).map((d) => d.file)).toEqual(["./src/a.ts"]);
+    expect(lines(r.stdout).map((d) => d.file)).toEqual(["src/a.ts"]);
+    expect(invoke("check", "--jsonl", "src").stderr).toBe(
+      "no matching .ts files\n",
+    );
+  });
+
+  it("--as-given answers each file under the spelling it was given", () => {
+    const r = invoke(
+      "check",
+      "--as-given",
+      "--jsonl",
+      "./src/a.ts",
+      "src/a.ts",
+    );
+    expect(r.status).toBe(0);
+    expect(lines(r.stdout).map((d) => d.file)).toEqual([
+      "./src/a.ts",
+      "src/a.ts",
+    ]);
+  });
+
+  it("--as-given refuses a missing file as outside the program", () => {
+    const r = invoke("check", "--as-given", "--jsonl", "src/nope.ts");
+    expect(r.status).toBe(1);
+    expect(lines(r.stdout)).toMatchObject([
+      { file: "src/nope.ts", outcome: "refused", reason: "outside-program" },
+    ]);
+  });
+
+  it("--as-given needs files, and parse takes none of it", () => {
+    expect(invoke("check", "--as-given", "--jsonl").status).toBe(2);
+    expect(invoke("parse", "--as-given", "--jsonl", "x.js").status).toBe(2);
   });
 
   it("with no files, checks the files tsconfig.json compiles", () => {

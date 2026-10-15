@@ -26,7 +26,14 @@ npx lemma check src/foo.ts            # type check the project, strip, parse
 npx lemma check                       # no files: the files tsconfig.json compiles
 npx lemma parse test.js               # parse as written, no type check
 npx lemma check --jsonl "src/**/*.ts" # globs; one compact document per line
+npx lemma check --as-given --jsonl ./a.ts b.ts # these files, spelled as given
 ```
+
+Patterns resolve as `admit` resolves them: globbed, normalized
+(`./a.ts` is `a.ts`), deduplicated, and only TypeScript sources.
+`--as-given` takes files instead, answering each under the spelling it
+was given, in order, for a caller that matches documents to its own
+arguments; a file the program does not hold is refused as outside it.
 
 `check` type checks the project under its own `tsconfig.json` with
 strict forced on top, as both engines do; `parse` is for plain

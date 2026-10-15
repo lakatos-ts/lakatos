@@ -6,7 +6,7 @@
 // batch never has to match stderr lines back to files: a refusal is data,
 // with its reason and, for the gate, the compiler's diagnostics.
 
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import {
   NO_TSCONFIG,
@@ -375,17 +375,12 @@ export function checkDocuments(
 }
 
 /** `checkDocuments` over patterns: the files they match, or, with none,
- * the files tsconfig.json compiles, as `admit` resolves them. Throws
- * LemmaError when resolution comes up empty or the tsconfig is broken. */
+ * the files tsconfig.json compiles, resolved exactly as `admit` resolves
+ * them. Throws LemmaError when resolution comes up empty or the tsconfig
+ * is broken. */
 export function checkPatterns(
   patterns: readonly string[],
   tsBuildInfoFile?: string,
 ): CheckedDocument[] {
-  // Lean callers match documents to the arguments as typed, so plain
-  // existing files are answered unexpanded.
-  const plain = patterns.length > 0 && patterns.every((p) => existsSync(p));
-  return checkDocuments(
-    plain ? [...patterns] : resolveFiles([...patterns]).files,
-    tsBuildInfoFile,
-  );
+  return checkDocuments(resolveFiles([...patterns]).files, tsBuildInfoFile);
 }

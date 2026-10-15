@@ -5,6 +5,9 @@ inputs:
   emit:
     description: Also build the thales-emit binary.
     default: "false"
+  exe:
+    description: Also build the Lean thales executable.
+    default: "false"
 
 outputs:
   cache-key:
@@ -56,7 +59,7 @@ runs:
         path: |
           thales/.lake/build
           tarski/.lake/build
-        key: lake-v4-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'tarski/lake-manifest.json', 'thales/lakefile.lean', 'thales/lake-manifest.json') }}-${{ hashFiles('tarski/*.lean', 'tarski/Js/**/*.lean', 'tarski/Tarski/**/*.lean', 'tarski/Test/**/*.lean', 'thales/*.lean', 'thales/ThalesDsl/**/*.lean', 'thales/ThalesEmit/**/*.lean', 'thales/Test/**/*.lean') }}
+        key: lake-v4-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'tarski/lake-manifest.json', 'thales/lakefile.lean', 'thales/lake-manifest.json') }}-${{ hashFiles('tarski/*.lean', 'tarski/Js/**/*.lean', 'tarski/Tarski/**/*.lean', 'tarski/Test/**/*.lean', 'thales/*.lean', 'thales/ThalesDsl/**/*.lean', 'thales/ThalesEmit/**/*.lean', 'thales/Thales/**/*.lean', 'thales/Test/**/*.lean') }}
         restore-keys: |
           lake-v4-${{ runner.os }}-${{ hashFiles('tarski/lean-toolchain', 'tarski/lakefile.lean', 'tarski/lake-manifest.json', 'thales/lakefile.lean', 'thales/lake-manifest.json') }}-
 
@@ -69,5 +72,11 @@ runs:
       # A lean_exe is not a default target; the checks that run it ask for it.
       if: inputs.emit == 'true'
       run: lake build thales-emit
+      shell: bash
+      working-directory: thales
+
+    - name: Build the Lean thales
+      if: inputs.exe == 'true'
+      run: lake build thales
       shell: bash
       working-directory: thales

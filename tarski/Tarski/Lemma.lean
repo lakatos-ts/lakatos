@@ -276,15 +276,17 @@ def run (bin : System.FilePath) (args files : Array String) :
       return failed "exited 1 with every file answered, which is a crash"
     return .ok docs
 
-/-- `lemma check` on `files`, under the shared gate cache `tsbuildinfo`. -/
+/-- `lemma check --as-given` on `files`, under the shared gate cache
+`tsbuildinfo`: each file answered under the spelling it was given. -/
 def check (bin : System.FilePath) (files : Array String)
     (tsbuildinfo : String := ".lakatos/typecheck.tsbuildinfo") :
     IO (Except String (Array Document)) :=
-  run bin #["check", "--tsbuildinfo", tsbuildinfo] files
+  run bin #["check", "--as-given", "--tsbuildinfo", tsbuildinfo] files
 
-/-- `lemma check` over patterns, discovery when there are none: lemma
-decides which files answer, so the only check is that each answered file
-is a document. -/
+/-- `lemma check` over patterns, discovery when there are none, resolved
+as the TypeScript `admit` resolves them (normalized, deduplicated, and
+only TypeScript sources): lemma decides which files answer, so the only
+check is that each answered file is a document. -/
 def checkPatterns (bin : System.FilePath) (patterns : Array String)
     (tsbuildinfo : String := ".lakatos/typecheck.tsbuildinfo") :
     IO (Except String (Array Document)) := do

@@ -163,12 +163,13 @@ jobs:
       - uses: ./.github/actions/thales-setup
         with:
           emit: "true"
+          exe: "true"
 
       - name: Prove end-to-end
         # vitest positionals are substring filters, so each names its whole
         # path; serialized because parallel forks would race lake builds in
         # the same checkout.
-        run: npx vitest run --no-file-parallelism thales/tests/e2e.test.ts tests/prove-refute-parity.test.ts
+        run: npx vitest run --no-file-parallelism thales/tests/e2e.test.ts thales/tests/lean-exe.test.ts tests/prove-refute-parity.test.ts
         working-directory: .
         env:
           LAKATOS_PROVE_E2E: "1"

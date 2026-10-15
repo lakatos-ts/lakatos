@@ -8,12 +8,14 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import {
   type CheckedDocument,
+  checkDocuments,
   checkPatterns,
   parseDocument,
 } from "./document.js";
 import { LemmaError } from "./errors.js";
 
 const USAGE = `usage: lemma check [--jsonl] [--tsbuildinfo <file>] [<pattern>...]
+       lemma check --as-given [--jsonl] [--tsbuildinfo <file>] <file.ts>...
        lemma parse [--jsonl] <file.js>...`;
 
 const HELP = `${USAGE}
@@ -28,7 +30,10 @@ schemas/lemma-document.schema.json in this package).
          forced on top, read each file's
          @ensures annotations, then strip its types and parse what is
          left as a script; the document also carries thales's emission
-         for the file.
+         for the file. With --as-given, the arguments are files, not
+         patterns: each is answered under the spelling it was given, in
+         order, one document apiece, and one the program does not hold
+         (missing, say) is refused as outside it.
   parse  parse each file as a JavaScript script, exactly as written,
          with no type check.
 
@@ -40,6 +45,7 @@ options:
                         indented
   --tsbuildinfo <file>  check reads and writes the gate's incremental
                         cache here
+  --as-given            check exactly the named files, unexpanded
   -h, --help            show this help
 
 exit status: 0 when every file has a program, 1 when any was refused,
@@ -60,6 +66,7 @@ export function main(argv: readonly string[]): number {
       options: {
         jsonl: { type: "boolean" },
         tsbuildinfo: { type: "string" },
+        "as-given": { type: "boolean" },
         help: { type: "boolean", short: "h" },
       },
     });
@@ -77,17 +84,22 @@ export function main(argv: readonly string[]): number {
   if (command !== "check" && command !== "parse") return usage();
   if (
     command === "parse" &&
-    (files.length === 0 || values.tsbuildinfo !== undefined)
+    (files.length === 0 ||
+      values.tsbuildinfo !== undefined ||
+      values["as-given"])
   )
     return usage();
+  if (values["as-given"] && files.length === 0) return usage();
   if (!values.jsonl && files.length !== 1) return usage();
 
   let documents: CheckedDocument[];
   try {
     documents =
-      command === "check"
-        ? checkPatterns(files, values.tsbuildinfo)
-        : files.map((f) => parseDocument(f));
+      command === "parse"
+        ? files.map((f) => parseDocument(f))
+        : values["as-given"]
+          ? checkDocuments(files, values.tsbuildinfo)
+          : checkPatterns(files, values.tsbuildinfo);
   } catch (e) {
     /* v8 ignore next -- only LemmaError is expected here */
     if (!(e instanceof LemmaError)) throw e;
