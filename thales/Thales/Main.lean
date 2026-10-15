@@ -1,7 +1,6 @@
-import Thales.Version
-import Tarski.Lemma
+import Thales.Prove
 
-open Thales
+namespace Thales
 
 def usage : String := "usage: thales [files-or-globs...]"
 
@@ -36,10 +35,13 @@ for the check scripts:
   thales run-artifact <file.lean>  run one artifact under the prove budget
                                    and print the parsed verdict channel"
 
-def main (args : List String) : IO UInt32 := do
+end Thales
+
+open Thales in
+unsafe def main (args : List String) : IO UInt32 := do
   match args with
   | ["-h"] | ["--help"] => IO.println help; return 0
+  | ["run-artifact", file] => runArtifactCommand file
   | _ =>
     if args.any (·.startsWith "-") then IO.eprintln usage; return 2
-    IO.eprintln "thales: not yet"
-    return 2
+    prove args.toArray
