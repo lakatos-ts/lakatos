@@ -68,7 +68,7 @@ jobs:
           fi
           echo "toolchain=$latest" >> "$GITHUB_OUTPUT"
 
-      # Building thales builds tarski. The tests and the emitter are the
+      # Building thales builds tarski. The tests and the binary are the
       # targets CI builds beyond the default; a removed constant in a test
       # file is as much a break as one in the library.
       - name: Build thales
@@ -78,7 +78,7 @@ jobs:
         working-directory: thales
         run: |
           lake build 2>&1 | tee "$RUNNER_TEMP/thales-build.log"
-          lake build ThalesDslTest thales-emit 2>&1 | tee -a "$RUNNER_TEMP/thales-build.log"
+          lake build ThalesDslTest thales 2>&1 | tee -a "$RUNNER_TEMP/thales-build.log"
 
       - name: Open a pull request
         if: steps.resolve.outputs.changed == 'true' && steps.build.outcome == 'success'
@@ -92,7 +92,7 @@ jobs:
           git commit -m "Lean ${TOOLCHAIN#leanprover/lean4:}"
           git push --force origin HEAD:refs/heads/auto-update-lean/patch
           cat > "$RUNNER_TEMP/pr-body.md" <<BODY
-          \`tarski/lean-toolchain\` moves to \`$TOOLCHAIN\`, the latest stable release, and thales builds on it: \`lake build\`, \`ThalesDslTest\`, and \`thales-emit\`.
+          \`tarski/lean-toolchain\` moves to \`$TOOLCHAIN\`, the latest stable release, and thales builds on it: \`lake build\`, \`ThalesDslTest\`, and \`thales\`.
 
           Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 

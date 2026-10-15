@@ -333,7 +333,7 @@ private def script (body : String) : String :=
     (if body.isEmpty then "" else "," ++ body) ++ "]}"
 
 open Elab Command in
-/-- Decode a document the way `thales-emit` does, then round-trip it. -/
+/-- Decode a document the way `thales` does, then round-trip it. -/
 def documentRoundTrips (name : Name) (body : String) : CommandElabM Unit := do
   let j ← match Json.parse (script body) with
     | .error msg => throwError "not json: {msg}"

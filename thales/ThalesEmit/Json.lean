@@ -700,7 +700,7 @@ def decodeDocument (j : Json) : Except String Emission := do
   match (← j.getObjVal? "schemaVersion").getNat? with
   | .ok v =>
     unless v == lemmaSchemaVersion do
-      throw s!"lemma document version {v}, but thales-emit reads version {lemmaSchemaVersion}"
+      throw s!"lemma document version {v}, but thales reads version {lemmaSchemaVersion}"
   | .error _ => throw "the lemma document's schemaVersion is not a version number"
   match j.getObjVal? "emission" with
   | .ok e => decodeEmission e

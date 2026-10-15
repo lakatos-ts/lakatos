@@ -19,10 +19,11 @@ From `thales/`:
 lake build                       # ThalesDsl (the default target), tarski's Js first
 lake build ThalesDslTest         # Lean tests under Test/
 lake env lean Test/ThalesDsl/BindersTest.lean # one Lean test file in isolation
-lake build thales-emit           # the emission executable (not a default target)
+lake build thales                # the thales binary (not a default target)
+lake build thales-emit           # the TypeScript frontend's renderer, until it goes
 lake build ThalesEmit            # the renderer's library; prove needs its .olean too
 npm run check:verdict-channel    # verdict-line contract over tests/fixtures/*.lean
-npm run check:envelopes          # emission envelopes against stored expectations
+npm run check:envelopes          # the binary's envelopes against stored expectations
                                  # (LAKATOS_PROVE_E2E=1 adds the corpus manifest)
 UPDATE_ENVELOPES=1 LAKATOS_PROVE_E2E=1 npm run check:envelopes   # regenerate the store
 ```
@@ -36,7 +37,7 @@ npm run format:check                          # prettier, whole repo, one config
 LAKATOS_PROVE_E2E=1 npx vitest run thales/tests/e2e.test.ts   # full prove e2e (needs Lean)
 ```
 
-Always wrap `lake env lean` invocations in a timeout when running them by hand; a bad artifact can grind indefinitely. The check scripts load the _built_ frontend (`scripts/harness.js`), so the sentinel, the parse, and the lake invocation are production's, never a copy.
+Always wrap `lake env lean` invocations in a timeout when running them by hand; a bad artifact can grind indefinitely. The check scripts build and run the binary (`scripts/harness.js`): the verdict channel goes through `thales run-artifact`, the envelopes through a staged project per fixture with `LAKATOS_LEMMA` set to this checkout's lemma, so the sentinel, the parse, and the lake invocation are production's, never a copy.
 
 ## The prove pipeline
 
