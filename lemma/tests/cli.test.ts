@@ -3,8 +3,10 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { admit, refusalsOf } from "../src/admit.js";
 import { main } from "../src/cli.js";
-import { admittedDocument } from "../src/document.js";
+import { extract } from "../src/extract.js";
+import { admittedDocument, type DocumentAnnotation } from "../src/document.js";
 import { useTempProject } from "./helpers/temp-project.js";
 import { schemaValidator } from "./helpers/schema-validator.js";
 
@@ -371,5 +373,181 @@ describe("lemma/dist/cli.js", () => {
     expect(JSON.parse(r.stdout).program).toEqual(
       golden("numeric-loop.estree.json"),
     );
+  });
+});
+
+type Refusal = {
+  file: unknown;
+  function: string;
+  property: string;
+  error: string;
+};
+
+const refusalKey = (r: Refusal) =>
+  JSON.stringify([r.file, r.function, r.property, r.error]);
+
+describe("lemma check: refusal causes", () => {
+  useTempProject("lemma-cli-causes-", {
+    "src/typo.ts":
+      "function h(x: number): number { return x; }\n" +
+      "/** @ensures{id} forall (x: int ∈ [0, 5)) { f(x) === x }\n" +
+      " *  @ensures{bad} forall (x: int ∈ [0, 5)) { h(x) === x } */\n" +
+      "export function f(x: number): number { return h(x); }\n",
+    "src/dup.ts":
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { g(x) === x }\n" +
+      " *  @ensures{p} forall (x: int ∈ [0, 5)) { g(x) === x } */\n" +
+      "export function g(x: number): number { return x; }\n",
+    "src/async.ts":
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { a(x) !== undefined } */\n" +
+      "export async function a(x: number): Promise<number> { return x; }\n",
+    "outside.mts":
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { o(x) >= 0 } */\n" +
+      "export function o(x: number): number { return x; }\n",
+  });
+
+  it("a typing refusal names its cause and admit's error text", () => {
+    const d = parsed(invoke("check", "src/typo.ts").stdout);
+    expect(d.annotations).toEqual([
+      { function: "f", property: "id", line: 2, outcome: "tried" },
+      {
+        function: "f",
+        property: "bad",
+        line: 3,
+        outcome: "refused",
+        cause: "typing",
+        error: expect.stringMatching(/^src\/typo\.ts:3: /),
+      },
+    ]);
+  });
+
+  it("an extraction refusal follows the extracted annotations", () => {
+    const d = parsed(invoke("check", "src/dup.ts").stdout);
+    const outcomes = (
+      d.annotations as { outcome: string; cause?: string }[]
+    ).map((a) => [a.outcome, a.cause]);
+    expect(outcomes[outcomes.length - 1]).toEqual(["refused", "extraction"]);
+    expect(outcomes.filter(([o]) => o === "refused")).toHaveLength(1);
+  });
+
+  it("a classified annotation carries the emitter's szs and reason", () => {
+    const d = parsed(invoke("check", "src/async.ts").stdout);
+    expect(d.annotations).toEqual([
+      {
+        function: "a",
+        property: "p",
+        line: 1,
+        outcome: "classified",
+        szs: "Inappropriate",
+        reason: expect.stringContaining("AsyncKeyword"),
+      },
+    ]);
+  });
+
+  it("a file outside the program refuses every annotation at the gate", () => {
+    const d = parsed(invoke("check", "outside.mts").stdout);
+    expect(d).toMatchObject({ outcome: "refused", reason: "outside-program" });
+    expect(d.annotations).toEqual([
+      {
+        function: "o",
+        property: "p",
+        line: 1,
+        outcome: "refused",
+        cause: "gate",
+        error:
+          "outside.mts is not part of the program tsconfig.json describes, so it was not type checked",
+      },
+    ]);
+  });
+
+  it("the refused annotations are admit's refusals, with admit's text", () => {
+    const files = ["src/typo.ts", "src/dup.ts", "outside.mts"];
+    const a = admit(files, ".lakatos/tc", () => {});
+    const docs = lines(invoke("check", "--jsonl", ...files).stdout);
+    const fromDocs = docs.flatMap((d) =>
+      (d.annotations as (DocumentAnnotation & { error?: string })[])
+        .filter((x) => x.outcome === "refused")
+        .map((x) => ({
+          file: d.file,
+          function: x.function,
+          property: x.property,
+          error: x.error!,
+        })),
+    );
+    expect(a.kind).toBe("admitted");
+    // admit stops at the first extraction error per file only in its echo;
+    // its refusals list holds the gate and typing refusals.
+    const gateAndTyping = (a as { refusals: Refusal[] }).refusals;
+    expect(fromDocs.map(refusalKey)).toEqual(
+      expect.arrayContaining(gateAndTyping.map(refusalKey)),
+    );
+    const dup = extractRefusals("src/dup.ts");
+    expect(fromDocs.map(refusalKey)).toEqual(
+      expect.arrayContaining(dup.map(refusalKey)),
+    );
+  });
+});
+
+function extractRefusals(file: string): Refusal[] {
+  return refusalsOf(file, extract(file).invalid);
+}
+
+describe("lemma check: an ill-typed project refuses every annotation", () => {
+  useTempProject("lemma-cli-ill-annot-", {
+    "src/a.ts":
+      "export const a: number = 'one';\n" +
+      "/** @ensures{p} forall (x: int ∈ [0, 5)) { f(x) >= 0 } */\n" +
+      "export function f(x: number): number { return x; }\n",
+    "src/b.ts":
+      "/** @ensures{q} forall (x: int ∈ [0, 5)) { g(x) >= 0 }\n" +
+      " *  @ensures{p} forall (x: int ∈ [0, 5)) { g(x) >= 0 }\n" +
+      " *  @ensures{p} forall (x: int ∈ [0, 5)) { g(x) >= 0 } */\n" +
+      "export function g(x: number): number { return x; }\n",
+  });
+
+  it("gate refusals first with the typecheck message, then extraction", () => {
+    const [a, b] = lines(
+      invoke("check", "--jsonl", "src/a.ts", "src/b.ts").stdout,
+    );
+    expect(a!.annotations).toEqual([
+      {
+        function: "f",
+        property: "p",
+        line: 2,
+        outcome: "refused",
+        cause: "gate",
+        error: expect.stringMatching(
+          /^the program does not type check: src\/a\.ts:1: TS2322: /,
+        ),
+      },
+    ]);
+    const bs = b!.annotations as { cause: string }[];
+    expect(bs.map((x) => x.cause)).toEqual(["gate", "extraction"]);
+  });
+});
+
+describe("lemma check: no tsconfig refuses every annotation", () => {
+  useTempProject(
+    "lemma-cli-none-annot-",
+    {
+      "a.ts":
+        "/** @ensures{p} forall (x: int ∈ [0, 5)) { f(x) >= 0 } */\n" +
+        "export function f(x: number): number { return x; }\n",
+    },
+    { tsconfig: false },
+  );
+
+  it("names the cause gate with admit's no-tsconfig message", () => {
+    const d = parsed(invoke("check", "a.ts").stdout);
+    expect(d.annotations).toEqual([
+      {
+        function: "f",
+        property: "p",
+        line: 1,
+        outcome: "refused",
+        cause: "gate",
+        error:
+          "no tsconfig.json: lakatos type checks the program before analyzing it and needs the project's compiler options to do so",
+      },
+    ]);
   });
 });

@@ -39,11 +39,11 @@ export type Admission =
       refusals: Refusal[];
     };
 
-const NO_TSCONFIG =
+export const NO_TSCONFIG =
   "no tsconfig.json: lakatos type checks the program before analyzing it " +
   "and needs the project's compiler options to do so";
 
-function outsideProgram(file: string): string {
+export function outsideProgram(file: string): string {
   return `${file} is not part of the program tsconfig.json describes, so it was not type checked`;
 }
 
@@ -52,7 +52,7 @@ function formatTsDiagnostic(d: TypecheckDiagnostic): string {
   return `${site}TS${d.code}: ${d.message}`;
 }
 
-function typecheckFailure(diagnostics: TypecheckDiagnostic[]): string {
+export function typecheckFailure(diagnostics: TypecheckDiagnostic[]): string {
   const rest = diagnostics.length - 1;
   return (
     `the program does not type check: ${formatTsDiagnostic(diagnostics[0]!)}` +

@@ -8,10 +8,17 @@
 
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { readFormulas, refusalsOf } from "./admit.js";
+import {
+  NO_TSCONFIG,
+  outsideProgram,
+  readFormulas,
+  refusalsOf,
+  typecheckFailure,
+} from "./admit.js";
 import { type Emission, emitModule, type PlainEmission } from "./emission.js";
 import { LemmaError } from "./errors.js";
 import {
+  extract,
   extractFromSource,
   type InvalidAnnotation,
   type RawAnnotation,
@@ -207,7 +214,8 @@ function admittedAnnotations(
     const c = emitted.classified.find(
       (x) =>
         x.annotation.line === a.line &&
-        x.annotation.propertyName === a.propertyName,
+        x.annotation.propertyName === a.propertyName &&
+        identityOf(x.annotation).function === id.function,
     );
     out.push(
       c === undefined
@@ -229,6 +237,33 @@ function admittedAnnotations(
       error: error(i),
     });
   return out;
+}
+
+/** Every annotation in `file` refused at the gate with `error`, then the
+ * ones extraction refused: `admit`'s order and `admit`'s spellings. */
+function gateRefusals(file: string, error: string): DocumentAnnotation[] {
+  let extracted: ReturnType<typeof extract>;
+  try {
+    extracted = extract(file);
+  } catch {
+    // A file that is not there has no annotations to refuse.
+    return [];
+  }
+  const spelled = refusalsOf(file, extracted.invalid);
+  return [
+    ...extracted.annotations.map((a): DocumentAnnotation => ({
+      ...identityOf(a),
+      outcome: "refused",
+      cause: "gate",
+      error,
+    })),
+    ...extracted.invalid.map((i, n): DocumentAnnotation => ({
+      ...identityOf(i),
+      outcome: "refused",
+      cause: "extraction",
+      error: spelled[n]!.error,
+    })),
+  ];
 }
 
 /**
@@ -263,7 +298,7 @@ export function admittedDocument(
   };
 }
 
-const NO_TSCONFIG =
+const NO_TSCONFIG_DOC =
   "no tsconfig.json: the program is type checked before it is parsed, " +
   "and the project's compiler options are needed to do so";
 
@@ -288,11 +323,17 @@ export function checkDocuments(
     tsBuildInfoFile === undefined ? undefined : path.resolve(tsBuildInfoFile),
   );
   if (check.kind === "missing")
-    return files.map((file) => refused(file, true, "no-tsconfig", NO_TSCONFIG));
-  if (check.kind === "failed")
-    return files.map((file) =>
-      refused(file, true, "typecheck", NOT_CLEAN, check.diagnostics),
-    );
+    return files.map((file) => ({
+      ...refused(file, true, "no-tsconfig", NO_TSCONFIG_DOC),
+      annotations: gateRefusals(file, NO_TSCONFIG),
+    }));
+  if (check.kind === "failed") {
+    const error = typecheckFailure(check.diagnostics);
+    return files.map((file) => ({
+      ...refused(file, true, "typecheck", NOT_CLEAN, check.diagnostics),
+      annotations: gateRefusals(file, error),
+    }));
+  }
   const program = new Set(check.programFiles);
   const answers = new Map<string, CheckedDocument>();
   const formulas: ParsedFile[] = [];
@@ -303,15 +344,11 @@ export function checkDocuments(
   for (const file of files) {
     const relative = path.relative(cwd, path.resolve(file));
     if (!program.has(relative)) {
-      answers.set(
-        file,
-        refused(
-          file,
-          true,
-          "outside-program",
-          `${file} is not part of the program tsconfig.json describes, so it was not type checked`,
-        ),
-      );
+      const message = outsideProgram(file);
+      answers.set(file, {
+        ...refused(file, true, "outside-program", message),
+        annotations: gateRefusals(file, message),
+      });
       continue;
     }
     let read: ParsedFile[];
@@ -328,14 +365,16 @@ export function checkDocuments(
     typedAs.set(relative, file);
     formulas.push(...read);
   }
-  const { refused: untyped } = typeFormulas(formulas, check.checked);
+  const typed = typeFormulas(formulas, check.checked);
+  const typingOf = new Map(typed.invalid.map((t) => [t.file, t.invalid]));
   return files.map((file) => {
     const answer = answers.get(file);
     if (answer !== undefined) return answer;
     const as = typedAs.get(path.relative(cwd, path.resolve(file)))!;
     return admittedDocument(
       file,
-      as === file ? untyped : respelled(untyped, as, file),
+      as === file ? typed.refused : respelled(typed.refused, as, file),
+      typingOf.get(as) ?? [],
     ).document;
   });
 }
