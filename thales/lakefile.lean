@@ -25,3 +25,14 @@ lean_exe «thales-emit» where
 
 lean_lib «ThalesDslTest» where
   globs := #[.submodules `Test]
+
+/-- The tool: admission, run directory, rendering, the Lean runs, the
+join, and the envelope, around `ThalesDsl` and `ThalesEmit`. -/
+lean_lib «Thales» where
+  globs := #[.submodules `Thales]
+
+/-- `thales [files-or-globs...]`. Rendering pretty-prints through
+interpreted parenthesizers, which needs the interpreter's symbols. -/
+lean_exe «thales» where
+  root := `Thales.Main
+  supportInterpreter := true
