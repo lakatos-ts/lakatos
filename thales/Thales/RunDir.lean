@@ -24,15 +24,20 @@ def runDirFor (startedAt : String) : FilePath :=
 root rather than with this one name. -/
 def maxClaimAttempts : Nat := 100
 
+/-- The `n`th name tried for a run: the bare name, then `-2`, `-3`, ... -/
+def claimName (startedAt : String) (n : Nat) : FilePath :=
+  let first := runDirFor startedAt
+  if n == 1 then first else FilePath.mk s!"{first}-{n}"
+
 /-- This invocation's run directory, created here so the name is reserved
 rather than merely observed free. An occupied name (two runs in one
-millisecond) is stepped over. `base` is the directory the run root lives
-in, the cwd in production. -/
-def claimRunDir (base : FilePath) (startedAt : String) : IO FilePath := do
-  IO.FS.createDirAll (base / runRoot)
-  let first := base / runDirFor startedAt
+millisecond) is stepped over. The path is cwd-relative (`.lakatos/<t>`),
+as reported to the user; `base` prefixes it, for tests. -/
+def claimRunDir (startedAt : String) (base : Option FilePath := none) : IO FilePath := do
+  let under (p : FilePath) : FilePath := match base with | some b => b / p | none => p
+  IO.FS.createDirAll (under (FilePath.mk runRoot))
   for n in [1:maxClaimAttempts + 1] do
-    let dir := if n == 1 then first else FilePath.mk s!"{first}-{n}"
+    let dir := under (claimName startedAt n)
     try
       -- Non-recursive on purpose: the existence failure is what makes the
       -- claim atomic.
@@ -41,7 +46,7 @@ def claimRunDir (base : FilePath) (startedAt : String) : IO FilePath := do
     catch
       | .alreadyExists .. => continue
       | e => throw e
-  throw (RunDirError s!"{first}: no free run directory after {maxClaimAttempts} attempts")
+  throw (RunDirError s!"{under (claimName startedAt 1)}: no free run directory after {maxClaimAttempts} attempts")
 
 /-- The components of `p` with `.` dropped and `..` folded in, without
 touching the file system. -/
