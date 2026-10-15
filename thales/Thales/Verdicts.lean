@@ -79,6 +79,14 @@ def decodeModelLine (j : Json) : Option ModelLine := do
   | some (.str "unvalidated"), some r => pure ⟨file, function, .unvalidated (← nonEmpty r)⟩
   | _, _ => none
 
+/-- What JavaScript's `String.prototype.trim` strips: the ECMAScript
+white space and line terminators, of which `Char.isWhitespace` knows only
+four. -/
+def isJsWhitespace (c : Char) : Bool :=
+  c.isWhitespace || c == '\x0b' || c == '\x0c' || c == '\u00a0' || c == '\u1680'
+    || (c.toNat >= 0x2000 && c.toNat <= 0x200a) || c == '\u2028' || c == '\u2029'
+    || c == '\u202f' || c == '\u205f' || c == '\u3000' || c == '\ufeff'
+
 /-- One artifact's stdout, read. `messages` are the contract violations;
 any at all fail the artifact. -/
 structure Channel where
@@ -93,7 +101,7 @@ diagnostic lines, and contract violations. -/
 def parseChannel (stdout : String) : Channel := Id.run do
   let mut out : Channel := {}
   for line in stdout.splitOn "\n" do
-    if line.all Char.isWhitespace then continue
+    if line.all isJsWhitespace then continue
     if line.startsWith ThalesDsl.ModelLine.sentinel then
       match Json.parse (line.drop ThalesDsl.ModelLine.sentinel.length).toString with
       | .error _ => out := { out with messages := out.messages.push s!"unparseable model line: {line}" }

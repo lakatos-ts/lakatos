@@ -59,9 +59,12 @@ def quote (s : String) : String :=
       else acc.push c
   (s.foldl escape "\"").push '"'
 
-/-- A number as JavaScript prints it, for the numbers an envelope holds:
-an integral value without a fraction or exponent, whatever its spelling
-on the wire. -/
+/-- A number as the envelope prints it. The numbers an envelope holds are
+integers inside JavaScript's safe range (the engine sends any other
+counterexample value as a decimal string), and those print as JavaScript
+prints them, integral values bare whatever their spelling on the wire.
+Anything else — an exponent JavaScript would keep, a value past a double
+— no engine sends, and it prints by Lean's rules. -/
 def number (n : JsonNumber) : String :=
   -- The value is `mantissa / 10^exponent`, so `1.0` is `⟨10, 1⟩`.
   let scale : Int := 10 ^ n.exponent

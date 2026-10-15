@@ -3,7 +3,7 @@ import Thales.RunDir
 open Thales
 
 -- Rooted at .lakatos, named by the start instant, with no colons.
-#guard runDirFor "2026-10-15T07:02:47.147Z" = ".lakatos" / "2026-10-15T07-02-47.147Z"
+#guard (runDirFor "2026-10-15T07:02:47.147Z").toString = ".lakatos/2026-10-15T07-02-47.147Z"
 #guard !(runDirFor "2026-10-15T07:02:47.147Z").toString.contains ':'
 -- Two runs a millisecond apart get separate directories.
 #guard runDirFor "2026-10-15T07:02:47.147Z" != runDirFor "2026-10-15T07:02:47.148Z"
@@ -34,9 +34,21 @@ def expect (ok : Bool) (what : String) : IO Unit :=
   | .ok d => throw (IO.userError s!"expected exhaustion, got {d}")
   | .error msg => expect (msg.endsWith s!"no free run directory after {maxClaimAttempts} attempts") msg
 
--- A failure that is not a collision comes back as itself.
+-- A failure that is not a collision is thrown as itself, from the run
+-- root and from the claim alike.
 #eval inScratch do
   IO.FS.writeFile ".lakatos" "a file where the run root should be"
-  match ← claimRunDir "t" with
-  | .ok d => throw (IO.userError s!"expected a failure, got {d}")
-  | .error msg => expect (msg.startsWith ".lakatos") msg
+  try
+    let r ← claimRunDir "t"
+    throw (IO.userError s!"expected a throw, got {repr (r.map toString)}")
+  catch
+    | .userError msg => throw (IO.userError msg)
+    | _ => pure ()
+
+#eval inScratch do
+  try
+    let r ← claimRunDir (String.ofList (List.replicate 300 'x'))
+    throw (IO.userError s!"expected a throw, got {repr (r.map toString)}")
+  catch
+    | .userError msg => throw (IO.userError msg)
+    | _ => pure ()

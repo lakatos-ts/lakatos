@@ -26,14 +26,15 @@ run root rather than with this one name: it would take this many
 invocations inside a single millisecond. -/
 def maxClaimAttempts : Nat := 100
 
-/-- This invocation's run directory, or why the run root is unusable. Two
-invocations starting in the same millisecond want the same name —
-ordinary in a shell loop — so an occupied one is stepped over, not fought
-for, and the caller reports whichever name it got back. -/
+/-- This invocation's run directory, or, when every name it would try is
+taken, why not: the one failure a user can act on, reported like bad
+input. Any other failure is not this run's to explain and is thrown as
+is. Two invocations starting in the same millisecond want the same name
+— ordinary in a shell loop — so an occupied one is stepped over, not
+fought for, and the caller reports whichever name it got back. -/
 def claimRunDir (startedAt : String) : IO (Except String System.FilePath) := do
   let base := runDirFor startedAt
-  try IO.FS.createDirAll runRoot
-  catch e => return .error s!"{runRoot}: {e}"
+  IO.FS.createDirAll runRoot
   for n in [1:maxClaimAttempts + 1] do
     let dir : System.FilePath := if n == 1 then base else s!"{base}-{n}"
     try
@@ -43,7 +44,7 @@ def claimRunDir (startedAt : String) : IO (Except String System.FilePath) := do
       return .ok dir
     catch
       | .alreadyExists .. => continue
-      | e => return .error s!"{dir}: {e}"
+      | e => throw e
   return .error s!"{base}: no free run directory after {maxClaimAttempts} attempts"
 
 end Thales

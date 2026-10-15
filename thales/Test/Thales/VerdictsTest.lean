@@ -47,7 +47,9 @@ def malformed : List String := [
 
 #guard
   let c := parseChannel ("\n".intercalate malformed)
-  c.verdicts.isEmpty && c.diagnostics.isEmpty && c.messages.size == malformed.length
+  c.verdicts.isEmpty && c.diagnostics.isEmpty
+    && c.messages == (malformed.map fun l =>
+      (if l == "thales-verdict:not json" then "unparseable" else "malformed") ++ s!" verdict line: {l}").toArray
 #guard (parseChannel "thales-verdict:not json").messages = #["unparseable verdict line: thales-verdict:not json"]
 #guard (parseChannel "thales-verdict:42").messages = #["malformed verdict line: thales-verdict:42"]
 
@@ -57,6 +59,8 @@ def malformed : List String := [
   let c := parseChannel ""
   c.verdicts.isEmpty && c.models.isEmpty && c.diagnostics.isEmpty && c.messages.isEmpty
 #guard (parseChannel "  \n\n\t\n").diagnostics.isEmpty
+-- Blank as JavaScript's `trim` reads it, not only as Lean's.
+#guard (parseChannel "\x0b\n\x0c\n\u00a0\n\u3000\n\ufeff\n").diagnostics.isEmpty
 #guard (parseChannel s!"warning: unused\n{verdictLine "f" "Theorem"}\ninfo: x").diagnostics
   = #["warning: unused", "info: x"]
 

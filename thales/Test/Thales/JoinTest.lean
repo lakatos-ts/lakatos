@@ -65,6 +65,10 @@ def unstated (fn : String) : String :=
 #guard shown (joinVerdicts #[id' "a"] #[{ verdict "a" .CounterSatisfiable with counterexample := some #[] }] #[])
   = #["mismatched: CounterSatisfiable verdict for [\"t.ts\",\"a\",\"p\"] carries no counterexample"]
 
+-- The TypeScript join also refused a status the envelope cannot carry;
+-- here a verdict's status is `ThalesDsl.Szs`, so the channel refuses such
+-- a line before the join sees it (`VerdictsTest.lean`).
+
 -- A Timeout joins with its reason.
 #guard shown (joinVerdicts #[id' "a"] #[verdict "a" .Timeout] #[])
   = #[entry "a" s!"\"szs\":\"Timeout\",\"reason\":\"r\",{unstated "a"}"]
@@ -83,14 +87,14 @@ def unstated (fn : String) : String :=
         { identity := ⟨"t.ts", "a", "s"⟩, szs := .CounterSatisfiable, reason := "r",
           counterexample := some #[("x", (0 : Json))] }]
       #[unvalidated "a" "the run of 'a' did not reduce to its model"] with
-  | .joined as => as.all (·.model == some (.unvalidated "the run of 'a' did not reduce to its model"))
+  | .joined as => as.size == 4 && as.all (·.model == some (.unvalidated "the run of 'a' did not reduce to its model"))
   | .mismatched _ => false
 
 -- Error and NotTried carry no model even with a line.
 #guard
   match joinVerdicts #[id' "a", id' "b"] #[verdict "a" .Error, verdict "b" .NotTried]
       #[validated "a", validated "b"] with
-  | .joined as => as.all (·.model.isNone)
+  | .joined as => as.size == 2 && as.all (·.model.isNone)
   | .mismatched _ => false
 
 -- A line for a function no annotation names is ignored; a second line
