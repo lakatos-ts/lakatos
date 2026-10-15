@@ -37,6 +37,14 @@ def refusedDoc : String :=
   | .ok d => d.annotations.isEmpty
   | _ => false
 
+-- An outcome's szs and cause are closed sets, not free strings.
+#guard match Json.parse "{\"schemaVersion\":1,\"file\":\"a.ts\",\"gated\":true,\"outcome\":\"program\",\"program\":{},\"annotations\":[{\"function\":\"f\",\"property\":\"p\",\"line\":1,\"outcome\":\"classified\",\"szs\":\"Theorem\",\"reason\":\"r\"}]}" >>= decodeDocument with
+  | .error "unknown classified szs 'Theorem'" => true
+  | _ => false
+#guard match Json.parse "{\"schemaVersion\":1,\"file\":\"a.ts\",\"gated\":true,\"outcome\":\"program\",\"program\":{},\"annotations\":[{\"function\":\"f\",\"property\":\"p\",\"line\":1,\"outcome\":\"refused\",\"cause\":\"whim\",\"error\":\"e\"}]}" >>= decodeDocument with
+  | .error "unknown refusal cause 'whim'" => true
+  | _ => false
+
 -- Another version fails by name, before anything else is read.
 #guard match Json.parse "{\"schemaVersion\":0}" >>= decodeDocument with
   | .error "lemma document version 0, but this executable reads version 1" => true

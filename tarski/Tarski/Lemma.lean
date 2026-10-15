@@ -160,10 +160,9 @@ structure Annotation where
   outcome : Outcome
 deriving Repr, BEq, Inhabited
 
-/-- One checked-program document. The program stays JSON: the caller
-decodes it with `Tarski.decodeProgram`, or reads another field, as the
-engine it serves needs. `json` is the whole document, so a reader of the
-`emission` has it. -/
+/-- One checked-program document. `json` is the whole document: the caller
+reads `program` (and decodes it with `Tarski.decodeProgram`) or `emission`
+from it, as the engine it serves needs. -/
 inductive Document where
   | program (file : String) (gated : Bool) (json : Json)
       (annotations : Array Annotation)
@@ -193,10 +192,18 @@ private def decodeOutcome (j : Json) : Except String Outcome := do
   match ← j.getObjValAs? String "outcome" with
   | "tried" => pure .tried
   | "classified" =>
-    pure (.classified (← j.getObjValAs? String "szs")
-      (j.getObjValAs? String "kind").toOption (← j.getObjValAs? String "reason"))
+    let szs ← j.getObjValAs? String "szs"
+    unless szs == "Inappropriate" || szs == "Error" || szs == "NotTried" do
+      throw s!"unknown classified szs '{szs}'"
+    let kind := (j.getObjValAs? String "kind").toOption
+    if let some k := kind then
+      unless k == "unsupported-range" do throw s!"unknown classified kind '{k}'"
+    pure (.classified szs kind (← j.getObjValAs? String "reason"))
   | "refused" =>
-    pure (.refused (← j.getObjValAs? String "cause") (← j.getObjValAs? String "error"))
+    let cause ← j.getObjValAs? String "cause"
+    unless cause == "extraction" || cause == "typing" || cause == "gate" do
+      throw s!"unknown refusal cause '{cause}'"
+    pure (.refused cause (← j.getObjValAs? String "error"))
   | other => throw s!"unknown annotation outcome '{other}'"
 
 private def decodeAnnotation (j : Json) : Except String Annotation := do

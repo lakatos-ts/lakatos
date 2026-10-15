@@ -52,7 +52,7 @@ export type {
   TypecheckResult,
 } from "./typecheck.js";
 
-export { admit, refusalsOf } from "./admit.js";
+export { admit, refusalsOf, typingRefusals } from "./admit.js";
 export type { Admission, Note, Refusal } from "./admit.js";
 
 export { extract, extractFromSource } from "./extract.js";

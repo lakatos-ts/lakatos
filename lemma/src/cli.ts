@@ -43,7 +43,8 @@ options:
   -h, --help            show this help
 
 exit status: 0 when every file has a program, 1 when any was refused,
-2 on bad usage.`;
+2 on bad usage, a pattern matching nothing, or a tsconfig that cannot
+be read.`;
 
 function usage(): number {
   console.error(USAGE);

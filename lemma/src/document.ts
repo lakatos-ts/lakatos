@@ -13,6 +13,7 @@ import {
   outsideProgram,
   readFormulas,
   refusalsOf,
+  typingRefusals,
   typecheckFailure,
 } from "./admit.js";
 import { type Emission, emitModule, type PlainEmission } from "./emission.js";
@@ -25,7 +26,7 @@ import {
 } from "./extract.js";
 import { ParseError, parseScript, type Program } from "./estree.js";
 import { typeFormulas, type ParsedFile } from "./island-types.js";
-import { qualifiedName } from "./qualified-name.js";
+import { annotationKey, qualifiedName } from "./qualified-name.js";
 import { stripTypes } from "./strip-types.js";
 import { type TypecheckDiagnostic, typecheckProject } from "./typecheck.js";
 
@@ -193,22 +194,16 @@ function identityOf(a: RawAnnotation | InvalidAnnotation) {
 function admittedAnnotations(
   file: string,
   emitted: PlainEmission,
-  typingRefused: InvalidAnnotation[],
+  typingRefused: ReadonlyMap<string, string>,
   allExtracted: RawAnnotation[],
 ): DocumentAnnotation[] {
   const error = (i: InvalidAnnotation) => refusalsOf(file, [i])[0]!.error;
-  const typing = new Map(
-    typingRefused.map((i) => {
-      const id = identityOf(i);
-      return [`${id.function}\0${id.property}`, i];
-    }),
-  );
   const out: DocumentAnnotation[] = [];
   for (const a of allExtracted) {
     const id = identityOf(a);
-    const t = typing.get(`${id.function}\0${id.property}`);
+    const t = typingRefused.get(annotationKey(file, a));
     if (t !== undefined) {
-      out.push({ ...id, outcome: "refused", cause: "typing", error: error(t) });
+      out.push({ ...id, outcome: "refused", cause: "typing", error: t });
       continue;
     }
     const c = emitted.classified.find(
@@ -270,24 +265,25 @@ function gateRefusals(file: string, error: string): DocumentAnnotation[] {
 /**
  * A file `admit` admitted, documented without running the gate again:
  * its types stripped and the script parsed, with the emission beside it.
- * `refused` holds the annotation keys the gate's formula typing refused;
- * the emission leaves those out. `emitted` is the emitter's whole answer,
+ * `refused` holds the annotation keys the gate's formula typing refused,
+ * each with `admit`'s diagnostic for it (`typingRefusals`); the emission
+ * leaves those out and the document says why, so no refused annotation is
+ * ever labeled `tried`. `emitted` is the emitter's whole answer,
  * for an engine in this process that also needs the annotations it
  * extracted and the ones it settled itself.
  */
 export function admittedDocument(
   file: string,
-  refused: ReadonlySet<string> = new Set(),
-  typingRefused: InvalidAnnotation[] = [],
+  refused: ReadonlyMap<string, string>,
 ): { document: CheckedDocument; emitted: PlainEmission } {
   // The gate just read this file as part of the program, so a failure to
   // read it again is not the caller's to handle.
   const source = readFileSync(file, "utf8");
-  const emitted = emitModule(source, file, undefined, refused);
+  const emitted = emitModule(source, file, undefined, new Set(refused.keys()));
   const annotations = admittedAnnotations(
     file,
     emitted,
-    typingRefused,
+    refused,
     extractFromSource(source, file).annotations,
   );
   return {
@@ -372,26 +368,10 @@ export function checkDocuments(
     const answer = answers.get(file);
     if (answer !== undefined) return answer;
     const as = typedAs.get(path.relative(cwd, path.resolve(file)))!;
-    return admittedDocument(
-      file,
-      as === file ? typed.refused : respelled(typed.refused, as, file),
-      typingOf.get(as) ?? [],
-    ).document;
+    // Spelled under the name this file was given, not the one it was typed as.
+    return admittedDocument(file, typingRefusals(file, typingOf.get(as) ?? []))
+      .document;
   });
-}
-
-/** `keys`' annotation keys for `from`, spelled for `to` instead. */
-function respelled(
-  keys: ReadonlySet<string>,
-  from: string,
-  to: string,
-): Set<string> {
-  const out = new Set<string>();
-  for (const key of keys) {
-    const [file, ...rest] = JSON.parse(key) as string[];
-    if (file === from) out.add(JSON.stringify([to, ...rest]));
-  }
-  return out;
 }
 
 /** `checkDocuments` over patterns: the files they match, or, with none,

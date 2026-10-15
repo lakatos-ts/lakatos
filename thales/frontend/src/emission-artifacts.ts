@@ -29,7 +29,7 @@ export interface EmissionArtifact {
 export function writeEmissionArtifacts(
   files: string[],
   outRoot: string,
-  refused: ReadonlySet<string> = new Set(),
+  refused: ReadonlyMap<string, string> = new Map(),
 ): EmissionArtifact[] {
   return files.map((file) => {
     const { document, emitted } = admittedDocument(file, refused);

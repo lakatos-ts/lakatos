@@ -25,7 +25,7 @@ const expectValidEmission = schemaValidator(
 
 /** The emission lemma documents `file` with, as thales writes it. */
 function emissionOf(file: string): Emission {
-  return admittedDocument(file).emitted.emission;
+  return admittedDocument(file, new Map()).emitted.emission;
 }
 
 describe("the emission over thales's fixtures", () => {

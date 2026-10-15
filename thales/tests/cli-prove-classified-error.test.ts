@@ -19,7 +19,7 @@ vi.mock("../frontend/src/emission-artifacts.js", async (importOriginal) => {
     writeEmissionArtifacts: (
       files: string[],
       outRoot: string,
-      refused?: ReadonlySet<string>,
+      refused?: ReadonlyMap<string, string>,
     ) =>
       actual.writeEmissionArtifacts(files, outRoot, refused).map((a) => ({
         ...a,

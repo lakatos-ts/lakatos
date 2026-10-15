@@ -42,7 +42,7 @@ export interface BuildResult {
 
 export function buildSpecs(
   file: string,
-  refused: ReadonlySet<string> = new Set(),
+  refused: { has(key: string): boolean } = new Set(),
 ): BuildResult {
   const { exports, classes, annotations: all, invalid } = extract(file);
   // A refused annotation is the CLI's InputError; nothing here mentions it.

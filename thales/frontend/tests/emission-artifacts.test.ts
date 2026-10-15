@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { writeEmissionArtifacts } from "../src/emission-artifacts.js";
-import { admittedDocument, annotationKey } from "@lakatos/lemma";
+import { admit, admittedDocument, annotationKey } from "@lakatos/lemma";
 
 const OUT = "out";
 
@@ -34,8 +34,11 @@ describe("writeEmissionArtifacts", () => {
   // Runs before the write tests: the assertion is that no artifact appears.
   test("a file whose only annotation was refused writes no artifact", () => {
     const source = path.join("sub", "a.ts");
-    const refused = new Set([
-      annotationKey(source, { functionName: "f", propertyName: "q" }),
+    const refused = new Map([
+      [
+        annotationKey(source, { functionName: "f", propertyName: "q" }),
+        "sub/a.ts:2: refused",
+      ],
     ]);
     const [a] = writeEmissionArtifacts([source], OUT, refused);
     expect(a).toEqual({
@@ -53,9 +56,9 @@ describe("writeEmissionArtifacts", () => {
     expect(a!.jsonFile).toBe(path.join(OUT, "sub", "a.ts.json"));
     expect(a!.leanFile).toBe(path.join(OUT, "sub", "a.ts.lean"));
     const written = JSON.parse(fs.readFileSync(a!.jsonFile!, "utf8"));
-    // What `lemma check` prints for the file: thales-emit reads the
-    // emission out of it.
-    expect(written).toEqual(admittedDocument(source).document);
+    // The document `lemma check` prints for a file with nothing refused:
+    // thales-emit reads the emission out of it.
+    expect(written).toEqual(admittedDocument(source, new Map()).document);
     expect(written).toMatchObject({
       schemaVersion: 1,
       gated: true,
@@ -85,5 +88,60 @@ describe("writeEmissionArtifacts", () => {
     expect(b!.leanFile).toBeUndefined();
     expect(b!.classified).toHaveLength(1);
     expect(b!.classified[0]!.szs).toBe("Inappropriate");
+  });
+});
+
+// The path prove takes: admission's refusals go to writeEmissionArtifacts
+// unchanged, and the document's `tried` must match the emission's obligations.
+describe("writeEmissionArtifacts after admission", () => {
+  let dir: string;
+  const prevCwd = process.cwd();
+  beforeAll(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "thales-emission-admitted-"));
+    fs.writeFileSync(
+      path.join(dir, "tsconfig.json"),
+      JSON.stringify({
+        compilerOptions: { target: "es2022", module: "nodenext", types: [] },
+        include: ["*.ts"],
+      }),
+    );
+    // `h` is not exported, so the second formula is refused at the gate.
+    fs.writeFileSync(
+      path.join(dir, "typo.ts"),
+      "function h(x: number): number { return x; }\n" +
+        "/** @ensures{id} forall (x: int ∈ [0, 5)) { f(x) === x }\n" +
+        " *  @ensures{bad} forall (x: int ∈ [0, 5)) { h(x) === x } */\n" +
+        "export function f(x: number): number { return h(x); }\n",
+    );
+    process.chdir(dir);
+  });
+  afterAll(() => {
+    process.chdir(prevCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test("a refused annotation is never tried, and says why", () => {
+    const admission = admit(
+      ["typo.ts"],
+      path.join(dir, "tc.tsbuildinfo"),
+      () => {},
+    );
+    if (admission.kind !== "admitted") throw new Error("not admitted");
+    const [a] = writeEmissionArtifacts(admission.files, OUT, admission.refused);
+    const written = JSON.parse(fs.readFileSync(a!.jsonFile!, "utf8"));
+    expect(
+      written.emission.obligations.map((o: { property: string }) => o.property),
+    ).toEqual(["id"]);
+    expect(written.annotations).toEqual([
+      { function: "f", property: "id", line: 2, outcome: "tried" },
+      {
+        function: "f",
+        property: "bad",
+        line: 3,
+        outcome: "refused",
+        cause: "typing",
+        error: expect.stringMatching(/^typo\.ts:3: /),
+      },
+    ]);
   });
 });

@@ -239,7 +239,9 @@ describe("lemma check: the emission", () => {
       obligations: [{ function: "f", property: "id" }],
     });
     expect(d).toEqual(
-      JSON.parse(JSON.stringify(admittedDocument("src/f.ts").document)),
+      JSON.parse(
+        JSON.stringify(admittedDocument("src/f.ts", new Map()).document),
+      ),
     );
   });
 
@@ -251,7 +253,7 @@ describe("lemma check: the emission", () => {
         (o) => o.property,
       );
     expect(
-      obligations(admittedDocument("src/typo.ts").document.emission),
+      obligations(admittedDocument("src/typo.ts", new Map()).document.emission),
     ).toEqual(["id", "bad"]);
     const r = invoke("check", "src/typo.ts");
     expect(r.status).toBe(0);
