@@ -8,16 +8,48 @@
 
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { readFormulas } from "./admit.js";
+import { readFormulas, refusalsOf } from "./admit.js";
 import { type Emission, emitModule, type PlainEmission } from "./emission.js";
 import { LemmaError } from "./errors.js";
+import {
+  extractFromSource,
+  type InvalidAnnotation,
+  type RawAnnotation,
+} from "./extract.js";
 import { ParseError, parseScript, type Program } from "./estree.js";
 import { typeFormulas, type ParsedFile } from "./island-types.js";
+import { qualifiedName } from "./qualified-name.js";
 import { stripTypes } from "./strip-types.js";
 import { type TypecheckDiagnostic, typecheckProject } from "./typecheck.js";
 
-/** Bumped on every change a reader of an older document would misread. */
-export const SCHEMA_VERSION = 0;
+/** Bumped on every change a reader of an older document would misread.
+ * 1: every `check` document carries `annotations`, each with its outcome. */
+export const SCHEMA_VERSION = 1;
+
+/** What became of one `@ensures`: an obligation the engine will attempt,
+ * a verdict the emitter settled itself, or an input error with the cause
+ * the envelope orders refusals by. */
+export type AnnotationOutcome =
+  | { outcome: "tried" }
+  | {
+      outcome: "classified";
+      szs: "Inappropriate" | "Error" | "NotTried";
+      kind?: "unsupported-range";
+      reason: string;
+    }
+  | {
+      outcome: "refused";
+      cause: "extraction" | "typing" | "gate";
+      /** Spelled as `admit` spells it: the envelope's `error`. */
+      error: string;
+    };
+
+export type DocumentAnnotation = {
+  /** Qualified: `add`, `Point#dist`, `Point.make`. */
+  function: string;
+  property: string;
+  line: number;
+} & AnnotationOutcome;
 
 /** Why a file has no program. */
 export type RefusalReason =
@@ -43,6 +75,8 @@ export type CheckedDocument = {
   file: string;
   /** Whether the program passed the typecheck gate on its way here. */
   gated: boolean;
+  /** Every `@ensures` in the file, on `check` documents only. */
+  annotations?: DocumentAnnotation[];
 } & (
   | {
       outcome: "program";
@@ -137,6 +171,66 @@ export function parseDocument(file: string): CheckedDocument {
   return parsed(file, false, source);
 }
 
+function identityOf(a: RawAnnotation | InvalidAnnotation) {
+  return {
+    function: qualifiedName(a.functionName, a.className, a.isStatic),
+    property: a.propertyName,
+    line: a.line,
+  };
+}
+
+/** The outcomes of an admitted file: the extracted annotations in order
+ * (tried, classified, or refused by the gate's typing), then the ones
+ * extraction refused. `allExtracted` is the unfiltered list: the emitter
+ * drops typing-refused annotations from its own. */
+function admittedAnnotations(
+  file: string,
+  emitted: PlainEmission,
+  typingRefused: InvalidAnnotation[],
+  allExtracted: RawAnnotation[],
+): DocumentAnnotation[] {
+  const error = (i: InvalidAnnotation) => refusalsOf(file, [i])[0]!.error;
+  const typing = new Map(
+    typingRefused.map((i) => {
+      const id = identityOf(i);
+      return [`${id.function}\0${id.property}`, i];
+    }),
+  );
+  const out: DocumentAnnotation[] = [];
+  for (const a of allExtracted) {
+    const id = identityOf(a);
+    const t = typing.get(`${id.function}\0${id.property}`);
+    if (t !== undefined) {
+      out.push({ ...id, outcome: "refused", cause: "typing", error: error(t) });
+      continue;
+    }
+    const c = emitted.classified.find(
+      (x) =>
+        x.annotation.line === a.line &&
+        x.annotation.propertyName === a.propertyName,
+    );
+    out.push(
+      c === undefined
+        ? { ...id, outcome: "tried" }
+        : {
+            ...id,
+            outcome: "classified",
+            szs: c.szs,
+            ...(c.kind === undefined ? {} : { kind: c.kind }),
+            reason: c.reason,
+          },
+    );
+  }
+  for (const i of emitted.invalid)
+    out.push({
+      ...identityOf(i),
+      outcome: "refused",
+      cause: "extraction",
+      error: error(i),
+    });
+  return out;
+}
+
 /**
  * A file `admit` admitted, documented without running the gate again:
  * its types stripped and the script parsed, with the emission beside it.
@@ -148,19 +242,23 @@ export function parseDocument(file: string): CheckedDocument {
 export function admittedDocument(
   file: string,
   refused: ReadonlySet<string> = new Set(),
+  typingRefused: InvalidAnnotation[] = [],
 ): { document: CheckedDocument; emitted: PlainEmission } {
   // The gate just read this file as part of the program, so a failure to
   // read it again is not the caller's to handle.
   const source = readFileSync(file, "utf8");
   const emitted = emitModule(source, file, undefined, refused);
+  const annotations = admittedAnnotations(
+    file,
+    emitted,
+    typingRefused,
+    extractFromSource(source, file).annotations,
+  );
   return {
-    document: parsed(
-      file,
-      true,
-      source,
-      stripTypes(source, file),
-      emitted.emission,
-    ),
+    document: {
+      ...parsed(file, true, source, stripTypes(source, file), emitted.emission),
+      annotations,
+    },
     emitted,
   };
 }

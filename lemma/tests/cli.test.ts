@@ -77,7 +77,7 @@ describe("lemma parse", () => {
   it("prints one indented document whose program is the golden", () => {
     const r = invoke("parse", fixture("numeric-loop.js"));
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/^\{\n {2}"schemaVersion": 0,/);
+    expect(r.stdout).toMatch(/^\{\n {2}"schemaVersion": 1,/);
     const d = JSON.parse(r.stdout);
     validate(d);
     expect(d).toEqual({
@@ -211,6 +211,20 @@ describe("lemma check: the emission", () => {
     "src/bad.ts":
       "/** @ensures{p} forall (n: int) { forall (m: int) { f(n) === m } } */\n" +
       "export function f(x: number): number { return x; }\n",
+  });
+
+  it("carries the annotations with their outcomes, version 1", () => {
+    const r = invoke("check", "src/f.ts");
+    const d = parsed(r.stdout);
+    expect(d.schemaVersion).toBe(1);
+    expect(d.annotations).toEqual([
+      { function: "f", property: "id", line: 1, outcome: "tried" },
+    ]);
+  });
+
+  it("a parse document carries no annotations", () => {
+    const r = invoke("parse", fixture("arithmetic.js"));
+    expect(parsed(r.stdout)).not.toHaveProperty("annotations");
   });
 
   it("carries thales's emission for a gated file, as thales writes it", () => {

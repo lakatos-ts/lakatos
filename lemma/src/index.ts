@@ -104,7 +104,12 @@ export {
   parseDocument,
   SCHEMA_VERSION,
 } from "./document.js";
-export type { CheckedDocument, RefusalReason } from "./document.js";
+export type {
+  AnnotationOutcome,
+  CheckedDocument,
+  DocumentAnnotation,
+  RefusalReason,
+} from "./document.js";
 
 export type {
   ClassifiedAnnotation,
