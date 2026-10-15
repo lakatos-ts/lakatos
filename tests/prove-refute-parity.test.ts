@@ -1,21 +1,63 @@
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  it,
+  expect,
+  vi,
+} from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { execFileSync } from "node:child_process";
 import {
   proveTimeoutMs,
   runBin,
   runBinForEnvelope,
+  runThales,
   useRepoScratchDir,
   useTempProject,
 } from "./helpers/cli.js";
+import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 import type { Envelope } from "@lakatos/core/envelope";
-import { main as proveMain } from "../thales/frontend/src/cli.js";
 import { main as refuteMain } from "../pabst/src/cli.js";
 import { COMPILE_ERROR_CASES } from "../pabst/tests/helpers/compile-error-cases.js";
 
-// Prove and refute over the same files, through the thales and pabst bins:
-// the one place both engines run side by side.
-describe("prove and refute report compile errors alike", () => {
+// Prove and refute over the same files, through the Lean thales binary and
+// the pabst bin: the one place both engines run side by side. The binary
+// needs the Lean toolchain, so all of it is gated like the prove e2e.
+const enabled = process.env.LAKATOS_PROVE_E2E === "1";
+
+const repoRoot = process.cwd();
+const conformance = path.join(repoRoot, "thales", "tests", "conformance");
+
+let built = false;
+function buildThales(): void {
+  if (built) return;
+  execFileSync("lake", ["build", "thales"], {
+    cwd: path.join(repoRoot, "thales"),
+    stdio: ["ignore", "ignore", "inherit"],
+    timeout: 600_000,
+  });
+  built = true;
+}
+
+/** The binary's single-envelope contract, as runBinForEnvelope applies it
+ * to a bin's main(). */
+async function runThalesForEnvelope(
+  argv: string[],
+  expectedCode = 0,
+): Promise<Envelope> {
+  const run = await runThales(argv);
+  expect(run.code, run.stderr.join("\n")).toBe(expectedCode);
+  expect(run.stdout).toHaveLength(1);
+  const env = JSON.parse(run.stdout[0]!) as Envelope;
+  expectValidEnvelope(env);
+  return env;
+}
+
+describe.runIf(enabled)("prove and refute report compile errors alike", () => {
+  beforeAll(buildThales, 600_000);
   useTempProject(
     "lakatos-parity-err-",
     Object.fromEntries(COMPILE_ERROR_CASES.map((c) => [c.file, c.source])),
@@ -25,22 +67,17 @@ describe("prove and refute report compile errors alike", () => {
     "prove on $name exits 2 with the same diagnostic as refute",
     async (c) => {
       const refute = await runBin(refuteMain, [c.file]);
-      const prove = await runBin(proveMain, [c.file]);
+      const prove = await runThales([c.file]);
       expect(prove.code).toBe(2);
       expect(refute.code).toBe(2);
       expect(prove.stdout).toEqual(refute.stdout);
-      expect(prove.stderr).toEqual(refute.stderr);
+      expect(prove.stderr).toEqual(refute.stderr.flatMap((s) => s.split("\n")));
     },
   );
 });
 
-// The rest is gated like the prove e2e.
-const enabled = process.env.LAKATOS_PROVE_E2E === "1";
-
-const repoRoot = process.cwd();
-const conformance = path.join(repoRoot, "thales", "tests", "conformance");
-
 describe.runIf(enabled)("prove and refute agree", () => {
+  beforeAll(buildThales, 600_000);
   // Verdicts, not models: one heartbeat keeps each correspondence proof to
   // milliseconds.
   beforeEach(() => {
@@ -102,7 +139,7 @@ describe.runIf(enabled)("prove and refute agree", () => {
     "prove and refute report identical identity keys for the same file",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const proveEnv = await runBinForEnvelope(proveMain, ["parity.ts"]);
+      const proveEnv = await runThalesForEnvelope(["parity.ts"]);
       expect(proveEnv.annotations[0]).toMatchObject({ szs: "Theorem" });
 
       const refuteEnv = await runBinForEnvelope(refuteMain, ["parity.ts"]);
@@ -118,7 +155,7 @@ describe.runIf(enabled)("prove and refute agree", () => {
     "a boolean binder's witness is the same assignment under both engines",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const proveEnv = await runBinForEnvelope(proveMain, ["boolwit.ts"], 1);
+      const proveEnv = await runThalesForEnvelope(["boolwit.ts"], 1);
       const refuteEnv = await runBinForEnvelope(refuteMain, ["boolwit.ts"], 1);
       const witnesses = (e: Envelope) =>
         e.annotations
@@ -136,7 +173,7 @@ describe.runIf(enabled)("prove and refute agree", () => {
     "prove and refute both report Theorem on a small finite domain",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const proveEnv = await runBinForEnvelope(proveMain, ["small.ts"]);
+      const proveEnv = await runThalesForEnvelope(["small.ts"]);
       const refuteEnv = await runBinForEnvelope(refuteMain, ["small.ts"]);
       const by = (e: Envelope) =>
         new Map(e.annotations.map((a) => [`${a.function}/${a.property}`, a]));
@@ -167,7 +204,7 @@ describe.runIf(enabled)("prove and refute agree", () => {
     "prove and refute agree on a class binder over a boolean constructor parameter",
     { timeout: proveTimeoutMs(1) },
     async () => {
-      const proveEnv = await runBinForEnvelope(proveMain, ["flag.ts"]);
+      const proveEnv = await runThalesForEnvelope(["flag.ts"]);
       const refuteEnv = await runBinForEnvelope(refuteMain, ["flag.ts"]);
       const by = (e: Envelope) =>
         new Map(e.annotations.map((a) => [`${a.function}/${a.property}`, a]));

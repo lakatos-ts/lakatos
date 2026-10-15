@@ -2,12 +2,20 @@ import { beforeAll, afterAll, expect, vi } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { expectValidEnvelope } from "./envelope-schema.js";
 import type { Envelope } from "@lakatos/core/envelope";
-import {
-  BUILD_TIMEOUT_MS,
-  LEAN_TIMEOUT_MS,
-} from "../../thales/frontend/src/run.js";
+
+/** thales's budgets: one `lake build`, and one Lean run per artifact. */
+const BUILD_TIMEOUT_MS = 600_000;
+const LEAN_TIMEOUT_MS = 300_000;
+
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+);
 
 export interface MainRun {
   code: number;
@@ -48,6 +56,24 @@ export async function runBin(main: BinMain, argv: string[]): Promise<MainRun> {
     logSpy.mockRestore();
     errSpy.mockRestore();
   }
+}
+
+/** The Lean thales binary on `argv`, from the current directory, in the
+ * `MainRun` shape; stderr lines split so they compare to pabst's notes. */
+export async function runThales(argv: string[]): Promise<MainRun> {
+  const bin = path.join(repoRoot, "thales", ".lake", "build", "bin", "thales");
+  const r = spawnSync(bin, argv, {
+    encoding: "utf8",
+    env: { LAKATOS_LEMMA: path.join(repoRoot, "lemma"), ...process.env },
+    timeout: BUILD_TIMEOUT_MS + 2 * LEAN_TIMEOUT_MS,
+    maxBuffer: 256 * 1024 * 1024,
+  });
+  if (r.error) throw r.error;
+  return {
+    code: r.status ?? -1,
+    stdout: r.stdout.trim() === "" ? [] : [r.stdout.trimEnd()],
+    stderr: r.stderr === "" ? [] : r.stderr.trimEnd().split("\n"),
+  };
 }
 
 /**
