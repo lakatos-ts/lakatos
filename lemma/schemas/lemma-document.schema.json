@@ -22,7 +22,7 @@
     },
     "annotations": {
       "type": "array",
-      "description": "Every `@ensures` in the file, from `lemma check` only: the extracted annotations in order, then the ones extraction refused. `tried` has exactly one `#thales_prove` in the emission; `classified` was settled before Lean; `refused` is an input error, with `cause` saying whether extraction, the gate's formula typing, or a whole-file refusal (no tsconfig, an ill-typed program, a file outside the program) made it one. `error` is spelled as the envelope prints it. A refusal with reason `annotation` (a formula Lemma cannot read) carries no `annotations`: the whole run aborts on it.",
+      "description": "Every `@ensures` in the file, from `lemma check` only: the extracted annotations in order, then the ones extraction refused. `tried` has exactly one `#thales_prove` in the emission; `classified` was settled before Lean; `refused` is an input error, with `cause` saying whether extraction, the gate's formula typing, or a whole-file refusal (no tsconfig, an ill-typed program, a file outside the program) made it one. `error` is spelled as the envelope prints it. A refusal with reason `annotation` (a formula Lemma cannot read) carries no `annotations`: an engine's run aborts on it.",
       "items": {
         "type": "object",
         "required": ["function", "property", "line", "outcome"],

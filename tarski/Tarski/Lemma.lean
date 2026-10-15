@@ -195,9 +195,12 @@ private def decodeOutcome (j : Json) : Except String Outcome := do
     let szs ← j.getObjValAs? String "szs"
     unless szs == "Inappropriate" || szs == "Error" || szs == "NotTried" do
       throw s!"unknown classified szs '{szs}'"
-    let kind := (j.getObjValAs? String "kind").toOption
-    if let some k := kind then
-      unless k == "unsupported-range" do throw s!"unknown classified kind '{k}'"
+    let kind ← match j.getObjVal? "kind" with
+      | .error _ => pure none
+      | .ok k => match k.getStr? with
+        | .ok "unsupported-range" => pure (some "unsupported-range")
+        | .ok k => throw s!"unknown classified kind '{k}'"
+        | .error _ => throw "the classified kind is not a string"
     pure (.classified szs kind (← j.getObjValAs? String "reason"))
   | "refused" =>
     let cause ← j.getObjValAs? String "cause"

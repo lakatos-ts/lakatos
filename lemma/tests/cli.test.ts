@@ -276,6 +276,13 @@ describe("lemma check: the emission", () => {
         ),
       ),
     ).toEqual([["id"], ["id"], ["id"]]);
+    const second = lines(r.stdout)[1]!.annotations as {
+      property: string;
+      error?: string;
+    }[];
+    expect(second.find((a) => a.property === "bad")!.error).toMatch(
+      /^\.\/src\/typo\.ts:3:/,
+    );
   });
 
   it("refuses a file with a formula Lemma cannot read", () => {

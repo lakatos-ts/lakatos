@@ -45,6 +45,10 @@ def refusedDoc : String :=
   | .error "unknown refusal cause 'whim'" => true
   | _ => false
 
+#guard match Json.parse "{\"schemaVersion\":1,\"file\":\"a.ts\",\"gated\":true,\"outcome\":\"program\",\"program\":{},\"annotations\":[{\"function\":\"f\",\"property\":\"p\",\"line\":1,\"outcome\":\"classified\",\"szs\":\"NotTried\",\"kind\":\"other\",\"reason\":\"r\"}]}" >>= decodeDocument with
+  | .error "unknown classified kind 'other'" => true
+  | _ => false
+
 -- Another version fails by name, before anything else is read.
 #guard match Json.parse "{\"schemaVersion\":0}" >>= decodeDocument with
   | .error "lemma document version 0, but this executable reads version 1" => true
