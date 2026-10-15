@@ -57,7 +57,7 @@ describe("writeEmissionArtifacts", () => {
     // emission out of it.
     expect(written).toEqual(admittedDocument(source).document);
     expect(written).toMatchObject({
-      schemaVersion: 0,
+      schemaVersion: 1,
       gated: true,
       outcome: "program",
       emission: { file: source, obligations: [{ property: "q" }] },

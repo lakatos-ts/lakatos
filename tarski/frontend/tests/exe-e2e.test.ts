@@ -392,7 +392,7 @@ describe.runIf(e2e)("tarski when lemma misbehaves", () => {
 
   it("does not run a program lemma crashed after printing", () => {
     const doc = {
-      schemaVersion: 0,
+      schemaVersion: 1,
       file: "a.ts",
       gated: true,
       outcome: "program",
@@ -410,13 +410,13 @@ describe.runIf(e2e)("tarski when lemma misbehaves", () => {
   });
 
   it("refuses a document of another version", () => {
-    const doc = { schemaVersion: 1, file: "a.ts" };
+    const doc = { schemaVersion: 2, file: "a.ts" };
     const r = withLemma(
       fakeLemma(`console.log(${JSON.stringify(JSON.stringify(doc))});\n`),
     );
     expect(r.code).toBe(2);
     expect(r.stderr).toContain(
-      "lemma document version 1, but this executable reads version 0",
+      "lemma document version 2, but this executable reads version 1",
     );
   });
 });

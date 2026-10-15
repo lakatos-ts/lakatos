@@ -32,16 +32,16 @@ def emptyEmissionJson : Json :=
               ("obligations", Json.arr #[])]
 #guard
   (decodeDocument (Json.mkObj
-    [("schemaVersion", (0 : Nat)), ("emission", emptyEmissionJson)]))
+    [("schemaVersion", (1 : Nat)), ("emission", emptyEmissionJson)]))
   matches .ok { file := "t.ts", declarations := #[], obligations := #[] }
 #guard
   (decodeDocument (Json.mkObj
-    [("schemaVersion", (1 : Nat)), ("emission", emptyEmissionJson)]))
-  matches .error "lemma document version 1, but thales-emit reads version 0"
+    [("schemaVersion", (2 : Nat)), ("emission", emptyEmissionJson)]))
+  matches .error "lemma document version 2, but thales-emit reads version 1"
 #guard (decodeDocument (Json.mkObj [("emission", emptyEmissionJson)])) matches .error _
 #guard
   (decodeDocument (Json.mkObj
-    [("schemaVersion", (0 : Nat)), ("outcome", "refused")]))
+    [("schemaVersion", (1 : Nat)), ("outcome", "refused")]))
   matches .error "the lemma document carries no emission: its file did not pass the gate, or it came from `lemma parse`"
 -- A bare emission is not a document.
 #guard (decodeDocument emptyEmissionJson) matches .error _
