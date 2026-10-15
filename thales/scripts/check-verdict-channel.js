@@ -313,7 +313,12 @@ function runFixture(file) {
   const r = spawnSync(
     bin,
     ["run-artifact", path.join(engineRoot, "tests", "fixtures", file)],
-    { cwd: engineRoot, encoding: "utf8", timeout: 600_000 + 120_000 * 20 },
+    {
+      cwd: engineRoot,
+      encoding: "utf8",
+      timeout: 600_000 + 120_000 * 20,
+      maxBuffer: 64 * 1024 * 1024,
+    },
   );
   check(
     r.status === 0,

@@ -378,6 +378,8 @@ function projectAnnotation(a) {
   );
 }
 
+// A regeneration with a failed fixture would drop it from the store.
+let anyFailed = false;
 for (const fixture of fixtures) {
   // Timeout fixtures are graded the way the corpus harness grades them:
   // under a reduced heartbeat budget, where Timeout is deterministic and
@@ -409,11 +411,12 @@ for (const fixture of fixtures) {
     timeout: 600_000 + 300_000 + 120_000 * 20,
     maxBuffer: 64 * 1024 * 1024,
   });
-  check(
-    r.status === 0 || r.status === 1,
-    `${fixture}: thales exited ${r.status ?? r.error}\n${r.stderr}`,
-  );
-  if (r.status !== 0 && r.status !== 1) continue;
+  const ran = r.status === 0 || r.status === 1;
+  check(ran, `${fixture}: thales exited ${r.status ?? r.error}\n${r.stderr}`);
+  if (!ran) {
+    anyFailed = true;
+    continue;
+  }
   const entries = JSON.parse(r.stdout).annotations.map(projectAnnotation);
 
   if (updating) {
@@ -431,7 +434,7 @@ for (const fixture of fixtures) {
   );
 }
 
-if (updating) {
+if (updating && !anyFailed) {
   fs.writeFileSync(
     EXPECTED_FILE,
     JSON.stringify(expectedStore, null, 2) + "\n",
