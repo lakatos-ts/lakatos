@@ -8,6 +8,7 @@ import {
   fakeLake,
   proveTimeoutMs,
   runMain,
+  scratchDir,
   useTempProject,
 } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
@@ -40,10 +41,7 @@ function loggingLake(body = ""): {
   env: NodeJS.ProcessEnv;
   ran: () => string;
 } {
-  const log = path.join(
-    fs.mkdtempSync(path.join(os.tmpdir(), "thales-ran-")),
-    "ran",
-  );
+  const log = path.join(scratchDir("thales-ran-"), "ran");
   return {
     env: fakeLake(`basename "$ARTIFACT" >> '${log}'\n${body}`),
     ran: () => (fs.existsSync(log) ? fs.readFileSync(log, "utf8") : ""),

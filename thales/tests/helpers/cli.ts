@@ -28,6 +28,23 @@ const engineRoot = path.join(repoRoot, "thales");
 const lemmaRoot = path.join(repoRoot, "lemma");
 let built: string | undefined;
 
+/** Spawned output is buffered whole; a chatty Lean run outgrows Node's 1 MB default. */
+export const MAX_BUFFER = 256 * 1024 * 1024;
+
+const scratchDirs: string[] = [];
+
+/** A fresh temp directory, removed when the file's suites finish. */
+export function scratchDir(prefix: string): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  scratchDirs.push(dir);
+  return dir;
+}
+
+afterAll(() => {
+  for (const dir of scratchDirs.splice(0))
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
 /** The binary, built once per process; the e2e gate implies the toolchain. */
 export function thalesBinary(): string {
   if (built !== undefined) return built;
@@ -57,6 +74,7 @@ export async function runMain(
     encoding: "utf8",
     env: { LAKATOS_LEMMA: lemmaRoot, ...env },
     timeout: BUILD_TIMEOUT_MS + 2 * LEAN_TIMEOUT_MS,
+    maxBuffer: MAX_BUFFER,
   });
   if (r.error) throw r.error;
   const stdout = r.stdout.trim() === "" ? [] : [r.stdout.trimEnd()];
@@ -73,7 +91,7 @@ export function fakeLake(body: string): NodeJS.ProcessEnv {
   const real = execFileSync("sh", ["-c", "command -v lake"], {
     encoding: "utf8",
   }).trim();
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fake-lake-"));
+  const dir = scratchDir("fake-lake-");
   const script = `#!/bin/sh
 if [ "$1" = "env" ] && [ "$2" = "lean" ]; then
   for a in "$@"; do ARTIFACT="$a"; done
@@ -81,7 +99,7 @@ if [ "$1" = "env" ] && [ "$2" = "lean" ]; then
 ${body}
   exit $?
 fi
-exec "${real}" "$@"
+exec '${real.replace(/'/g, "'\\''")}' "$@"
 `;
   fs.writeFileSync(path.join(dir, "lake"), script, { mode: 0o755 });
   return {

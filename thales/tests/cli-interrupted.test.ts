@@ -36,28 +36,29 @@ describe.runIf(enabled)("thales on an interrupted run", () => {
   it(
     "prove: an engine child that dies of SIGINT makes the run User, exit 2, and no later artifact runs",
     async () => {
-      const log = path.join(
-        fs.mkdtempSync(path.join(os.tmpdir(), "thales-ran-")),
-        "ran",
-      );
-      const env = fakeLake(`basename "$ARTIFACT" >> '${log}'\nkill -INT $$`);
-      const { code, stdout, stderr } = await runMain(
-        ["annotated.ts", "lone.ts"],
-        env,
-      );
-      expect(code).toBe(2);
-      expect(stdout).toHaveLength(1);
-      const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
-      expect(envelope.annotations).toHaveLength(3);
-      expect(
-        envelope.annotations.every((a: { szs: string }) => a.szs === "User"),
-      ).toBe(true);
-      expect(stderr).toContain(
-        "thales: interrupted by SIGINT; reporting 3 annotations as User",
-      );
-      expect(fs.readFileSync(log, "utf8")).toBe("annotated.ts.lean\n");
-      fs.rmSync(path.dirname(log), { recursive: true, force: true });
+      const logDir = fs.mkdtempSync(path.join(os.tmpdir(), "thales-ran-"));
+      const log = path.join(logDir, "ran");
+      try {
+        const env = fakeLake(`basename "$ARTIFACT" >> '${log}'\nkill -INT $$`);
+        const { code, stdout, stderr } = await runMain(
+          ["annotated.ts", "lone.ts"],
+          env,
+        );
+        expect(code).toBe(2);
+        expect(stdout).toHaveLength(1);
+        const envelope = JSON.parse(stdout[0]!);
+        expectValidEnvelope(envelope);
+        expect(envelope.annotations).toHaveLength(3);
+        expect(
+          envelope.annotations.every((a: { szs: string }) => a.szs === "User"),
+        ).toBe(true);
+        expect(stderr).toContain(
+          "thales: interrupted by SIGINT; reporting 3 annotations as User",
+        );
+        expect(fs.readFileSync(log, "utf8")).toBe("annotated.ts.lean\n");
+      } finally {
+        fs.rmSync(logDir, { recursive: true, force: true });
+      }
     },
     proveTimeoutMs(2),
   );
