@@ -297,7 +297,7 @@ def checkPatterns (bin : System.FilePath) (patterns : Array String)
       return .error s!"could not run node on lemma ({bin}): {e}"
   -- Exit 2 is lemma refusing the command line: a pattern matching nothing,
   -- a broken tsconfig. Its message is the whole answer.
-  if out.exitCode == 2 then return .error out.stderr.trimAsciiEnd.toString
+  if out.exitCode == 2 then return .error (toString out.stderr.trimAsciiEnd)
   unless out.exitCode == 0 || out.exitCode == 1 do
     return .error s!"lemma exited {out.exitCode}:\n{out.stderr.trimAsciiEnd}"
   match decodeLines out.stdout with

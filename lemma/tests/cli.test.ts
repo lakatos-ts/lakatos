@@ -6,7 +6,11 @@ import { fileURLToPath } from "node:url";
 import { admit, refusalsOf } from "../src/admit.js";
 import { main } from "../src/cli.js";
 import { extract } from "../src/extract.js";
-import { admittedDocument, type DocumentAnnotation } from "../src/document.js";
+import {
+  admittedDocument,
+  checkDocuments,
+  type DocumentAnnotation,
+} from "../src/document.js";
 import { useTempProject } from "./helpers/temp-project.js";
 import { schemaValidator } from "./helpers/schema-validator.js";
 
@@ -182,6 +186,17 @@ describe("lemma check: files the check did not read", () => {
     expect(r.status).toBe(2);
     expect(r.stdout).toBe("");
     expect(r.stderr).toBe("no matching .ts files\n");
+  });
+
+  it("a missing file handed to checkDocuments is outside the program, with nothing to refuse", () => {
+    const [d] = checkDocuments(["src/nope.ts"]);
+    expect(d).toMatchObject({
+      file: "src/nope.ts",
+      outcome: "refused",
+      reason: "outside-program",
+      annotations: [],
+    });
+    validate(d);
   });
 
   it("writes the gate's cache where --tsbuildinfo says", () => {
