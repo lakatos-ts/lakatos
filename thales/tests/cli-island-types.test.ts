@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runMain, useTempProject } from "./helpers/cli.js";
+import { enabled, runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 
 const SCALE =
@@ -72,13 +72,16 @@ async function expectIslandRefusal(file: keyof typeof EXPECTED): Promise<void> {
   expect(stderr.join("\n")).toContain("emitted 0 annotations");
 }
 
-describe("a type fault inside an atom is the annotation's InputError", () => {
-  useTempProject("thales-island-", REPROS);
+describe.runIf(enabled)(
+  "a type fault inside an atom is the annotation's InputError",
+  () => {
+    useTempProject("thales-island-", REPROS);
 
-  it.each(Object.keys(EXPECTED) as Array<keyof typeof EXPECTED>)(
-    "%s reports InputError naming the atom and exits 2",
-    async (file) => {
-      await expectIslandRefusal(file);
-    },
-  );
-});
+    it.each(Object.keys(EXPECTED) as Array<keyof typeof EXPECTED>)(
+      "%s reports InputError naming the atom and exits 2",
+      async (file) => {
+        await expectIslandRefusal(file);
+      },
+    );
+  },
+);

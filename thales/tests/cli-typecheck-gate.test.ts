@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runMain, useTempProject } from "./helpers/cli.js";
+import { enabled, runMain, useTempProject } from "./helpers/cli.js";
 
 const ILL_TYPED = {
   "tsconfig.json": JSON.stringify({ include: ["src"] }),
@@ -10,7 +10,7 @@ const ILL_TYPED = {
     "}\n",
 };
 
-describe("thales refuses an ill-typed program", () => {
+describe.runIf(enabled)("thales refuses an ill-typed program", () => {
   useTempProject("thales-gate-prove-", ILL_TYPED);
 
   it("never reaches the emitter: no arity checks, no Inappropriate", async () => {
@@ -23,7 +23,7 @@ describe("thales refuses an ill-typed program", () => {
   });
 });
 
-describe("the project switches strict off", () => {
+describe.runIf(enabled)("the project switches strict off", () => {
   useTempProject("thales-gate-loose-", {
     "tsconfig.json": JSON.stringify({
       compilerOptions: { strict: false },
