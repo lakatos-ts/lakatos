@@ -23,15 +23,16 @@ the program, or the reason there is none.
 
 ```bash
 npx lemma check src/foo.ts            # type check the project, strip, parse
+npx lemma check                       # no files: the files tsconfig.json compiles
 npx lemma parse test.js               # parse as written, no type check
-npx lemma check --jsonl src/*.ts      # one compact document per line
+npx lemma check --jsonl "src/**/*.ts" # globs; one compact document per line
 ```
 
 `check` type checks the project under its own `tsconfig.json` with
 strict forced on top, as both engines do; `parse` is for plain
 JavaScript such as test262, where the question is what the evaluator
 covers. The exit status is 0 when every file has a program, 1 when any
-was refused, and 2 on bad usage.
+was refused, and 2 on bad usage, a pattern matching nothing, or a tsconfig that cannot be read.
 
 Install it with `npm install @lakatos/lemma`, and import the package,
 not a path: `import { parseBody } from "@lakatos/lemma"`. The barrel `src/index.ts`

@@ -40,8 +40,9 @@ export type Admission =
   | {
       kind: "admitted";
       files: string[];
-      /** Annotations the engine skips: already refused during admission. */
-      refused: ReadonlySet<string>;
+      /** Annotations the engine skips: already refused during admission,
+       * each key with the diagnostic that refused it. */
+      refused: ReadonlyMap<string, string>;
       refusals: InputRefusal[];
     };
 
@@ -98,7 +99,11 @@ export type Outcome =
 export interface Spine {
   /** `runDir` is this invocation's artifact root; the engine joins its own
    * name onto it. `refused` keys the annotations admission already reported. */
-  plan(files: string[], runDir: string, refused: ReadonlySet<string>): Plan;
+  plan(
+    files: string[],
+    runDir: string,
+    refused: ReadonlyMap<string, string>,
+  ): Plan;
   /** Absent for a command with no engine — its plan yields no artifacts. */
   run?(plan: Plan, runDir: string): Outcome;
 }

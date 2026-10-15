@@ -8,11 +8,12 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import {
   type CheckedDocument,
-  checkDocuments,
+  checkPatterns,
   parseDocument,
 } from "./document.js";
+import { LemmaError } from "./errors.js";
 
-const USAGE = `usage: lemma check [--jsonl] [--tsbuildinfo <file>] <file.ts>...
+const USAGE = `usage: lemma check [--jsonl] [--tsbuildinfo <file>] [<pattern>...]
        lemma parse [--jsonl] <file.js>...`;
 
 const HELP = `${USAGE}
@@ -20,8 +21,11 @@ const HELP = `${USAGE}
 print the checked-program document for each file (the schema is
 schemas/lemma-document.schema.json in this package).
 
-  check  type check the project under ./tsconfig.json with lakatos's
-         required options (strict) forced on top, read each file's
+  check  patterns are files or globs; with none, the files
+         ./tsconfig.json compiles (declaration files are skipped unless
+         a pattern names them). Type check the project under
+         ./tsconfig.json with lakatos's required options (strict)
+         forced on top, read each file's
          @ensures annotations, then strip its types and parse what is
          left as a script; the document also carries thales's emission
          for the file.
@@ -39,7 +43,8 @@ options:
   -h, --help            show this help
 
 exit status: 0 when every file has a program, 1 when any was refused,
-2 on bad usage.`;
+2 on bad usage, a pattern matching nothing, or a tsconfig that cannot
+be read.`;
 
 function usage(): number {
   console.error(USAGE);
@@ -70,14 +75,27 @@ export function main(argv: readonly string[]): number {
   }
   const [command, ...files] = positionals;
   if (command !== "check" && command !== "parse") return usage();
-  if (files.length === 0 || (!values.jsonl && files.length !== 1))
+  if (
+    command === "parse" &&
+    (files.length === 0 || values.tsbuildinfo !== undefined)
+  )
     return usage();
-  if (command === "parse" && values.tsbuildinfo !== undefined) return usage();
+  if (!values.jsonl && files.length !== 1) return usage();
 
-  const documents: CheckedDocument[] =
-    command === "check"
-      ? checkDocuments(files, values.tsbuildinfo)
-      : files.map((f) => parseDocument(f));
+  let documents: CheckedDocument[];
+  try {
+    documents =
+      command === "check"
+        ? checkPatterns(files, values.tsbuildinfo)
+        : files.map((f) => parseDocument(f));
+  } catch (e) {
+    /* v8 ignore next -- only LemmaError is expected here */
+    if (!(e instanceof LemmaError)) throw e;
+    console.error(e.message);
+    return 2;
+  }
+  if (command === "check" && !values.jsonl && documents.length !== 1)
+    return usage();
   for (const d of documents)
     process.stdout.write(
       values.jsonl

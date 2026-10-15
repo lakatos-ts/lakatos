@@ -45,7 +45,7 @@ export function generate(
   files: string[],
   outRoot: string,
   seed: number = randomSeed(),
-  refused: ReadonlySet<string> = new Set(),
+  refused: { has(key: string): boolean } = new Set(),
   opts: GenerateOptions = {},
 ): GenResult[] {
   const loopBudgetMs = opts.loopBudgetMs ?? LOOP_BUDGET_MS;

@@ -52,7 +52,7 @@ export type {
   TypecheckResult,
 } from "./typecheck.js";
 
-export { admit, refusalsOf } from "./admit.js";
+export { admit, refusalsOf, typingRefusals } from "./admit.js";
 export type { Admission, Note, Refusal } from "./admit.js";
 
 export { extract, extractFromSource } from "./extract.js";
@@ -101,10 +101,16 @@ export { stripTypes } from "./strip-types.js";
 export {
   admittedDocument,
   checkDocuments,
+  checkPatterns,
   parseDocument,
   SCHEMA_VERSION,
 } from "./document.js";
-export type { CheckedDocument, RefusalReason } from "./document.js";
+export type {
+  AnnotationOutcome,
+  CheckedDocument,
+  DocumentAnnotation,
+  RefusalReason,
+} from "./document.js";
 
 export type {
   ClassifiedAnnotation,

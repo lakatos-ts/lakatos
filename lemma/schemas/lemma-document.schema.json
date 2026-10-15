@@ -6,7 +6,9 @@
   "type": "object",
   "required": ["schemaVersion", "file", "gated", "outcome"],
   "properties": {
-    "schemaVersion": { "const": 0 },
+    "schemaVersion": {
+      "const": 1
+    },
     "file": {
       "type": "string",
       "description": "The path as the caller gave it."
@@ -15,7 +17,86 @@
       "type": "boolean",
       "description": "Whether the program passed the typecheck gate on its way here."
     },
-    "outcome": { "enum": ["program", "refused"] }
+    "outcome": {
+      "enum": ["program", "refused"]
+    },
+    "annotations": {
+      "type": "array",
+      "description": "Every `@ensures` in the file, from `lemma check` only: the extracted annotations in order, then the ones extraction refused. `tried` has exactly one `#thales_prove` in the emission; `classified` was settled before Lean; `refused` is an input error, with `cause` saying whether extraction, the gate's formula typing, or a whole-file refusal (no tsconfig, an ill-typed program, a file outside the program) made it one. `error` is spelled as the envelope prints it. A refusal with reason `annotation` (a formula Lemma cannot read) carries no `annotations`: an engine's run aborts on it.",
+      "items": {
+        "type": "object",
+        "required": ["function", "property", "line", "outcome"],
+        "properties": {
+          "function": {
+            "type": "string"
+          },
+          "property": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outcome": {
+            "enum": ["tried", "classified", "refused"]
+          }
+        },
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "function": true,
+              "property": true,
+              "line": true,
+              "outcome": {
+                "const": "tried"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "required": ["szs", "reason"],
+            "properties": {
+              "function": true,
+              "property": true,
+              "line": true,
+              "outcome": {
+                "const": "classified"
+              },
+              "szs": {
+                "enum": ["Inappropriate", "Error", "NotTried"]
+              },
+              "kind": {
+                "const": "unsupported-range"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "required": ["cause", "error"],
+            "properties": {
+              "function": true,
+              "property": true,
+              "line": true,
+              "outcome": {
+                "const": "refused"
+              },
+              "cause": {
+                "enum": ["extraction", "typing", "gate"]
+              },
+              "error": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        ]
+      }
+    }
   },
   "oneOf": [
     {
@@ -25,7 +106,9 @@
         "schemaVersion": true,
         "file": true,
         "gated": true,
-        "outcome": { "const": "program" },
+        "outcome": {
+          "const": "program"
+        },
         "script": {
           "type": "string",
           "description": "The script the program was parsed from, when that is not the file's own text: the TypeScript with its types stripped. `lemma check` always carries it and `lemma parse` never does."
@@ -34,7 +117,10 @@
           "$ref": "thales-emission.schema.json",
           "description": "thales's emission IR for the file, on every `lemma check` document whose file passed the gate; never from `lemma parse`."
         },
-        "program": { "$ref": "tarski-estree.schema.json#/definitions/Program" }
+        "program": {
+          "$ref": "tarski-estree.schema.json#/definitions/Program"
+        },
+        "annotations": true
       }
     },
     {
@@ -44,7 +130,9 @@
         "schemaVersion": true,
         "file": true,
         "gated": true,
-        "outcome": { "const": "refused" },
+        "outcome": {
+          "const": "refused"
+        },
         "reason": {
           "description": "Why there is no program. `unreadable` comes only from `lemma parse`: under `lemma check`, a file the type check did not read is `outside-program`, whether or not it exists. `annotation` is a `@ensures` formula Lemma cannot read, which, like a compile error, leaves the file with no program.",
           "enum": [
@@ -56,7 +144,9 @@
             "syntax"
           ]
         },
-        "message": { "type": "string" },
+        "message": {
+          "type": "string"
+        },
         "emission": {
           "$ref": "thales-emission.schema.json",
           "description": "As on a program: a file can pass the gate and still have its stripped script refused by the parser, which is an internal disagreement and not the file's fault, so the emission stays."
@@ -69,13 +159,23 @@
             "additionalProperties": false,
             "required": ["code", "message"],
             "properties": {
-              "file": { "type": "string" },
-              "line": { "type": "integer", "minimum": 1 },
-              "code": { "type": "integer" },
-              "message": { "type": "string" }
+              "file": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "code": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              }
             }
           }
-        }
+        },
+        "annotations": true
       }
     }
   ]

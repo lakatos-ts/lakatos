@@ -8,7 +8,7 @@ import {
   type ParsedFile,
 } from "./island-types.js";
 import { parsePrefix } from "./prefix-parser.js";
-import { qualifiedName } from "./qualified-name.js";
+import { annotationKey, qualifiedName } from "./qualified-name.js";
 import { EmptyAfterClampError } from "./range.js";
 import { typecheckProject, type TypecheckDiagnostic } from "./typecheck.js";
 
@@ -35,15 +35,15 @@ export type Admission =
   | {
       kind: "admitted";
       files: string[];
-      refused: ReadonlySet<string>;
+      refused: ReadonlyMap<string, string>;
       refusals: Refusal[];
     };
 
-const NO_TSCONFIG =
+export const NO_TSCONFIG =
   "no tsconfig.json: lakatos type checks the program before analyzing it " +
   "and needs the project's compiler options to do so";
 
-function outsideProgram(file: string): string {
+export function outsideProgram(file: string): string {
   return `${file} is not part of the program tsconfig.json describes, so it was not type checked`;
 }
 
@@ -52,7 +52,7 @@ function formatTsDiagnostic(d: TypecheckDiagnostic): string {
   return `${site}TS${d.code}: ${d.message}`;
 }
 
-function typecheckFailure(diagnostics: TypecheckDiagnostic[]): string {
+export function typecheckFailure(diagnostics: TypecheckDiagnostic[]): string {
   const rest = diagnostics.length - 1;
   return (
     `the program does not type check: ${formatTsDiagnostic(diagnostics[0]!)}` +
@@ -77,6 +77,18 @@ export function refusalsOf(
     property: i.propertyName,
     error: `${file}:${i.line}: ${i.message}`,
   }));
+}
+
+/** The annotation keys a file's typing refused, each with the diagnostic
+ * `refusalsOf` spells for it: the one record of those refusals. */
+export function typingRefusals(
+  file: string,
+  invalid: InvalidAnnotation[],
+): Map<string, string> {
+  const spelled = refusalsOf(file, invalid);
+  return new Map(
+    invalid.map((i, n) => [annotationKey(file, i), spelled[n]!.error]),
+  );
 }
 
 /** Every extractable annotation in `files` refused with `error`, then the
@@ -184,7 +196,11 @@ export function admit(
   return {
     kind: "admitted",
     files: checked,
-    refused: typed.refused,
+    refused: new Map(
+      typed.invalid.flatMap(({ file, invalid }) => [
+        ...typingRefusals(file, invalid),
+      ]),
+    ),
     refusals: [...gate, ...typeErrors],
   };
 }

@@ -156,6 +156,10 @@ program's uncaught throw, so no failure on the way to a program may
 escape as an exception: every one is an answer here. -/
 def checkTs (file : String) : IO (Except String (Array Lemma.Document)) := do
   try
+    -- `lemma check` treats a name that is not a file as a pattern, and a
+    -- pattern matching nothing is a refused command line.
+    unless ← System.FilePath.pathExists file do
+      return .error s!"{file} is not part of the program tsconfig.json describes, so it was not type checked"
     match ← Lemma.resolve with
     | .error msg => return .error msg
     | .ok bin => Lemma.check bin #[file]
@@ -172,11 +176,16 @@ def runTs (file : String) : IO UInt32 := do
     IO.eprintln s!"tarski: lemma answered nothing for {file}"
     return 2
   match doc with
-  | .refused _ _ reason message diagnostics =>
+  | .refused _ _ reason message diagnostics .. =>
     for line in refusalLines reason message diagnostics do IO.eprintln line
     return 2
-  | .program _ _ json =>
-    match decodeProgram json with
+  | .program _ _ json _ =>
+    let some programJson := (json.getObjVal? "program").toOption
+      | do
+        -- The document is lemma's own output, so this is a seam bug.
+        IO.eprintln s!"tarski: lemma's document for {file} has no program"
+        return 2
+    match decodeProgram programJson with
     | .error (.unsupported kind) =>
       IO.eprintln s!"tarski: {file}: unsupported syntax: {kind}"
       return 2

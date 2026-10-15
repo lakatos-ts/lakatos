@@ -113,7 +113,7 @@ describe("cli prove, plain pipeline", () => {
         "utf8",
       ),
     );
-    expect(document).toMatchObject({ schemaVersion: 0, outcome: "program" });
+    expect(document).toMatchObject({ schemaVersion: 1, outcome: "program" });
     const { emission } = document;
     expect(emission.declarations.map((d: { name: string }) => d.name)).toEqual([
       "huge",

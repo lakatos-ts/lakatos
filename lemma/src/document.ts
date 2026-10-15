@@ -6,18 +6,58 @@
 // batch never has to match stderr lines back to files: a refusal is data,
 // with its reason and, for the gate, the compiler's diagnostics.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
-import { readFormulas } from "./admit.js";
+import {
+  NO_TSCONFIG,
+  outsideProgram,
+  readFormulas,
+  refusalsOf,
+  typingRefusals,
+  typecheckFailure,
+} from "./admit.js";
 import { type Emission, emitModule, type PlainEmission } from "./emission.js";
+import { resolveFiles } from "./discover.js";
 import { LemmaError } from "./errors.js";
+import {
+  extractFromSource,
+  type InvalidAnnotation,
+  type RawAnnotation,
+} from "./extract.js";
 import { ParseError, parseScript, type Program } from "./estree.js";
 import { typeFormulas, type ParsedFile } from "./island-types.js";
+import { annotationKey, qualifiedName } from "./qualified-name.js";
 import { stripTypes } from "./strip-types.js";
 import { type TypecheckDiagnostic, typecheckProject } from "./typecheck.js";
 
-/** Bumped on every change a reader of an older document would misread. */
-export const SCHEMA_VERSION = 0;
+/** Bumped on every change a reader of an older document would misread.
+ * 1: every `check` document carries `annotations`, each with its outcome. */
+export const SCHEMA_VERSION = 1;
+
+/** What became of one `@ensures`: an obligation the engine will attempt,
+ * a verdict the emitter settled itself, or an input error with the cause
+ * the envelope orders refusals by. */
+export type AnnotationOutcome =
+  | { outcome: "tried" }
+  | {
+      outcome: "classified";
+      szs: "Inappropriate" | "Error" | "NotTried";
+      kind?: "unsupported-range";
+      reason: string;
+    }
+  | {
+      outcome: "refused";
+      cause: "extraction" | "typing" | "gate";
+      /** Spelled as `admit` spells it: the envelope's `error`. */
+      error: string;
+    };
+
+export type DocumentAnnotation = {
+  /** Qualified: `add`, `Point#dist`, `Point.make`. */
+  function: string;
+  property: string;
+  line: number;
+} & AnnotationOutcome;
 
 /** Why a file has no program. */
 export type RefusalReason =
@@ -43,6 +83,8 @@ export type CheckedDocument = {
   file: string;
   /** Whether the program passed the typecheck gate on its way here. */
   gated: boolean;
+  /** Every `@ensures` in the file, on `check` documents only. */
+  annotations?: DocumentAnnotation[];
 } & (
   | {
       outcome: "program";
@@ -137,35 +179,123 @@ export function parseDocument(file: string): CheckedDocument {
   return parsed(file, false, source);
 }
 
+function identityOf(a: RawAnnotation | InvalidAnnotation) {
+  return {
+    function: qualifiedName(a.functionName, a.className, a.isStatic),
+    property: a.propertyName,
+    line: a.line,
+  };
+}
+
+/** The outcomes of an admitted file: the extracted annotations in order
+ * (tried, classified, or refused by the gate's typing), then the ones
+ * extraction refused. `allExtracted` is the unfiltered list: the emitter
+ * drops typing-refused annotations from its own. */
+function admittedAnnotations(
+  file: string,
+  emitted: PlainEmission,
+  typingRefused: ReadonlyMap<string, string>,
+  allExtracted: RawAnnotation[],
+): DocumentAnnotation[] {
+  const error = (i: InvalidAnnotation) => refusalsOf(file, [i])[0]!.error;
+  const out: DocumentAnnotation[] = [];
+  for (const a of allExtracted) {
+    const id = identityOf(a);
+    const t = typingRefused.get(annotationKey(file, a));
+    if (t !== undefined) {
+      out.push({ ...id, outcome: "refused", cause: "typing", error: t });
+      continue;
+    }
+    const c = emitted.classified.find(
+      (x) =>
+        x.annotation.line === a.line &&
+        x.annotation.propertyName === a.propertyName &&
+        identityOf(x.annotation).function === id.function,
+    );
+    out.push(
+      c === undefined
+        ? { ...id, outcome: "tried" }
+        : {
+            ...id,
+            outcome: "classified",
+            szs: c.szs,
+            ...(c.kind === undefined ? {} : { kind: c.kind }),
+            reason: c.reason,
+          },
+    );
+  }
+  for (const i of emitted.invalid)
+    out.push({
+      ...identityOf(i),
+      outcome: "refused",
+      cause: "extraction",
+      error: error(i),
+    });
+  return out;
+}
+
+/** Every annotation in `file` refused at the gate with `error`, then the
+ * ones extraction refused: `admit`'s order and `admit`'s spellings. */
+function gateRefusals(file: string, error: string): DocumentAnnotation[] {
+  let text: string;
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    // A file that is not there has no annotations to refuse.
+    return [];
+  }
+  const extracted = extractFromSource(text, file);
+  const spelled = refusalsOf(file, extracted.invalid);
+  return [
+    ...extracted.annotations.map((a): DocumentAnnotation => ({
+      ...identityOf(a),
+      outcome: "refused",
+      cause: "gate",
+      error,
+    })),
+    ...extracted.invalid.map((i, n): DocumentAnnotation => ({
+      ...identityOf(i),
+      outcome: "refused",
+      cause: "extraction",
+      error: spelled[n]!.error,
+    })),
+  ];
+}
+
 /**
  * A file `admit` admitted, documented without running the gate again:
  * its types stripped and the script parsed, with the emission beside it.
- * `refused` holds the annotation keys the gate's formula typing refused;
- * the emission leaves those out. `emitted` is the emitter's whole answer,
+ * `refused` holds the annotation keys the gate's formula typing refused,
+ * each with `admit`'s diagnostic for it (`typingRefusals`); the emission
+ * leaves those out and the document says why, so no refused annotation is
+ * ever labeled `tried`. `emitted` is the emitter's whole answer,
  * for an engine in this process that also needs the annotations it
  * extracted and the ones it settled itself.
  */
 export function admittedDocument(
   file: string,
-  refused: ReadonlySet<string> = new Set(),
+  refused: ReadonlyMap<string, string>,
 ): { document: CheckedDocument; emitted: PlainEmission } {
   // The gate just read this file as part of the program, so a failure to
   // read it again is not the caller's to handle.
   const source = readFileSync(file, "utf8");
-  const emitted = emitModule(source, file, undefined, refused);
+  const emitted = emitModule(source, file, undefined, new Set(refused.keys()));
+  const annotations = admittedAnnotations(
+    file,
+    emitted,
+    refused,
+    extractFromSource(source, file).annotations,
+  );
   return {
-    document: parsed(
-      file,
-      true,
-      source,
-      stripTypes(source, file),
-      emitted.emission,
-    ),
+    document: {
+      ...parsed(file, true, source, stripTypes(source, file), emitted.emission),
+      annotations,
+    },
     emitted,
   };
 }
 
-const NO_TSCONFIG =
+const NO_TSCONFIG_DOC =
   "no tsconfig.json: the program is type checked before it is parsed, " +
   "and the project's compiler options are needed to do so";
 
@@ -190,11 +320,17 @@ export function checkDocuments(
     tsBuildInfoFile === undefined ? undefined : path.resolve(tsBuildInfoFile),
   );
   if (check.kind === "missing")
-    return files.map((file) => refused(file, true, "no-tsconfig", NO_TSCONFIG));
-  if (check.kind === "failed")
-    return files.map((file) =>
-      refused(file, true, "typecheck", NOT_CLEAN, check.diagnostics),
-    );
+    return files.map((file) => ({
+      ...refused(file, true, "no-tsconfig", NO_TSCONFIG_DOC),
+      annotations: gateRefusals(file, NO_TSCONFIG),
+    }));
+  if (check.kind === "failed") {
+    const error = typecheckFailure(check.diagnostics);
+    return files.map((file) => ({
+      ...refused(file, true, "typecheck", NOT_CLEAN, check.diagnostics),
+      annotations: gateRefusals(file, error),
+    }));
+  }
   const program = new Set(check.programFiles);
   const answers = new Map<string, CheckedDocument>();
   const formulas: ParsedFile[] = [];
@@ -205,15 +341,11 @@ export function checkDocuments(
   for (const file of files) {
     const relative = path.relative(cwd, path.resolve(file));
     if (!program.has(relative)) {
-      answers.set(
-        file,
-        refused(
-          file,
-          true,
-          "outside-program",
-          `${file} is not part of the program tsconfig.json describes, so it was not type checked`,
-        ),
-      );
+      const message = outsideProgram(file);
+      answers.set(file, {
+        ...refused(file, true, "outside-program", message),
+        annotations: gateRefusals(file, message),
+      });
       continue;
     }
     let read: ParsedFile[];
@@ -230,28 +362,30 @@ export function checkDocuments(
     typedAs.set(relative, file);
     formulas.push(...read);
   }
-  const { refused: untyped } = typeFormulas(formulas, check.checked);
+  const typed = typeFormulas(formulas, check.checked);
+  const typingOf = new Map(typed.invalid.map((t) => [t.file, t.invalid]));
   return files.map((file) => {
     const answer = answers.get(file);
     if (answer !== undefined) return answer;
     const as = typedAs.get(path.relative(cwd, path.resolve(file)))!;
-    return admittedDocument(
-      file,
-      as === file ? untyped : respelled(untyped, as, file),
-    ).document;
+    // Spelled under the name this file was given, not the one it was typed as.
+    return admittedDocument(file, typingRefusals(file, typingOf.get(as) ?? []))
+      .document;
   });
 }
 
-/** `keys`' annotation keys for `from`, spelled for `to` instead. */
-function respelled(
-  keys: ReadonlySet<string>,
-  from: string,
-  to: string,
-): Set<string> {
-  const out = new Set<string>();
-  for (const key of keys) {
-    const [file, ...rest] = JSON.parse(key) as string[];
-    if (file === from) out.add(JSON.stringify([to, ...rest]));
-  }
-  return out;
+/** `checkDocuments` over patterns: the files they match, or, with none,
+ * the files tsconfig.json compiles, as `admit` resolves them. Throws
+ * LemmaError when resolution comes up empty or the tsconfig is broken. */
+export function checkPatterns(
+  patterns: readonly string[],
+  tsBuildInfoFile?: string,
+): CheckedDocument[] {
+  // Lean callers match documents to the arguments as typed, so plain
+  // existing files are answered unexpanded.
+  const plain = patterns.length > 0 && patterns.every((p) => existsSync(p));
+  return checkDocuments(
+    plain ? [...patterns] : resolveFiles([...patterns]).files,
+    tsBuildInfoFile,
+  );
 }

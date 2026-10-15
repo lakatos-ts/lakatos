@@ -28,8 +28,8 @@ open Lean
 def version : String := "0.2.0"
 
 /-- The document version these executables read: `SCHEMA_VERSION` in
-`lemma/src/document.ts`. -/
-def schemaVersion : Nat := 0
+`lemma/src/document.ts`. 1 carries each annotation's outcome. -/
+def schemaVersion : Nat := 1
 
 /-- Where the pinned release is installed, under `home`. -/
 def cacheDir (home : System.FilePath) : System.FilePath :=
@@ -143,23 +143,84 @@ def Diagnostic.format (d : Diagnostic) : String :=
     | none, _ => ""
   s!"{site}TS{d.code}: {d.message}"
 
-/-- One checked-program document. The program stays JSON: the caller
-decodes it with `Tarski.decodeProgram`, or reads another field, as the
-engine it serves needs. -/
+/-- What became of one `@ensures`, as the document says. -/
+inductive Outcome where
+  /-- The emission carries exactly one `#thales_prove` for it. -/
+  | tried
+  /-- The emitter settled it before Lean. -/
+  | classified (szs : String) (kind : Option String) (reason : String)
+  /-- An input error; `cause` is `extraction`, `typing`, or `gate`. -/
+  | refused (cause : String) (error : String)
+deriving Repr, BEq, Inhabited
+
+structure Annotation where
+  function : String
+  property : String
+  line : Nat
+  outcome : Outcome
+deriving Repr, BEq, Inhabited
+
+/-- One checked-program document. `json` is the whole document: the caller
+reads `program` (and decodes it with `Tarski.decodeProgram`) or `emission`
+from it, as the engine it serves needs. -/
 inductive Document where
   | program (file : String) (gated : Bool) (json : Json)
+      (annotations : Array Annotation)
   | refused (file : String) (gated : Bool) (reason : String)
-      (message : String) (diagnostics : Array Diagnostic)
+      (message : String) (diagnostics : Array Diagnostic) (json : Json)
+      (annotations : Array Annotation)
 deriving Inhabited
 
 def Document.file : Document → String
   | .program f .. | .refused f .. => f
+
+def Document.annotations : Document → Array Annotation
+  | .program _ _ _ as => as
+  | .refused _ _ _ _ _ _ as => as
+
+def Document.json : Document → Json
+  | .program _ _ j _ => j
+  | .refused _ _ _ _ _ j _ => j
 
 private def decodeDiagnostic (j : Json) : Except String Diagnostic := do
   pure { file := (j.getObjValAs? String "file").toOption
          line := (j.getObjValAs? Nat "line").toOption
          code := ← j.getObjValAs? Nat "code"
          message := ← j.getObjValAs? String "message" }
+
+private def decodeOutcome (j : Json) : Except String Outcome := do
+  match ← j.getObjValAs? String "outcome" with
+  | "tried" => pure .tried
+  | "classified" =>
+    let szs ← j.getObjValAs? String "szs"
+    unless szs == "Inappropriate" || szs == "Error" || szs == "NotTried" do
+      throw s!"unknown classified szs '{szs}'"
+    let kind ← match j.getObjVal? "kind" with
+      | .error _ => pure none
+      | .ok k => match k.getStr? with
+        | .ok "unsupported-range" => pure (some "unsupported-range")
+        | .ok k => throw s!"unknown classified kind '{k}'"
+        | .error _ => throw "the classified kind is not a string"
+    pure (.classified szs kind (← j.getObjValAs? String "reason"))
+  | "refused" =>
+    let cause ← j.getObjValAs? String "cause"
+    unless cause == "extraction" || cause == "typing" || cause == "gate" do
+      throw s!"unknown refusal cause '{cause}'"
+    pure (.refused cause (← j.getObjValAs? String "error"))
+  | other => throw s!"unknown annotation outcome '{other}'"
+
+private def decodeAnnotation (j : Json) : Except String Annotation := do
+  pure { function := ← j.getObjValAs? String "function"
+         property := ← j.getObjValAs? String "property"
+         line := ← j.getObjValAs? Nat "line"
+         outcome := ← decodeOutcome j }
+
+/-- A `parse` document has no `annotations`, which reads as none. -/
+private def decodeAnnotations (j : Json) : Except String (Array Annotation) :=
+  match j.getObjVal? "annotations" with
+  | .ok (.arr as) => as.mapM decodeAnnotation
+  | .ok _ => throw "the lemma document's annotations are not an array"
+  | .error _ => pure #[]
 
 /-- Decode one document. A document of another `schemaVersion` fails by
 name before anything else is read. -/
@@ -172,14 +233,14 @@ def decodeDocument (j : Json) : Except String Document := do
   let file ← j.getObjValAs? String "file"
   let gated ← j.getObjValAs? Bool "gated"
   match ← j.getObjValAs? String "outcome" with
-  | "program" => pure (.program file gated (← j.getObjVal? "program"))
+  | "program" => pure (.program file gated j (← decodeAnnotations j))
   | "refused" =>
     let diagnostics ← match j.getObjVal? "diagnostics" with
       | .ok (.arr ds) => ds.mapM decodeDiagnostic
       | .ok _ => throw "the lemma document's diagnostics are not an array"
       | .error _ => pure #[]
     pure (.refused file gated (← j.getObjValAs? String "reason")
-      (← j.getObjValAs? String "message") diagnostics)
+      (← j.getObjValAs? String "message") diagnostics j (← decodeAnnotations j))
   | other => throw s!"unknown lemma document outcome '{other}'"
 
 /-- Decode `lemma … --jsonl` output: one document per non-empty line. -/
@@ -220,6 +281,32 @@ def check (bin : System.FilePath) (files : Array String)
     (tsbuildinfo : String := ".lakatos/typecheck.tsbuildinfo") :
     IO (Except String (Array Document)) :=
   run bin #["check", "--tsbuildinfo", tsbuildinfo] files
+
+/-- `lemma check` over patterns, discovery when there are none: lemma
+decides which files answer, so the only check is that each answered file
+is a document. -/
+def checkPatterns (bin : System.FilePath) (patterns : Array String)
+    (tsbuildinfo : String := ".lakatos/typecheck.tsbuildinfo") :
+    IO (Except String (Array Document)) := do
+  let out ←
+    try
+      IO.Process.output
+        { cmd := "node"
+          args := #[toString bin, "check", "--jsonl", "--tsbuildinfo", tsbuildinfo] ++ patterns }
+    catch e =>
+      return .error s!"could not run node on lemma ({bin}): {e}"
+  -- Exit 2 is lemma refusing the command line: a pattern matching nothing,
+  -- a broken tsconfig. Its message is the whole answer.
+  if out.exitCode == 2 then return .error (toString out.stderr.trimAsciiEnd)
+  unless out.exitCode == 0 || out.exitCode == 1 do
+    return .error s!"lemma exited {out.exitCode}:\n{out.stderr.trimAsciiEnd}"
+  match decodeLines out.stdout with
+  | .error msg => return .error s!"lemma printed a document this executable cannot read: {msg}"
+  | .ok docs =>
+    let refused := docs.any fun | .refused .. => true | .program .. => false
+    if out.exitCode == 1 && !refused then
+      return .error s!"lemma exited 1 with every file answered, which is a crash:\n{out.stderr.trimAsciiEnd}"
+    return .ok docs
 
 /-- `lemma parse` on `files`: no gate, nothing stripped. -/
 def parse (bin : System.FilePath) (files : Array String) :
