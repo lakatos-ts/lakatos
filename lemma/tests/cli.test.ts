@@ -81,7 +81,7 @@ describe("lemma parse", () => {
     const d = JSON.parse(r.stdout);
     validate(d);
     expect(d).toEqual({
-      schemaVersion: 0,
+      schemaVersion: 1,
       file: fixture("numeric-loop.js"),
       gated: false,
       outcome: "program",
