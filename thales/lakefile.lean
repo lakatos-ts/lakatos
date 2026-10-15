@@ -17,6 +17,11 @@ lean_lib «ThalesDsl» where
 lean_lib «ThalesEmit» where
   globs := #[.submodules `ThalesEmit, .one `ThalesEmit]
 
+-- The `thales` tool's own logic: the envelope, the verdict and model
+-- channels, the join, and run directories.
+lean_lib «Thales» where
+  globs := #[.submodules `Thales, .one `Thales]
+
 lean_exe «thales-emit» where
   root := `ThalesEmit.Main
   -- The renderer imports ThalesDsl at runtime and pretty-prints through
