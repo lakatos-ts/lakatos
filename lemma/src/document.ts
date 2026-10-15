@@ -18,7 +18,6 @@ import {
 import { type Emission, emitModule, type PlainEmission } from "./emission.js";
 import { LemmaError } from "./errors.js";
 import {
-  extract,
   extractFromSource,
   type InvalidAnnotation,
   type RawAnnotation,
@@ -242,13 +241,14 @@ function admittedAnnotations(
 /** Every annotation in `file` refused at the gate with `error`, then the
  * ones extraction refused: `admit`'s order and `admit`'s spellings. */
 function gateRefusals(file: string, error: string): DocumentAnnotation[] {
-  let extracted: ReturnType<typeof extract>;
+  let text: string;
   try {
-    extracted = extract(file);
+    text = readFileSync(file, "utf8");
   } catch {
     // A file that is not there has no annotations to refuse.
     return [];
   }
+  const extracted = extractFromSource(text, file);
   const spelled = refusalsOf(file, extracted.invalid);
   return [
     ...extracted.annotations.map((a): DocumentAnnotation => ({

@@ -474,15 +474,12 @@ describe("lemma check: refusal causes", () => {
         })),
     );
     expect(a.kind).toBe("admitted");
-    // admit stops at the first extraction error per file only in its echo;
-    // its refusals list holds the gate and typing refusals.
-    const gateAndTyping = (a as { refusals: Refusal[] }).refusals;
-    expect(fromDocs.map(refusalKey)).toEqual(
-      expect.arrayContaining(gateAndTyping.map(refusalKey)),
-    );
-    const dup = extractRefusals("src/dup.ts");
-    expect(fromDocs.map(refusalKey)).toEqual(
-      expect.arrayContaining(dup.map(refusalKey)),
+    const expected = [
+      ...(a as { refusals: Refusal[] }).refusals,
+      ...files.flatMap(extractRefusals),
+    ];
+    expect(fromDocs.map(refusalKey).sort()).toEqual(
+      expected.map(refusalKey).sort(),
     );
   });
 });
