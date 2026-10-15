@@ -417,7 +417,7 @@ for (const [i, fixture] of fixtures.entries()) {
   // Write the file's lemma document, render its emission with
   // thales-emit, run the artifact, and join the Lean verdicts with the
   // frontend's own classifications in annotation order.
-  const { document, emitted } = admittedDocument(fixture);
+  const { document, emitted } = admittedDocument(fixture, new Map());
   const { annotations, classified } = emitted;
   const jsonFile = path.join(tmp, `document-${i}.json`);
   const leanFile = path.join(tmp, `artifact-${i}.lean`);
