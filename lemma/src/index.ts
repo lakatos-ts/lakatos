@@ -101,6 +101,7 @@ export { stripTypes } from "./strip-types.js";
 export {
   admittedDocument,
   checkDocuments,
+  checkPatterns,
   parseDocument,
   SCHEMA_VERSION,
 } from "./document.js";

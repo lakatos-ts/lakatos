@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { admit, refusalsOf } from "../src/admit.js";
@@ -177,10 +177,11 @@ describe("lemma check: files the check did not read", () => {
     "src/a.ts": "export const a = 1;\n",
   });
 
-  it("calls a missing file outside the program, not unreadable", () => {
+  it("a missing file matches nothing, as a pattern would", () => {
     const r = invoke("check", "--jsonl", "src/nope.ts");
-    expect(r.status).toBe(1);
-    expect(lines(r.stdout)[0]).toMatchObject({ reason: "outside-program" });
+    expect(r.status).toBe(2);
+    expect(r.stdout).toBe("");
+    expect(r.stderr).toBe("no matching .ts files\n");
   });
 
   it("writes the gate's cache where --tsbuildinfo says", () => {
@@ -196,7 +197,7 @@ describe("lemma check: files the check did not read", () => {
 });
 
 describe("lemma check: the emission", () => {
-  useTempProject("lemma-cli-emit-", {
+  const emitDir = useTempProject("lemma-cli-emit-", {
     "src/f.ts":
       "/** @ensures{id} forall (x: int ∈ [0, 5)) { f(x) === x } */\n" +
       "export function f(x: number): number { return x; }\n",
@@ -262,7 +263,7 @@ describe("lemma check: the emission", () => {
       "check",
       "--jsonl",
       "src/typo.ts",
-      "./src/typo.ts",
+      path.join(realpathSync(emitDir), "src/typo.ts"),
       "src/other.ts",
     );
     expect(r.status).toBe(0);
@@ -546,5 +547,44 @@ describe("lemma check: no tsconfig refuses every annotation", () => {
           "no tsconfig.json: lakatos type checks the program before analyzing it and needs the project's compiler options to do so",
       },
     ]);
+  });
+});
+
+describe("lemma check: discovery and globs", () => {
+  useTempProject("lemma-cli-discover-", {
+    "src/a.ts": "export const a = 1;\n",
+    "src/b.ts": "export const b = 2;\n",
+    "src/types.d.ts": "export declare const t: number;\n",
+  });
+
+  it("with no files, checks the files tsconfig.json compiles", () => {
+    const r = invoke("check", "--jsonl");
+    expect(r.status).toBe(0);
+    expect(lines(r.stdout).map((d) => d.file)).toEqual([
+      "src/a.ts",
+      "src/b.ts",
+    ]);
+  });
+
+  it("expands a glob and drops declaration files", () => {
+    const r = invoke("check", "--jsonl", "src/**/*.ts");
+    expect(r.status).toBe(0);
+    expect(lines(r.stdout).map((d) => d.file)).toEqual([
+      "src/a.ts",
+      "src/b.ts",
+    ]);
+  });
+
+  it("a pattern matching nothing is the message on stderr and exit 2", () => {
+    const r = invoke("check", "--jsonl", "nope/**/*.ts");
+    expect(r.status).toBe(2);
+    expect(r.stdout).toBe("");
+    expect(r.stderr).toBe("no matching .ts files\n");
+  });
+
+  it("without --jsonl a pattern must name exactly one file", () => {
+    const r = invoke("check", "src/*.ts");
+    expect(r.status).toBe(2);
+    expect(r.stderr).toMatch(/^usage: lemma check/);
   });
 });

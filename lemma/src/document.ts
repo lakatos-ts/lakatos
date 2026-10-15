@@ -16,6 +16,7 @@ import {
   typecheckFailure,
 } from "./admit.js";
 import { type Emission, emitModule, type PlainEmission } from "./emission.js";
+import { resolveFiles } from "./discover.js";
 import { LemmaError } from "./errors.js";
 import {
   extractFromSource,
@@ -391,4 +392,14 @@ function respelled(
     if (file === from) out.add(JSON.stringify([to, ...rest]));
   }
   return out;
+}
+
+/** `checkDocuments` over patterns: the files they match, or, with none,
+ * the files tsconfig.json compiles, as `admit` resolves them. Throws
+ * LemmaError when resolution comes up empty or the tsconfig is broken. */
+export function checkPatterns(
+  patterns: readonly string[],
+  tsBuildInfoFile?: string,
+): CheckedDocument[] {
+  return checkDocuments(resolveFiles([...patterns]).files, tsBuildInfoFile);
 }
