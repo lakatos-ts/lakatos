@@ -23,8 +23,9 @@ the program, or the reason there is none.
 
 ```bash
 npx lemma check src/foo.ts            # type check the project, strip, parse
+npx lemma check                       # no files: the files tsconfig.json compiles
 npx lemma parse test.js               # parse as written, no type check
-npx lemma check --jsonl src/*.ts      # one compact document per line
+npx lemma check --jsonl "src/**/*.ts" # globs; one compact document per line
 ```
 
 `check` type checks the project under its own `tsconfig.json` with
