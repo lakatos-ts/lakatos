@@ -40,6 +40,10 @@ const PACKAGES: { dir: string; forbidden: string[] }[] = [
     dir: "tarski/frontend/tests",
     forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
   },
+  {
+    dir: "tarski/tests",
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
+  },
 ];
 
 /** `@scope/name/sub` → `@scope/name`; `name/sub` → `name`. */
@@ -144,6 +148,7 @@ describe("import layering", () => {
     const offenders = [
       ...tsFiles(path.join(root, "tarski/frontend/src")),
       ...tsFiles(path.join(root, "tarski/frontend/tests")),
+      ...tsFiles(path.join(root, "tarski/tests")),
     ].filter((f) =>
       /["']@lakatos\/(?!(?:tarski|lemma)["'])/.test(readFileSync(f, "utf8")),
     );

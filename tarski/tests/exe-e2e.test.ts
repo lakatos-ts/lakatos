@@ -13,11 +13,7 @@ import {
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  BUILD_TIMEOUT_MS,
-  ensureBinary,
-  findTarskiRoot,
-} from "../src/index.js";
+import { BUILD_TIMEOUT_MS, ensureBinary } from "./helpers/binary.js";
 
 // `tarski <file.ts>` against the real binary and the real lemma: the Lean
 // executable that replaced `thales-exe`. It needs the Lean toolchain, so
@@ -28,7 +24,7 @@ import {
 // binary to watch the pinned release be installed and reused.
 const e2e = process.env.LAKATOS_TARSKI_E2E === "1";
 
-const REPO = fileURLToPath(new URL("../../..", import.meta.url));
+const REPO = fileURLToPath(new URL("../..", import.meta.url));
 const LEMMA = path.join(REPO, "lemma");
 
 /** The first case may pay for one `lake build tarski`. */
@@ -77,7 +73,7 @@ function project(
 // them, whichever are selected.
 beforeAll(() => {
   if (!e2e) return;
-  const built = ensureBinary(findTarskiRoot());
+  const built = ensureBinary();
   expect(built.kind, JSON.stringify(built)).toBe("ready");
   if (built.kind === "ready") binary = built.binary;
   expect(existsSync(path.join(LEMMA, "dist", "cli.js"))).toBe(true);

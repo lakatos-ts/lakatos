@@ -17,10 +17,13 @@
 # timeout and the run's wall-clock budget; a test past the budget is
 # counted as not run for `budget`, so a truncated run says so.
 #
-# Needs `npm run build` at the repo root and `lake build tarski` here.
+# Needs `lake build tarski tarski-test262` here and `npm run build` at the
+# repo root: lemma parses, this checkout's unless LAKATOS_LEMMA names one.
 set -eu
 cd "$(dirname "$0")/.."
-exec node dist/test262/cli.js \
+LAKATOS_LEMMA="${LAKATOS_LEMMA:-$(cd .. && pwd)/lemma}"
+export LAKATOS_LEMMA
+exec .lake/build/bin/tarski-test262 \
   test/language test/built-ins test/intl402 \
   --summary \
   --timeout "${TEST262_TIMEOUT_MS:-10000}" \

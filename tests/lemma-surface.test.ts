@@ -13,6 +13,7 @@ const TREES = [
   "thales/tests",
   "tarski/frontend/src",
   "tarski/frontend/tests",
+  "tarski/tests",
 ];
 
 /** Anchored on `from`, so prose and `vi.mock` targets are not hits. Mocking a

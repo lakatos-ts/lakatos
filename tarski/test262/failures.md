@@ -19,7 +19,7 @@ added, the ten iterator, `for`-`of`, spread, and array-literal
 directories #394 added, the forty-eight `Array` directories #390
 added, `test/language/expressions/super`, which #601 added, and the `in`
 and `delete` directories #599 added — and
-`tarski/frontend/tests/test262-failures.test.ts` holds this file and
+`tarski/tests/test262-failures.test.ts` holds this file and
 `tarski/test262/expected.json` together: each directory named here is a key
 of that file, every directory with a positive `fail` count appears, and the
 `fails` column sums to exactly that count. So a ratchet that moves a count

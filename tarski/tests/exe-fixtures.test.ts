@@ -13,7 +13,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseScript, stripTypes } from "@lakatos/lemma";
-import { ensureBinary, findTarskiRoot } from "../src/index.js";
+import { ensureBinary } from "./helpers/binary.js";
 
 // Every `@ensures` fixture in the repo, run on the tarski evaluator and
 // under Node, with the two compared. This is what says the evaluator is an
@@ -31,7 +31,7 @@ import { ensureBinary, findTarskiRoot } from "../src/index.js";
 // `exe-e2e.test.ts` is where the gated command is run.
 const e2e = process.env.LAKATOS_TARSKI_E2E === "1";
 
-const REPO = fileURLToPath(new URL("../../..", import.meta.url));
+const REPO = fileURLToPath(new URL("../..", import.meta.url));
 
 /** The four fixture roots. "Every `@ensures` fixture in the repo" is the
  * issue's phrase, and it is not only thales's. */
@@ -149,7 +149,7 @@ describe.runIf(e2e)(
     beforeAll(() => {
       rmSync(scratch, { recursive: true, force: true });
       mkdirSync(scratch, { recursive: true });
-      const binary = ensureBinary(findTarskiRoot());
+      const binary = ensureBinary();
       expect(binary.kind, JSON.stringify(binary)).toBe("ready");
       if (binary.kind !== "ready") return;
 

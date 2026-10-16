@@ -12,9 +12,9 @@ outputs:
 runs:
   using: composite
   steps:
-    # The runner is TypeScript and the binary is Lean, and the checks these
-    # jobs run need both. The parser bridge's own vitest suites, in lemma,
-    # run in `lakatos.yml`.
+    # lemma, which the test262 runner and `tarski <file.ts>` reach as a
+    # subprocess, is TypeScript; the binaries are Lean. The parser bridge's
+    # own vitest suites, in lemma, run in `lakatos.yml`.
     - name: Install Node
       uses: actions/setup-node@v7
       with:
