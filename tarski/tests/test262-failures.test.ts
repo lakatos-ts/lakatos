@@ -9,11 +9,14 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { Expectations } from "../src/test262/report.js";
+
+interface Expectations {
+  directories: Record<string, { fail: number }>;
+}
 
 const read = (name: string): string =>
   readFileSync(
-    fileURLToPath(new URL(`../../test262/${name}`, import.meta.url)),
+    fileURLToPath(new URL(`../test262/${name}`, import.meta.url)),
     "utf8",
   );
 

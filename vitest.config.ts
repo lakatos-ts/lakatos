@@ -49,6 +49,7 @@ export default defineConfig({
       "pabst/tests/**/*.test.ts",
       "thales/tests/**/*.test.ts",
       "tarski/frontend/tests/**/*.test.ts",
+      "tarski/tests/**/*.test.ts",
     ],
     // Absolute so the path is the same whatever cwd a run starts from.
     globalSetup: [
