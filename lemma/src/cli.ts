@@ -114,6 +114,7 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href
 ) {
-  process.exit(main(process.argv.slice(2)));
+  // Not process.exit: that drops output still queued for a slow pipe.
+  process.exitCode = main(process.argv.slice(2));
 }
 /* v8 ignore stop */
