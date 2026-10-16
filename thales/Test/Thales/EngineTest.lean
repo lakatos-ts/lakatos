@@ -24,6 +24,12 @@ open Thales
   let r ← runWithTimeout "sh" #["-c", "sleep 30; :"] none 200
   unless r.timedOut && interruptedBy r == none do throw (IO.userError "timeout misreported")
   unless (← IO.monoMsNow) - t0 < 5000 do throw (IO.userError "the deadline did not stop the run")
+  -- A grandchild that ignores SIGTERM is killed once the grace runs out,
+  -- so it cannot hold the pipes open past the deadline.
+  let t0 ← IO.monoMsNow
+  let r ← runWithTimeout "sh" #["-c", "sh -c 'trap \"\" TERM; sleep 30'; :"] none 500
+  unless r.timedOut do throw (IO.userError "TERM-proof grandchild: no timeout")
+  unless (← IO.monoMsNow) - t0 < 5000 do throw (IO.userError "a TERM-proof grandchild outlived the deadline")
   -- Both streams and the status come back.
   let r ← runWithTimeout "sh" #["-c", "echo out; echo err >&2; exit 3"] none 10000
   unless r.status == some 3 && r.stdout == "out\n" && r.stderr == "err\n" do throw (IO.userError "streams")

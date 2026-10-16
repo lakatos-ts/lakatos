@@ -29,6 +29,23 @@ private partial def descendants (pid : UInt32) : IO (Array String) := do
   let kids := (out.stdout.splitOn "\n").filterMap (·.trimAscii.toString.toNat?) |>.toArray
   kids.foldlM (init := #[]) fun acc k => return acc.push (toString k) ++ (← descendants k.toUInt32)
 
+/-- Those of `pids` still in the process table. -/
+private def alive (pids : Array String) : IO (Array String) := do
+  if pids.isEmpty then return #[]
+  let out ← try IO.Process.output { cmd := "ps", args := #["-o", "pid=", "-p", ",".intercalate pids.toList] }
+    catch _ => return #[]
+  return (out.stdout.splitOn "\n").filterMap (fun l =>
+    let t := l.trimAscii.toString
+    if t.isEmpty then none else some t) |>.toArray
+
+private def signal (sig : String) (pids : Array String) : IO Unit := do
+  unless pids.isEmpty do
+    let _ ← try IO.Process.output { cmd := "kill", args := #[s!"-{sig}"] ++ pids }
+      catch _ => pure { exitCode := 1, stdout := "", stderr := "" }
+
+/-- How long the descendants get to exit on SIGTERM before SIGKILL. -/
+def killGraceMs : Nat := 1500
+
 /-- Spawn with both streams piped, drained on their own tasks so neither
 pipe fills, and polled against the deadline. -/
 def runWithTimeout (cmd : String) (args : Array String) (cwd : Option FilePath) (budgetMs : Nat) :
@@ -51,11 +68,19 @@ def runWithTimeout (cmd : String) (args : Array String) (cwd : Option FilePath) 
       -- `lake env` spawns lean rather than exec'ing it: an orphaned
       -- grandchild would keep running and hold the pipes open.
       let tree ← descendants child.pid
-      unless tree.isEmpty do
-        let _ ← try IO.Process.output { cmd := "kill", args := #["-TERM"] ++ tree }
-          catch _ => pure { exitCode := 1, stdout := "", stderr := "" }
+      signal "TERM" tree
       child.kill
       let _ ← child.wait
+      -- One that ignores SIGTERM would hold the pipes, and the drain, open.
+      let graceEnd := (← IO.monoMsNow) + killGraceMs
+      let mut left ← alive tree
+      repeat
+        if left.isEmpty || (← IO.monoMsNow) ≥ graceEnd then break
+        IO.sleep 50
+        left ← alive left
+      unless left.isEmpty do
+        signal "KILL" (← left.foldlM (init := left) fun acc p =>
+          return acc ++ (← descendants p.toNat!.toUInt32))
       timedOut := true
       break
     IO.sleep 20
