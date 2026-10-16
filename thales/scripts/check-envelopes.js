@@ -309,7 +309,7 @@ const EXPECTED_FILE = path.join(
 );
 const updating = process.env.UPDATE_ENVELOPES === "1";
 
-const { check, done } = checker("envelopes");
+const { check, failed, done } = checker("envelopes");
 check(
   !updating || process.env.LAKATOS_PROVE_E2E === "1",
   "UPDATE_ENVELOPES=1 needs LAKATOS_PROVE_E2E=1: a quick-only regeneration would drop the corpus slices from the store",
@@ -378,8 +378,6 @@ function projectAnnotation(a) {
   );
 }
 
-// A regeneration with a failed fixture would drop it from the store.
-let anyFailed = false;
 for (const fixture of fixtures) {
   // Timeout fixtures are graded the way the corpus harness grades them:
   // under a reduced heartbeat budget, where Timeout is deterministic and
@@ -413,10 +411,7 @@ for (const fixture of fixtures) {
   });
   const ran = r.status === 0 || r.status === 1;
   check(ran, `${fixture}: thales exited ${r.status ?? r.error}\n${r.stderr}`);
-  if (!ran) {
-    anyFailed = true;
-    continue;
-  }
+  if (!ran) continue;
   const entries = JSON.parse(r.stdout).annotations.map(projectAnnotation);
 
   if (updating) {
@@ -434,7 +429,9 @@ for (const fixture of fixtures) {
   );
 }
 
-if (updating && !anyFailed) {
+// Any recorded failure, the precondition's included, would leave the
+// store partial: a failed fixture or a quick-only run drops entries.
+if (updating && !failed()) {
   fs.writeFileSync(
     EXPECTED_FILE,
     JSON.stringify(expectedStore, null, 2) + "\n",

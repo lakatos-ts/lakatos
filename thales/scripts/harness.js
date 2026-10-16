@@ -53,6 +53,9 @@ export function checker(label) {
     check(cond, message) {
       if (!cond) failures.push(message);
     },
+    failed() {
+      return failures.length > 0;
+    },
     done(summary) {
       if (failures.length > 0) {
         console.error(`${label} check FAILED:`);
