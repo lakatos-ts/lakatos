@@ -25,7 +25,7 @@ def numParamJson (name : String) : Json :=
      ("obligations", Json.arr #[])]))
   matches .error "property not found: name"
 
--- thales-emit reads a lemma document: the version first, then the
+-- thales reads a lemma document: the version first, then the
 -- emission it carries.
 def emptyEmissionJson : Json :=
   Json.mkObj [("file", "t.ts"), ("declarations", Json.arr #[]),
@@ -37,7 +37,7 @@ def emptyEmissionJson : Json :=
 #guard
   (decodeDocument (Json.mkObj
     [("schemaVersion", (2 : Nat)), ("emission", emptyEmissionJson)]))
-  matches .error "lemma document version 2, but thales-emit reads version 1"
+  matches .error "lemma document version 2, but thales reads version 1"
 #guard (decodeDocument (Json.mkObj [("emission", emptyEmissionJson)])) matches .error _
 #guard
   (decodeDocument (Json.mkObj

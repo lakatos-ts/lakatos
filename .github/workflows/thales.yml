@@ -106,6 +106,8 @@ jobs:
     if: needs.changes.outputs.lean == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      LAKATOS_LEMMA: ${{ github.workspace }}/lemma
     strategy:
       # Every shard reports: one failing shard must not hide another's.
       fail-fast: false
@@ -130,6 +132,8 @@ jobs:
     if: needs.changes.outputs.lean == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      LAKATOS_LEMMA: ${{ github.workspace }}/lemma
     strategy:
       # Every shard reports: one failing shard must not hide another's.
       fail-fast: false
@@ -156,6 +160,8 @@ jobs:
     if: needs.changes.outputs.lean == 'true' || needs.changes.outputs.parity == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      LAKATOS_LEMMA: ${{ github.workspace }}/lemma
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -166,9 +172,9 @@ jobs:
 
       - name: Prove end-to-end
         # vitest positionals are substring filters, so each names its whole
-        # path; serialized because parallel forks would race lake builds in
-        # the same checkout.
-        run: npx vitest run --no-file-parallelism thales/tests/e2e.test.ts tests/prove-refute-parity.test.ts
+        # path, and thales/tests/cli- every bin suite; serialized because
+        # parallel forks would race lake builds in the same checkout.
+        run: npx vitest run --no-file-parallelism thales/tests/e2e.test.ts thales/tests/cli- tests/prove-refute-parity.test.ts
         working-directory: .
         env:
           LAKATOS_PROVE_E2E: "1"
@@ -179,6 +185,8 @@ jobs:
     if: needs.changes.outputs.lean == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      LAKATOS_LEMMA: ${{ github.workspace }}/lemma
     strategy:
       fail-fast: false
       matrix:

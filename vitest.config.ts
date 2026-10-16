@@ -70,7 +70,8 @@ export default defineConfig({
         "core/src/**/*.ts",
         "lemma/src/**/*.ts",
         "pabst/src/**/*.ts",
-        "thales/frontend/src/**/*.ts",
+        // thales/frontend/src left 2026-10-16: the Lean binary is the
+        // product under test now, and the TS bin goes in the next step.
         "tarski/frontend/src/**/*.ts",
       ],
       exclude: ["**/*.test.ts", "**/*.d.ts"],
@@ -166,14 +167,17 @@ export default defineConfig({
         // thales's own package, where the bin's two rethrows each got a test.
         // Ratcheted 2026-09-28: the root CLI went; its exe command moved into
         // thales as thales-exe, whose two rethrows each got a test too.
+        // Reseeded 2026-10-16: thales/frontend/src left the denominator with
+        // the Lean binary replacing it as the product under test, while
+        // lemma's and pabst's few unreachable arms stayed.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
         // worktree under .claude/ silently reports every loaded file instead
         // — different denominator, different numbers.
         autoUpdate: true,
-        statements: 99.77,
-        branches: 99.13,
+        statements: 99.76,
+        branches: 99.12,
         functions: 100,
         lines: 99.83,
       },

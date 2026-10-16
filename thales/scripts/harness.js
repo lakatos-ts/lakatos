@@ -1,6 +1,7 @@
 // Shared scaffolding for the engine's check scripts: where the engine and
-// its built frontend live, failure collection, and the exit protocol.
+// its binary live, failure collection, and the exit protocol.
 
+import { spawnSync } from "node:child_process";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,19 +11,38 @@ export const engineRoot = path.resolve(
 );
 export const repoRoot = path.resolve(engineRoot, "..");
 
-/** Import a compiled frontend module: the checks exercise the code the bin
- * ships, not a copy of it, so they need the root build. */
-export async function frontend(module) {
-  const built = path.join(engineRoot, "dist", `${module}.js`);
-  try {
-    return await import(built);
-  } catch (e) {
-    if (e?.code !== "ERR_MODULE_NOT_FOUND") throw e;
+/** The Lean binary, built: the checks run what the tool runs. */
+export function thalesBinary() {
+  const r = spawnSync("lake", ["build", "thales"], {
+    cwd: engineRoot,
+    encoding: "utf8",
+    timeout: 600_000,
+  });
+  if (r.status !== 0) {
     console.error(
-      `${path.relative(repoRoot, built)} is missing: build the front end first (npm run build from the repo root)`,
+      `lake build thales failed (${r.status}):\n${r.stderr ?? r.error}`,
     );
     process.exit(1);
   }
+  return path.join(engineRoot, ".lake", "build", "bin", "thales");
+}
+
+/** This checkout's lemma, built by the root build; the binary reaches it
+ * through LAKATOS_LEMMA. */
+export const lemmaDir = path.join(repoRoot, "lemma");
+
+/** JSON text with every object's keys sorted, at every depth: equality
+ * of envelopes is equality of values, never of key order. */
+export function canonical(value) {
+  return JSON.stringify(value, (_, v) =>
+    v !== null && typeof v === "object" && !Array.isArray(v)
+      ? Object.fromEntries(
+          Object.keys(v)
+            .sort()
+            .map((k) => [k, v[k]]),
+        )
+      : v,
+  );
 }
 
 /** Collects failures rather than throwing, so one run surfaces every
@@ -32,6 +52,9 @@ export function checker(label) {
   return {
     check(cond, message) {
       if (!cond) failures.push(message);
+    },
+    failed() {
+      return failures.length > 0;
     },
     done(summary) {
       if (failures.length > 0) {

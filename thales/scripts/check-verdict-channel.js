@@ -3,14 +3,13 @@
 // command elaborator and the CLI: one parseable line per command on stdout,
 // in command order, failures contained per command, clean exit. The channel
 // itself — the sentinel, the parse, the verdict validation, the lake
-// invocation and its timeout — comes from the built frontend, so this
+// invocation and its timeout — is the binary's `run-artifact`, so this
 // checks production's reader rather than a second copy of it.
 
+import { spawnSync } from "node:child_process";
 import * as path from "node:path";
-import { checker, engineRoot, frontend } from "./harness.js";
+import { canonical, checker, engineRoot, thalesBinary } from "./harness.js";
 import { shardByWeight } from "./shard.js";
-
-const { parseVerdicts, runArtifact } = await frontend("run");
 
 // Expected [function, szs, reasonPattern?, counterexample?] sequence per
 // fixture, in command order; reasonPattern, when present, must match the
@@ -305,6 +304,34 @@ const FIXTURES = [
 ];
 
 const { check, done } = checker("verdict-channel");
+const bin = thalesBinary();
+
+/** One artifact through the binary: its exit and the parsed channel, or
+ * undefined when the binary itself failed. LAKATOS_PROVE_HEARTBEATS and
+ * its siblings pass through as the binary's own environment. */
+function runFixture(file) {
+  const r = spawnSync(
+    bin,
+    ["run-artifact", path.join(engineRoot, "tests", "fixtures", file)],
+    {
+      cwd: engineRoot,
+      encoding: "utf8",
+      timeout: 600_000 + 120_000 * 20,
+      maxBuffer: 64 * 1024 * 1024,
+    },
+  );
+  check(
+    r.status === 0,
+    `${file}: thales run-artifact failed (${r.status ?? r.error}):\n${r.stderr}`,
+  );
+  if (r.status !== 0) return undefined;
+  const out = JSON.parse(r.stdout);
+  check(
+    out.status === 0,
+    `${file}: expected exit 0, got ${out.status}${out.timedOut ? " (timed out)" : ""}\nstderr:\n${out.stderr}`,
+  );
+  return out;
+}
 
 // Each fixture is its own artifact, so a shard pays no cost the whole run
 // was not already paying per fixture.
@@ -320,20 +347,10 @@ for (const {
   models: expectedModels = [],
   diagnostics: allowedDiagnostics,
 } of fixtures) {
-  const run = runArtifact(
-    engineRoot,
-    path.join(engineRoot, "tests", "fixtures", file),
-  );
-
-  check(run.error === undefined, `${file}: failed to run lake: ${run.error}`);
-  check(
-    run.status === 0,
-    `${file}: expected exit 0, got ${run.status}\nstderr:\n${run.stderr}`,
-  );
-
-  const { verdicts, models, diagnostics, messages } = parseVerdicts(
-    run.stdout ?? "",
-  );
+  const run = runFixture(file);
+  if (run === undefined) continue;
+  const { verdicts, models, diagnostics, messages } = run;
+  const channel = JSON.stringify({ verdicts, models, diagnostics }, null, 2);
   if (allowedDiagnostics === undefined) {
     check(
       diagnostics.length === 0,
@@ -351,7 +368,7 @@ for (const {
   // command, in command order, and a reason exactly when unvalidated.
   check(
     models.length === expectedModels.length,
-    `${file}: expected ${expectedModels.length} model lines, got ${models.length}:\n${run.stdout}`,
+    `${file}: expected ${expectedModels.length} model lines, got ${models.length}:\n${channel}`,
   );
   if (models.length === expectedModels.length) {
     const gotModels = models.map((m) => [m.function, m.status]);
@@ -376,7 +393,7 @@ for (const {
   }
   check(
     verdicts.length === expected.length,
-    `${file}: expected ${expected.length} verdict lines, got ${verdicts.length}:\n${run.stdout}`,
+    `${file}: expected ${expected.length} verdict lines, got ${verdicts.length}:\n${channel}`,
   );
 
   if (verdicts.length === expected.length) {
@@ -394,8 +411,7 @@ for (const {
         );
       }
       check(
-        JSON.stringify(verdicts[i].counterexample) ===
-          JSON.stringify(counterexample),
+        canonical(verdicts[i].counterexample) === canonical(counterexample),
         `${file}: verdict ${i} counterexample ${JSON.stringify(verdicts[i].counterexample)}, expected ${JSON.stringify(counterexample)}`,
       );
     }

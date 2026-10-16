@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // The envelope-expectation harness, successor to the two-arm parity
-// harness: run the emission pipeline over the fixture manifest, project
-// the verdicts to per-annotation envelope entries, and require them equal
-// to the stored expectations. Regenerate with UPDATE_ENVELOPES=1 (which
+// harness: run the thales binary on each fixture of the manifest, project
+// its envelope to per-annotation entries, and require them equal to the
+// stored expectations. Regenerate with UPDATE_ENVELOPES=1 (which
 // requires the full manifest, LAKATOS_PROVE_E2E=1, so the store never
 // goes partial); without LAKATOS_PROVE_E2E=1 only the quick fixtures run,
 // the same gate the prove e2e uses.
@@ -11,14 +11,15 @@ import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { checker, engineRoot, frontend, repoRoot } from "./harness.js";
+import {
+  canonical,
+  checker,
+  engineRoot,
+  lemmaDir,
+  repoRoot,
+  thalesBinary,
+} from "./harness.js";
 import { shardOf } from "./shard.js";
-
-const { parseVerdicts, runArtifact } = await frontend("run");
-const { admittedDocument, qualifiedName } = await import("@lakatos/lemma");
-// The envelope's own rule for the model field, so the store and the CLI
-// cannot drift: same build-first failure mode as the lemma import above.
-const { modelFor } = await import("@lakatos/core/envelope");
 
 const CONFORMANCE = "thales/tests/conformance";
 
@@ -308,7 +309,7 @@ const EXPECTED_FILE = path.join(
 );
 const updating = process.env.UPDATE_ENVELOPES === "1";
 
-const { check, done } = checker("envelopes");
+const { check, failed, done } = checker("envelopes");
 check(
   !updating || process.env.LAKATOS_PROVE_E2E === "1",
   "UPDATE_ENVELOPES=1 needs LAKATOS_PROVE_E2E=1: a quick-only regeneration would drop the corpus slices from the store",
@@ -322,27 +323,30 @@ const expectedStore = updating
   ? {}
   : JSON.parse(fs.readFileSync(EXPECTED_FILE, "utf8"));
 
-process.chdir(repoRoot); // the fixture path is the annotations' identity file
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "thales-envelopes-"));
-
-// One lake build settles the emitter; each fixture then pays only the
-// process spawn, with lake's search path captured once.
-const emitBin = path.join(engineRoot, ".lake", "build", "bin", "thales-emit");
-const emitBuild = spawnSync("lake", ["build", "thales-emit"], {
-  cwd: engineRoot,
-  encoding: "utf8",
-  timeout: 600_000,
+const bin = thalesBinary();
+const tsconfig = JSON.stringify({
+  compilerOptions: { target: "es2022", module: "nodenext", types: [] },
+  include: ["**/*.ts"],
+  exclude: [".lakatos"],
 });
-check(
-  emitBuild.status === 0,
-  `lake build thales-emit failed (${emitBuild.status}):\n${emitBuild.stderr}`,
-);
-const leanPath = spawnSync("lake", ["env", "printenv", "LEAN_PATH"], {
-  cwd: engineRoot,
-  encoding: "utf8",
-  timeout: 600_000,
-}).stdout?.trim();
-check(Boolean(leanPath), "lake env yielded no LEAN_PATH");
+
+/** The fixture in a scratch project: the file, or the whole directory of
+ * a `main.ts` entry, beside a default tsconfig. Returns the entry's path
+ * inside the project. */
+function stage(fixture) {
+  const dir = fs.mkdtempSync(path.join(tmp, "fixture-"));
+  fs.writeFileSync(path.join(dir, "tsconfig.json"), tsconfig);
+  const source = path.join(repoRoot, fixture);
+  if (path.basename(fixture) === "main.ts") {
+    fs.cpSync(path.dirname(source), path.join(dir, "fixture"), {
+      recursive: true,
+    });
+    return { dir, entry: "fixture/main.ts" };
+  }
+  fs.copyFileSync(source, path.join(dir, path.basename(fixture)));
+  return { dir, entry: path.basename(fixture) };
+}
 
 /** One envelope entry, as the CLI ships it. `kind` rides only on the
  * refusals that carry one into the envelope, and `model` only on the
@@ -360,38 +364,21 @@ function entry(fn, property, szs, reason, axioms, counterexample, kind, model) {
   };
 }
 
-function projectVerdict(v, modelsByFn) {
-  const fn = v.identity[1];
+/** The envelope's annotation less its file, which is the staged path. */
+function projectAnnotation(a) {
   return entry(
-    fn,
-    v.identity[2],
-    v.szs,
-    v.reason,
-    v.axioms,
-    v.counterexample,
-    undefined,
-    modelFor(v.szs, modelsByFn.get(fn), fn),
+    a.function,
+    a.property,
+    a.szs,
+    a.reason,
+    a.axioms,
+    a.counterexample,
+    a.kind,
+    a.model,
   );
 }
 
-const identityOf = (a) =>
-  `${qualifiedName(a.functionName, a.className, a.isStatic)} ${a.propertyName}`;
-
-/** Run one artifact and return its verdicts and model lines, failing the
- * check run on any channel violation. */
-function verdictsOf(leanFile, label) {
-  const run = runArtifact(engineRoot, leanFile);
-  check(run.error === undefined, `${label}: failed to run lake: ${run.error}`);
-  check(
-    run.status === 0,
-    `${label}: expected exit 0, got ${run.status}\nstderr:\n${run.stderr}`,
-  );
-  const { verdicts, models, messages } = parseVerdicts(run.stdout ?? "");
-  for (const m of messages) check(false, `${label}: ${m}`);
-  return { verdicts, models };
-}
-
-for (const [i, fixture] of fixtures.entries()) {
+for (const fixture of fixtures) {
   // Timeout fixtures are graded the way the corpus harness grades them:
   // under a reduced heartbeat budget, where Timeout is deterministic and
   // cheap.
@@ -414,69 +401,19 @@ for (const [i, fixture] of fixtures.entries()) {
     process.env.LAKATOS_PROVE_VALIDATE_HEARTBEATS = "1";
   }
 
-  // Write the file's lemma document, render its emission with
-  // thales-emit, run the artifact, and join the Lean verdicts with the
-  // frontend's own classifications in annotation order.
-  const { document, emitted } = admittedDocument(fixture, new Map());
-  const { annotations, classified } = emitted;
-  const jsonFile = path.join(tmp, `document-${i}.json`);
-  const leanFile = path.join(tmp, `artifact-${i}.lean`);
-  fs.writeFileSync(jsonFile, JSON.stringify(document));
-  const emit = spawnSync(emitBin, [jsonFile, leanFile], {
-    cwd: engineRoot,
+  const { dir, entry: file } = stage(fixture);
+  const r = spawnSync(bin, [file], {
+    cwd: dir,
     encoding: "utf8",
-    timeout: 120_000,
-    env: { ...process.env, LEAN_PATH: leanPath },
+    env: { ...process.env, LAKATOS_LEMMA: lemmaDir },
+    timeout: 600_000 + 300_000 + 120_000 * 20,
+    maxBuffer: 64 * 1024 * 1024,
   });
-  check(
-    emit.status === 0,
-    `${fixture}: thales-emit failed (${emit.status}):\n${emit.stderr}`,
-  );
-  if (emit.status !== 0) continue;
-  const { verdicts, models } = verdictsOf(leanFile, fixture);
-  // One artifact, one file: the declaration's name is the whole key, and
-  // a second line for one declaration is the channel violation the CLI's
-  // join reports.
-  const modelsByFn = new Map();
-  for (const m of models) {
-    check(
-      !modelsByFn.has(m.function),
-      `${fixture}: duplicate model line for '${m.function}'`,
-    );
-    modelsByFn.set(m.function, m);
-  }
-  const byIdentity = new Map(
-    verdicts.map((v) => [
-      `${v.identity[1]} ${v.identity[2]}`,
-      projectVerdict(v, modelsByFn),
-    ]),
-  );
-  for (const c of classified) {
-    const fn = qualifiedName(
-      c.annotation.functionName,
-      c.annotation.className,
-      c.annotation.isStatic,
-    );
-    byIdentity.set(
-      `${fn} ${c.annotation.propertyName}`,
-      entry(
-        fn,
-        c.annotation.propertyName,
-        c.szs,
-        c.reason,
-        undefined,
-        undefined,
-        c.kind,
-      ),
-    );
-  }
+  const ran = r.status === 0 || r.status === 1;
+  check(ran, `${fixture}: thales exited ${r.status ?? r.error}\n${r.stderr}`);
+  if (!ran) continue;
+  const entries = JSON.parse(r.stdout).annotations.map(projectAnnotation);
 
-  const entries = annotations.map((a) => byIdentity.get(identityOf(a)));
-
-  check(
-    entries.every((e) => e !== undefined),
-    `${fixture}: annotations left unaccounted for\n${JSON.stringify(entries, null, 2)}`,
-  );
   if (updating) {
     expectedStore[fixture] = entries;
     continue;
@@ -487,12 +424,14 @@ for (const [i, fixture] of fixtures.entries()) {
     `${fixture}: no stored envelope — regenerate with UPDATE_ENVELOPES=1 LAKATOS_PROVE_E2E=1`,
   );
   check(
-    JSON.stringify(entries) === JSON.stringify(want),
+    canonical(entries) === canonical(want),
     `${fixture}: envelope entries diverge from stored\ngot:\n${JSON.stringify(entries, null, 2)}\nstored:\n${JSON.stringify(want, null, 2)}`,
   );
 }
 
-if (updating) {
+// Any recorded failure, the precondition's included, would leave the
+// store partial: a failed fixture or a quick-only run drops entries.
+if (updating && !failed()) {
   fs.writeFileSync(
     EXPECTED_FILE,
     JSON.stringify(expectedStore, null, 2) + "\n",

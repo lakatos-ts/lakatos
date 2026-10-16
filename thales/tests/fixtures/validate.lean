@@ -7,7 +7,7 @@ set_option autoImplicit false
 -- The model channel, end to end: one `thales-model:` line per
 -- `#thales_validate`, whatever happens to the obligation, and the
 -- `#thales_prove` after each one still reports its own verdict. The
--- obligations here are written by hand in the shape `thales-emit`
+-- obligations here are written by hand in the shape `thales`
 -- renders, so this file pins the command's own behaviour rather than the
 -- emitter's choice of what to state.
 

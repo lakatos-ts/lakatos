@@ -1,4 +1,4 @@
-const millisecondsInSecond = 1000;
+export const millisecondsInSecond = 1000;
 const safeMathAbs = Math.abs;
 const millisecondsInMinute = millisecondsInSecond * 60;
 const millisecondsInHour = millisecondsInMinute * 60;

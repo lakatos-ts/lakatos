@@ -1,11 +1,11 @@
-import { beforeAll, afterAll, expect, vi } from "vitest";
+import { beforeAll, afterAll, expect } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
-import { main } from "../../frontend/src/cli.js";
+import { execFileSync, spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { expectValidEnvelope } from "./envelope-schema.js";
 import type { Envelope } from "@lakatos/core/envelope";
-import { BUILD_TIMEOUT_MS, LEAN_TIMEOUT_MS } from "../../frontend/src/run.js";
 
 export interface MainRun {
   code: number;
@@ -13,25 +13,100 @@ export interface MainRun {
   stderr: string[];
 }
 
+/** The bin suites spawn the Lean binary, so they need the toolchain. */
+export const enabled = process.env.LAKATOS_PROVE_E2E === "1";
+export const BUILD_TIMEOUT_MS = 600_000;
+export const LEAN_TIMEOUT_MS = 300_000;
+
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+  "..",
+);
+const engineRoot = path.join(repoRoot, "thales");
+const lemmaRoot = path.join(repoRoot, "lemma");
+let built: string | undefined;
+
+/** Spawned output is buffered whole; a chatty Lean run outgrows Node's 1 MB default. */
+export const MAX_BUFFER = 256 * 1024 * 1024;
+
+const scratchDirs: string[] = [];
+
+/** A fresh temp directory, removed when the file's suites finish. */
+export function scratchDir(prefix: string): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  scratchDirs.push(dir);
+  return dir;
+}
+
+afterAll(() => {
+  for (const dir of scratchDirs.splice(0))
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+/** The binary, built once per process; the e2e gate implies the toolchain. */
+export function thalesBinary(): string {
+  if (built !== undefined) return built;
+  execFileSync("lake", ["build", "thales"], {
+    cwd: engineRoot,
+    stdio: ["ignore", "ignore", "inherit"],
+    timeout: BUILD_TIMEOUT_MS,
+  });
+  const bin = path.join(engineRoot, ".lake", "build", "bin", "thales");
+  if (!fs.existsSync(bin))
+    throw new Error(
+      `build it: lake build thales from thales/ (expected ${bin})`,
+    );
+  built = bin;
+  return bin;
+}
+
 /**
- * Run the thales bin's main() with both console streams captured, so tests can
- * assert on diagnostics regardless of which stream they land on.
+ * Run the binary from the current directory with both streams captured:
+ * stdout as one entry (the envelope), stderr as lines.
  */
-export async function runMain(argv: string[]): Promise<MainRun> {
-  const stdout: string[] = [];
-  const stderr: string[] = [];
-  const logSpy = vi.spyOn(console, "log").mockImplementation((s) => {
-    stdout.push(String(s));
+export async function runMain(
+  argv: string[],
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<MainRun> {
+  const r = spawnSync(thalesBinary(), argv, {
+    encoding: "utf8",
+    env: { LAKATOS_LEMMA: lemmaRoot, ...env },
+    timeout: BUILD_TIMEOUT_MS + 2 * LEAN_TIMEOUT_MS,
+    maxBuffer: MAX_BUFFER,
   });
-  const errSpy = vi.spyOn(console, "error").mockImplementation((s) => {
-    stderr.push(String(s));
-  });
-  try {
-    return { code: await main(argv), stdout, stderr };
-  } finally {
-    logSpy.mockRestore();
-    errSpy.mockRestore();
-  }
+  if (r.error) throw r.error;
+  const stdout = r.stdout.trim() === "" ? [] : [r.stdout.trimEnd()];
+  const stderr = r.stderr === "" ? [] : r.stderr.trimEnd().split("\n");
+  return { code: r.status ?? -1, stdout, stderr };
+}
+
+/**
+ * A `lake` ahead of the real one on PATH: `env lean …` runs `body` as sh
+ * with the artifact path in `$ARTIFACT`; everything else goes to the real
+ * lake, so the build and the renderer's search path stay real.
+ */
+export function fakeLake(body: string): NodeJS.ProcessEnv {
+  const real = execFileSync("sh", ["-c", "command -v lake"], {
+    encoding: "utf8",
+  }).trim();
+  const dir = scratchDir("fake-lake-");
+  const script = `#!/bin/sh
+if [ "$1" = "env" ] && [ "$2" = "lean" ]; then
+  for a in "$@"; do ARTIFACT="$a"; done
+  export ARTIFACT
+${body}
+  exit $?
+fi
+exec '${real.replace(/'/g, "'\\''")}' "$@"
+`;
+  fs.writeFileSync(path.join(dir, "lake"), script, { mode: 0o755 });
+  return {
+    ...process.env,
+    LAKATOS_LEMMA: lemmaRoot,
+    PATH: `${dir}${path.delimiter}${process.env.PATH ?? ""}`,
+  };
 }
 
 /** The tsconfig a scratch project gets when a suite supplies none: enough
@@ -61,20 +136,21 @@ export function announcedRunDir(stderr: string[]): string {
 }
 
 /**
- * Run main() and unwrap the single-envelope contract: the expected exit
+ * Run the binary and unwrap the single-envelope contract: the expected exit
  * code (0 unless the run is meant to find counterexamples), exactly one
  * stdout line, and that line a schema-valid envelope.
  */
 export async function runForEnvelope(
   argv: string[],
   expectedCode = 0,
+  env?: NodeJS.ProcessEnv,
 ): Promise<Envelope> {
-  const run = await runMain(argv);
+  const run = await runMain(argv, env);
   expect(run.code, run.stderr.join("\n")).toBe(expectedCode);
   expect(run.stdout).toHaveLength(1);
-  const env = JSON.parse(run.stdout[0]!) as Envelope;
-  expectValidEnvelope(env);
-  return env;
+  const envelope = JSON.parse(run.stdout[0]!) as Envelope;
+  expectValidEnvelope(envelope);
+  return envelope;
 }
 
 /**
