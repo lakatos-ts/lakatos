@@ -95,9 +95,10 @@ jobs:
 
       - uses: ./.github/actions/tarski-setup
 
-      - name: Build the evaluator's binary
-        run: lake build tarski
+      - name: Build the evaluator and the runner
+        run: lake build tarski tarski-test262
 
+      # The runner's tests parse with this checkout's lemma, built by the setup.
       - name: Lean tests
         run: lake build TarskiTest
 
@@ -115,7 +116,7 @@ jobs:
           fi
 
       # The seam end to end: these documents are the parser bridge's
-      # output, byte for byte (tarski/frontend/tests/lean-fixtures.test.ts
+      # output, byte for byte (tarski/tests/lean-fixtures.test.ts
       # holds the two copies together), and the binary is what reads them.
       - name: Run a script
         run: |
@@ -318,8 +319,8 @@ jobs:
 
       - uses: ./.github/actions/tarski-setup
 
-      - name: Build the evaluator's binary
-        run: lake build tarski
+      - name: Build the evaluator and the runner
+        run: lake build tarski tarski-test262
 
       # The suite itself, at the commit in tarski/test262/pin.json. The
       # clone is a build artifact: cached by the pin's hash, fetched at
@@ -332,7 +333,7 @@ jobs:
 
       - name: Set up test262
         timeout-minutes: 5
-        run: node scripts/setup-test262.js
+        run: .lake/build/bin/tarski-test262 setup
 
       # The PR-gated slice. `tarski/test262/slice.txt` is the list, so
       # growing it is a line in that file rather than an edit here; the
@@ -352,8 +353,10 @@ jobs:
         # "expected but not run". Each shard writes its counts and the
         # aggregator checks their union.
         timeout-minutes: 20
+        env:
+          LAKATOS_LEMMA: ${{ github.workspace }}/lemma
         run: |
-          node dist/test262/cli.js \
+          .lake/build/bin/tarski-test262 \
             --slice-file test262/slice.txt \
             --shard ${{ matrix.shard }}/3 \
             --write "shard-${{ matrix.shard }}.json"
@@ -363,6 +366,16 @@ jobs:
         with:
           name: test262-shard-${{ matrix.shard }}
           path: tarski/shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+
+      # The required job below merges the shards with this same binary
+      # rather than building Lean again.
+      - name: Upload the runner
+        if: matrix.shard == 1
+        uses: actions/upload-artifact@v7
+        with:
+          name: tarski-test262-bin
+          path: tarski/.lake/build/bin/tarski-test262
           if-no-files-found: error
 
   runner-e2e:
@@ -379,8 +392,8 @@ jobs:
 
       - uses: ./.github/actions/tarski-setup
 
-      - name: Build the evaluator's binary
-        run: lake build tarski
+      - name: Build the evaluator and the runner
+        run: lake build tarski tarski-test262
 
       # The suites that need the real binary: what ties the fake binary the
       # unit tests run to the real one, `tarski <file.ts>` through lemma's
@@ -393,9 +406,10 @@ jobs:
           LAKATOS_TARSKI_E2E: "1"
         run: |
           npx vitest run --no-file-parallelism \
-            tarski/frontend/tests/test262-e2e.test.ts \
-            tarski/frontend/tests/exe-e2e.test.ts \
-            tarski/frontend/tests/exe-fixtures.test.ts
+            tarski/tests/test262-e2e.test.ts \
+            tarski/tests/test262-cli.test.ts \
+            tarski/tests/exe-e2e.test.ts \
+            tarski/tests/exe-fixtures.test.ts
 
   warm-cache:
     # A push to main gates nothing: every commit arrives through the merge
@@ -415,8 +429,8 @@ jobs:
       - uses: ./.github/actions/tarski-setup
         id: setup
 
-      - name: Build the evaluator's binary
-        run: lake build tarski
+      - name: Build the evaluator and the runner
+        run: lake build tarski tarski-test262
 
       - name: Save Lake build artifacts
         # A cache is immutable: when the exact key was restored, the build
@@ -437,7 +451,7 @@ jobs:
 
       - name: Set up test262
         timeout-minutes: 5
-        run: node scripts/setup-test262.js
+        run: .lake/build/bin/tarski-test262 setup
 
   tarski:
     # The required-check context. Its name must stay exactly
@@ -455,24 +469,6 @@ jobs:
       # committed table is per directory, and the slice file names disjoint
       # subtrees, so every directory belongs to exactly one shard and the
       # union is the whole table. A directory counted twice is refused.
-      - name: Set up Node
-        if: needs.test262-slice.result == 'success'
-        uses: actions/setup-node@v7
-        with:
-          node-version: 26
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install npm dependencies
-        if: needs.test262-slice.result == 'success'
-        working-directory: .
-        run: npm ci
-
-      - name: Build the TypeScript
-        if: needs.test262-slice.result == 'success'
-        working-directory: .
-        run: npm run build
-
       - name: Download every shard's counts
         if: needs.test262-slice.result == 'success'
         uses: actions/download-artifact@v8
@@ -481,10 +477,18 @@ jobs:
           path: tarski/shards
           merge-multiple: true
 
+      - name: Download the runner
+        if: needs.test262-slice.result == 'success'
+        uses: actions/download-artifact@v8
+        with:
+          name: tarski-test262-bin
+          path: tarski/.lake/build/bin
+
       - name: Check the union against the expectations
         if: needs.test262-slice.result == 'success'
         run: |
-          node dist/test262/cli.js \
+          chmod +x .lake/build/bin/tarski-test262
+          .lake/build/bin/tarski-test262 \
             --merge shards/shard-1.json \
             --merge shards/shard-2.json \
             --merge shards/shard-3.json \
@@ -522,8 +526,8 @@ jobs:
 
       - uses: ./.github/actions/tarski-setup
 
-      - name: Build the evaluator's binary
-        run: lake build tarski
+      - name: Build the evaluator and the runner
+        run: lake build tarski tarski-test262
 
       - name: Cache test262
         uses: actions/cache@v6
@@ -533,18 +537,13 @@ jobs:
 
       - name: Set up test262
         timeout-minutes: 5
-        run: node scripts/setup-test262.js
+        run: .lake/build/bin/tarski-test262 setup
 
       - name: Full run
         timeout-minutes: 300
+        env:
+          LAKATOS_LEMMA: ${{ github.workspace }}/lemma
         run: sh scripts/test262-full.sh
-
-      # The renderers write what prettier would, so a table prettier would
-      # rewrite is a renderer bug: fail here, before a pull request spends
-      # the full CI matrix finding it in the Format job.
-      - name: Check the table is formatted
-        working-directory: .
-        run: npx prettier --check tarski/test262/results.md tarski/test262/results.json
 
       # The table is committed only when it changed, so an unchanged week
       # leaves no commit behind. The push to `main` is tried first and
