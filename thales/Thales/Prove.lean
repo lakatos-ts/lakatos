@@ -7,8 +7,8 @@ import Thales.Engine
 import Thales.Join
 
 /-! The pipeline: admission, run directory, plan, run, envelope, exit
-code. The order of every note and every envelope entry is the TypeScript
-runner's (`core/src/runner.ts`, `prove.ts`), which is the contract. -/
+code. The order of every note and every envelope entry is the contract,
+the same order core's runner (`core/src/runner.ts`) gives pabst. -/
 
 namespace Thales
 

@@ -44,8 +44,11 @@ and use it on its own.
   `thales/`, and runs from your project's directory:
 
   ```bash
-  path/to/lakatos/thales/.lake/build/bin/thales src/foo.ts
+  LAKATOS_LEMMA=path/to/lakatos/lemma path/to/lakatos/thales/.lake/build/bin/thales src/foo.ts
   ```
+
+  (`LAKATOS_LEMMA` points thales at the checkout's lemma until lemma
+  0.2.0 is published.)
 
 - [`@lakatos/tarski`](tarski/) — the JavaScript semantics: the Lean
   library the proofs are stated against, an evaluator over the same
@@ -172,8 +175,8 @@ One repository, an npm workspace of [`core/`](core/), [`lemma/`](lemma/),
 [`thales/`](thales/). The root is private: it builds, typechecks, tests,
 and formats every TypeScript package, runs thales's suites and check
 scripts, holds CI, and keeps the repository-wide tests in `tests/`
-(layering, the Lemma surface, the trust section, and prove-and-refute
-parity).
+(layering, the Lemma surface, the trust section, prove-and-refute parity,
+and the emission corpus pin, `tests/emission-corpus.test.ts`).
 
 ## License
 
