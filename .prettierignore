@@ -26,6 +26,7 @@ lemma/tests/fixtures/
 # the evaluator's fixtures: a fake test262 tree and binary for the runner,
 # and the Lean tests' copies of the bridge's goldens
 tarski/frontend/tests/fixtures/
+tarski/Test/fixtures/
 tarski/Test/Tarski/fixtures/
 
 # the pinned test262 clone: upstream's bytes, and gitignored one directory

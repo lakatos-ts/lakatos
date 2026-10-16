@@ -6,7 +6,9 @@ import { HarnessError, listTests, planTest } from "../src/test262/plan.js";
 
 // The fake tree: one file per decision the planner makes, checked in so
 // that the unit tests and the end-to-end run read the same bytes.
-const ROOT = fileURLToPath(new URL("fixtures/test262", import.meta.url));
+const ROOT = fileURLToPath(
+  new URL("../../Test/fixtures/test262", import.meta.url),
+);
 
 const read = (relative: string): string =>
   readFileSync(path.join(ROOT, relative), "utf8");

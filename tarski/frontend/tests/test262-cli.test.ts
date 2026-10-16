@@ -23,7 +23,9 @@ import { main, parseArgs } from "../src/test262/cli.js";
 import type { Expectations, Summary } from "../src/test262/report.js";
 
 const root = fileURLToPath(new URL("../../..", import.meta.url));
-const TREE = fileURLToPath(new URL("fixtures/test262", import.meta.url));
+const TREE = fileURLToPath(
+  new URL("../../Test/fixtures/test262", import.meta.url),
+);
 const FAKE = fileURLToPath(
   new URL("fixtures/fake-tarski.mjs", import.meta.url),
 );

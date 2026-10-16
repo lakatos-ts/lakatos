@@ -6,7 +6,9 @@ import path from "node:path";
 import { classify, runOne, type SpawnOutcome } from "../src/test262/run.js";
 import { planTest } from "../src/test262/plan.js";
 
-const ROOT = fileURLToPath(new URL("fixtures/test262", import.meta.url));
+const ROOT = fileURLToPath(
+  new URL("../../Test/fixtures/test262", import.meta.url),
+);
 const FAKE = fileURLToPath(
   new URL("fixtures/fake-tarski.mjs", import.meta.url),
 );
