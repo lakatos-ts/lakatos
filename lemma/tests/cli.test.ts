@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -399,6 +399,47 @@ describe("lemma/dist/cli.js", () => {
       golden("numeric-loop.estree.json"),
     );
   });
+});
+
+describe("lemma/dist/cli.js: a slow reader", () => {
+  const cli = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "dist",
+    "cli.js",
+  );
+  const count = 160;
+  const files = Object.fromEntries(
+    Array.from({ length: count }, (_, i) => [
+      `src/f${i}.ts`,
+      "/** @ensures{id} forall (x: int ∈ [0, 5)) { f(x) === x } */\n" +
+        "export function f(x: number): number { return x; }\n",
+    ]),
+  );
+  const dir = useTempProject("lemma-cli-drain-", files);
+
+  // Past the pipe buffer, the bin must wait for the reader before exiting.
+  it("gets every document through a pipe the reader leaves full", async () => {
+    const child = spawn(process.execPath, [cli, "check", "--jsonl"], {
+      cwd: dir,
+      stdio: ["ignore", "pipe", "inherit"],
+    });
+    const closed = new Promise<number | null>((resolve) =>
+      child.on("close", resolve),
+    );
+    // The listener goes on first: a child that exits with its stdout
+    // unread otherwise has that output discarded by this end.
+    let stdout = "";
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", (chunk: string) => (stdout += chunk));
+    child.stdout.pause();
+    await new Promise((r) => setTimeout(r, 1000));
+    child.stdout.resume();
+    const status = await closed;
+    expect(stdout.length).toBeGreaterThan(64 * 1024);
+    expect(status).toBe(0);
+    expect(lines(stdout).map((d) => d.file)).toEqual(Object.keys(files).sort());
+  }, 20_000);
 });
 
 type Refusal = {
