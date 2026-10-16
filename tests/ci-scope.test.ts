@@ -79,8 +79,11 @@ describe("ci-scope select", () => {
     expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
   });
 
-  it("a thales front-end change runs thales and nothing in tarski", () => {
-    const paths = ["thales/frontend/src/prove.ts", "thales/tests/run.test.ts"];
+  it("a thales script or suite change runs thales and nothing in tarski", () => {
+    const paths = [
+      "thales/scripts/check-envelopes.js",
+      "thales/tests/cli-bin.test.ts",
+    ];
     expect(select("thales", paths)).toEqual({ lean: "true", parity: "false" });
     expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
   });

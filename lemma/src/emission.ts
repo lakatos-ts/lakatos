@@ -524,7 +524,7 @@ export interface EmitObligation {
     | { kind: "bare" };
 }
 
-/** What thales-emit consumes: one module's mappable declarations and the
+/** What thales's renderer consumes: one module's mappable declarations and the
  * obligations over them, in source order. */
 export interface Emission {
   file: string;

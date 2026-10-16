@@ -23,8 +23,9 @@ the conjecture to be repaired. That loop is what these tools run.
 
 ## The tools
 
-Lakatos is five sibling npm packages under the `@lakatos` scope. Each one's
-README says how to install and use it on its own.
+Lakatos is five sibling tools: four npm packages under the `@lakatos`
+scope and thales, a Lean executable. Each one's README says how to install
+and use it on its own.
 
 - [`@lakatos/pabst`](pabst/) — refutation. The `pabst` bin compiles each
   `@ensures` property to [fast-check](https://fast-check.dev/) runs and
@@ -35,14 +36,15 @@ README says how to install and use it on its own.
   npx pabst src/foo.ts
   ```
 
-- [`@lakatos/thales`](thales/) — proof. The `thales` bin renders
-  annotated TypeScript as plain Lean 4 and attempts a proof per property.
-  It needs a lakatos checkout with the Lean toolchain
+- [`thales`](thales/) — proof. A Lean executable that renders annotated
+  TypeScript as plain Lean 4 and attempts a proof per property. It needs a
+  lakatos checkout with the Lean toolchain
   ([elan](https://github.com/leanprover/elan)), built once with
-  `npm install && npm run build`, and runs from your project's directory:
+  `npm install && npm run build` at the root and `lake build thales` in
+  `thales/`, and runs from your project's directory:
 
   ```bash
-  node path/to/lakatos/thales/dist/cli.js src/foo.ts
+  path/to/lakatos/thales/.lake/build/bin/thales src/foo.ts
   ```
 
 - [`@lakatos/tarski`](tarski/) — the JavaScript semantics: the Lean
@@ -56,7 +58,8 @@ README says how to install and use it on its own.
   discovery, extraction, parsing, and typecheck gate, the parser bridge
   to the evaluator's ESTree, thales's emitter, and the `lemma` bin,
   which prints one checked-program document per file (for now carrying
-  the emitter's per-declaration JSON as its `emission`).
+  the emitter's per-declaration JSON as its `emission`, and each
+  annotation's outcome).
 - [`@lakatos/core`](core/) — the shared runtime: the result envelope,
   the SZS vocabulary, interrupt handling, and run directories. The
   envelope's JSON Schema, the output contract both engines honor, is
@@ -123,11 +126,14 @@ every mode.
 SIGTERM, a CI cancel. The run stops, every annotation it had not
 finished evaluating reports `User` with the signal in its `reason`,
 annotations already resolved keep the status they earned, and the run
-exits 2. This holds for a signal that arrives while an engine is running
-— the vitest of a refute, the lake or Lean of a prove — which is where a
-run spends nearly all of its time. Outside that window, and for SIGKILL
-anywhere, the tool dies as any process does and prints nothing: not a
-contract a tool can keep, so none claims to.
+exits 2. For pabst this holds for a signal that arrives while its vitest
+is running, which is where a run spends nearly all of its time. thales
+sees an interruption only through the lake or Lean child it is running:
+one that dies of SIGINT, SIGTERM, or SIGHUP that thales did not cause
+stops the run the same way, but a signal that reaches thales itself, a
+terminal Ctrl-C among them, ends it with no envelope. Outside those
+windows, and for SIGKILL anywhere, the tool dies as any process does and
+prints nothing: not a contract a tool can keep, so none claims to.
 
 `InputError` marks an annotation whose input is malformed at extraction
 — a duplicate property name (all claimants of the ambiguous identity
@@ -161,12 +167,13 @@ stated in the spec's
 
 ## Layout
 
-One repository, an npm workspace. The five packages above live in
-[`core/`](core/), [`lemma/`](lemma/), [`pabst/`](pabst/),
-[`tarski/`](tarski/), and [`thales/`](thales/). The root is private: it
-builds, typechecks, tests, and formats every package, holds CI, and keeps
-the repository-wide tests in `tests/` (layering, the Lemma surface, the
-trust section, and prove-and-refute parity).
+One repository, an npm workspace of [`core/`](core/), [`lemma/`](lemma/),
+[`pabst/`](pabst/), and [`tarski/`](tarski/), beside the Lean
+[`thales/`](thales/). The root is private: it builds, typechecks, tests,
+and formats every TypeScript package, runs thales's suites and check
+scripts, holds CI, and keeps the repository-wide tests in `tests/`
+(layering, the Lemma surface, the trust section, and prove-and-refute
+parity).
 
 ## License
 

@@ -156,3 +156,13 @@ left as they are; there are no downstream consumers to protect.
 
 Beads gets one Dolt database per repo, since beads are steps toward GitHub
 issues and the issues now live per repo.
+
+## Addendum, 2026-10-15
+
+Step 5 landed with interruption by child death only: a `lake` or Lean
+child that exits 130, 143, or 129 without thales having killed it reports
+`User` for SIGINT, SIGTERM, or SIGHUP, and the Lean `thales` installs no
+signal handler of its own, so a signal that reaches thales itself ends it
+with no envelope. The parent-side guard `core/src/interrupt.ts` kept is a
+follow-up in the thales repo: port the `Std.Internal.UV.Signal` guard from
+the superseded PR #636.

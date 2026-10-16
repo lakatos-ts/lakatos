@@ -40,9 +40,9 @@ runs:
       run: npm ci
       shell: bash
 
-    - name: Build the front end
-      # The root script, not a bare tsc: core is a referenced project and
-      # must be emitted before the front end resolves it.
+    - name: Build the TypeScript packages
+      # The thales binary reaches lemma's bin through LAKATOS_LEMMA, which
+      # runs from lemma's built output.
       run: npm run build
       shell: bash
 
