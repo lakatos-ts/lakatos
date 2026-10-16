@@ -253,9 +253,13 @@ def runSlices (cfg : RunConfig) : IO (Array Result) := do
       if ← spent then return .settled (budget r)
       let negative := match r.plan with | .run n => n | _ => none
       return .spawn do
-        let s ← runWithTimeout (toString cfg.binary) #["run", toString ast] cfg.timeoutMs
+        -- A child the runner cannot read (stderr that is not UTF-8) is one
+        -- test's harness error, not the run's.
+        let outcome ←
+          try pure (classify (← runWithTimeout (toString cfg.binary) #["run", toString ast] cfg.timeoutMs) negative)
+          catch e => pure (.harnessError (toString e))
         try IO.FS.removeFile ast catch _ => pure ()
-        return { r with outcome := some (classify s negative) }
+        return { r with outcome := some outcome }
   -- Progress in planned order: a group is reported once every test up to
   -- its last has finished, with the count finished so far.
   let groups := tests.map (groupKey ∘ directoryOf)

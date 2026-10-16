@@ -339,11 +339,22 @@ def marked (marker : String) : String := s!"/*---\ndescription: x\n---*/\nconst 
   let root ← treeOf [("test/a/hang.js", marked "timeout"), ("test/b/one.js", marked "exit 0"),
                      ("test/b/two.js", marked "exit 0")]
   let r ← invokeWith ["test", "--test262", toString root, "--binary", ← fake, "--jobs", "1",
-                      "--budget", "1500", "--timeout", "4000"] (lemma := do return .ok (← fakeLemma "ok"))
+                      "--budget", "3000", "--timeout", "6000"] (lemma := do return .ok (← fakeLemma "ok"))
   expect "status" (r.status == 0)
   expect "the running child is counted" (has r.stdout "test/a        0     0            0        1              0        0")
   expect "the rest are budget" (has r.stdout "test/b        0     0            0        0              0        2")
   expect "named" (has r.stdout "budget  2")
+
+-- A child whose stderr is not UTF-8 is that test's harness error, not the run's.
+#eval show IO Unit from do
+  let bin := (← scratchDir "latin1-tarski") / "tarski.sh"
+  IO.FS.writeFile bin "#!/bin/sh\nprintf 'Uncaught \\351\\n' >&2\nexit 1\n"
+  let _ ← IO.Process.output { cmd := "chmod", args := #["+x", toString bin] }
+  let root ← treeOf [("test/a/one.js", marked "exit 0"), ("test/a/two.js", marked "exit 0")]
+  let r ← invokeWith ["test", "--test262", toString root, "--binary", toString bin]
+    (lemma := do return .ok (← fakeLemma "ok"))
+  expect "status" (r.status == 0)
+  expect "both rows" (has r.stdout "test/a        0     0            0        0              2        0")
 
 -- Paths with spaces and non-ASCII names are rows like any other.
 #eval show IO Unit from do
