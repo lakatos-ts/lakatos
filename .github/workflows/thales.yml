@@ -123,6 +123,7 @@ jobs:
 
       - name: Verdict channel
         run: npm run check:verdict-channel
+        working-directory: .
         env:
           LAKATOS_VERDICT_SHARD: "${{ matrix.shard }}/3"
 
@@ -149,6 +150,7 @@ jobs:
 
       - name: Envelope expectations
         run: npm run check:envelopes
+        working-directory: .
         env:
           LAKATOS_PROVE_E2E: "1"
           LAKATOS_ENVELOPE_SHARD: "${{ matrix.shard }}/3"

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { shardByWeight } from "../../scripts/shard.js";
+import { shardByWeight } from "../scripts/shard.js";
 
 const weight = (item: { w?: number }) => item.w ?? 1;
 

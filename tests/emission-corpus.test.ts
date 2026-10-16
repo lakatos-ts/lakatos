@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { admittedDocument, type Emission } from "@lakatos/lemma";
-import { schemaValidator } from "../../tests/helpers/schema-validator.js";
+import { schemaValidator } from "./helpers/schema-validator.js";
 
 // lemma's emitter over thales's own corpus: the fixtures the envelope
 // check proves, the conformance corpus, and the emission goldens the Lean
@@ -10,17 +10,9 @@ import { schemaValidator } from "../../tests/helpers/schema-validator.js";
 // lemma's; these pin what thales consumes, through lemma's barrel.
 
 const expectValidEmission = schemaValidator(
-  new URL(
-    "../../../lemma/schemas/thales-emission.schema.json",
-    import.meta.url,
-  ),
+  new URL("../lemma/schemas/thales-emission.schema.json", import.meta.url),
   "emission",
-  [
-    new URL(
-      "../../../lemma/schemas/tarski-estree.schema.json",
-      import.meta.url,
-    ),
-  ],
+  [new URL("../lemma/schemas/tarski-estree.schema.json", import.meta.url)],
 );
 
 /** The emission lemma documents `file` with, as thales writes it. */
@@ -86,7 +78,7 @@ describe("the emission over thales's fixtures", () => {
       "boolean-classes.emission.json",
     ],
   ])(
-    "the pinned emission for %s is exactly what the frontend emits",
+    "the pinned emission for %s is exactly what lemma emits",
     (fixture, pin) => {
       const pinned = JSON.parse(
         fs.readFileSync(`thales/tests/fixtures/${pin}`, "utf8"),

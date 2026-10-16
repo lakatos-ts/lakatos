@@ -17,13 +17,6 @@ lean_lib «ThalesDsl» where
 lean_lib «ThalesEmit» where
   globs := #[.submodules `ThalesEmit, .one `ThalesEmit]
 
--- The TypeScript frontend's renderer; it leaves with the frontend.
-lean_exe «thales-emit» where
-  root := `ThalesEmit.Main
-  -- The renderer imports ThalesDsl at runtime and pretty-prints through
-  -- interpreted parenthesizers, which needs the interpreter's symbols.
-  supportInterpreter := true
-
 lean_lib «ThalesDslTest» where
   globs := #[.submodules `Test]
 

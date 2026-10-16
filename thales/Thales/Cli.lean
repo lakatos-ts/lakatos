@@ -1,8 +1,8 @@
 import Tarski.Lemma
 
-/-! The command line: `usage`, `help`, and the argument parse, which
-mirrors the TypeScript bin's `parseArgs` (strict, positionals allowed,
-one boolean `-h`/`--help`). -/
+/-! The command line: `usage`, `help`, and the argument parse: strict,
+positionals allowed, one boolean `-h`/`--help`, and any other option a
+usage error. -/
 
 namespace Thales
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { shardOf } from "../../scripts/shard.js";
+import { shardOf } from "../scripts/shard.js";
 
 describe("shardOf", () => {
   it("returns everything when the spec is undefined", () => {

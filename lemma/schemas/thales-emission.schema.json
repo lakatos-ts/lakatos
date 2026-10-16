@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://lakatos.test/schemas/thales-emission.schema.json",
   "title": "Thales Emission",
-  "description": "One module's plain-Lean emission input: the mappable declarations of one annotated TypeScript file and the proof obligations over them, in source order. Produced by lemma (`src/emission.ts`) as the `emission` of a `lemma check` document, and rendered by the thales-emit executable as a readable .lean artifact. It is thales's lowering, carried as is in document v0 until the engine-neutral document replaces it.",
+  "description": "One module's plain-Lean emission input: the mappable declarations of one annotated TypeScript file and the proof obligations over them, in source order. Produced by lemma (`src/emission.ts`) as the `emission` of a `lemma check` document, and rendered by thales's renderer as a readable .lean artifact. It is thales's lowering, carried as is in document v1 until the engine-neutral document replaces it.",
   "type": "object",
   "additionalProperties": false,
   "required": ["file", "declarations", "obligations"],

@@ -39,12 +39,6 @@ export default defineConfig({
           new URL("./tarski/frontend/src/index.ts", import.meta.url),
         ),
       },
-      {
-        find: /^@lakatos\/thales$/,
-        replacement: fileURLToPath(
-          new URL("./thales/frontend/src/index.ts", import.meta.url),
-        ),
-      },
     ],
   },
   test: {
@@ -53,7 +47,6 @@ export default defineConfig({
       "core/tests/**/*.test.ts",
       "lemma/tests/**/*.test.ts",
       "pabst/tests/**/*.test.ts",
-      "thales/frontend/tests/**/*.test.ts",
       "thales/tests/**/*.test.ts",
       "tarski/frontend/tests/**/*.test.ts",
     ],
@@ -70,8 +63,6 @@ export default defineConfig({
         "core/src/**/*.ts",
         "lemma/src/**/*.ts",
         "pabst/src/**/*.ts",
-        // thales/frontend/src left 2026-10-16: the Lean binary is the
-        // product under test now, and the TS bin goes in the next step.
         "tarski/frontend/src/**/*.ts",
       ],
       exclude: ["**/*.test.ts", "**/*.d.ts"],
@@ -131,10 +122,9 @@ export default defineConfig({
         // arm reached by a test for all of them. The one ignore added
         // with them is a dot access's name, which tsc types as an
         // identifier or a private name and nothing else.
-        // Ratcheted 2026-09-14: the exe command joined it — its pipeline
-        // (now `thales/frontend/src/exe.ts`) and
-        // `tarski/frontend/src/binary.ts`, both fully covered, including
-        // the arms a spawn that never started reaches (both streams null
+        // Ratcheted 2026-09-14: the exe command joined it, its pipeline
+        // and the tarski binary's spawn both fully covered, including the
+        // arms a spawn that never started reaches (both streams null
         // beside an error).
         // Ratcheted again 2026-09-14: the bridge grew the template nodes
         // and every object-literal member — a shorthand, a computed key,

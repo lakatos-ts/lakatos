@@ -8,8 +8,7 @@
     "core",
     "lemma",
     "pabst",
-    "tarski",
-    "thales"
+    "tarski"
   ],
   "license": "MIT",
   "engines": {
@@ -25,7 +24,9 @@
   },
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "typecheck": "tsc -b core lemma pabst tarski thales && tsc -p tsconfig.tests.json",
+    "typecheck": "tsc -b core lemma pabst tarski && tsc -p tsconfig.tests.json",
+    "check:envelopes": "node thales/scripts/check-envelopes.js",
+    "check:verdict-channel": "node thales/scripts/check-verdict-channel.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
