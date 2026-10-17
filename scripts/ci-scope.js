@@ -24,44 +24,47 @@ const SHARED = [
 ];
 
 const WORKFLOWS = {
-  thales: {
+  lean: {
     groups: {
-      // The prover builds tarski and imports core and lemma; its suites
-      // and the repository-wide checks live under tests/.
-      lean: [
+      // The prover builds on the semantics and imports core and lemma; its
+      // suites and the repository-wide checks live under tests/.
+      prover: [
         "thales/",
-        "tarski/",
         "core/",
         "lemma/",
         "tests/",
-        ".github/workflows/thales.yml",
-        ".github/actions/thales-setup/",
+        ".github/workflows/lean.yml",
+        ".github/actions/lean-setup/",
         ...SHARED,
       ],
-      // The parity suite runs refute beside prove.
-      parity: ["pabst/"],
-    },
-    jobs: {
-      "lean-tests": ["lean"],
-      "verdict-channel": ["lean"],
-      envelopes: ["lean"],
-      "prove-e2e": ["lean", "parity"],
-      "verdict-corpus": ["lean"],
-    },
-  },
-  tarski: {
-    groups: {
-      // The test262 runner parses with lemma's bridge, so a change to the
-      // bridge, the schema it emits to, or the compiler it is built on
-      // moves the slice's table.
-      lean: [
-        "tarski/",
+      // The semantics, the evaluator, and the test262 runner. The runner
+      // parses with lemma's bridge, so a change to the bridge, the schema
+      // it emits to, or the compiler it is built on moves the slice's table.
+      semantics: [
+        "thales/Js/",
+        "thales/Js.lean",
+        "thales/Tarski/",
+        "thales/Tarski.lean",
+        "thales/Test/Js/",
+        "thales/Test/Tarski/",
+        "thales/Test/fixtures/",
+        "thales/tests/tarski/",
+        "thales/test262/",
+        "thales/scripts/check-boundary.sh",
+        "thales/scripts/check-imports.sh",
+        "thales/scripts/lean-strip.awk",
+        "thales/scripts/test262-full.sh",
+        "thales/scripts/boundary-fixture/",
+        "thales/scripts/import-fixture/",
+        "thales/lakefile.lean",
+        "thales/lake-manifest.json",
+        "thales/lean-toolchain",
         "lemma/src/",
         "lemma/schemas/",
         "lemma/package.json",
         "lemma/tsconfig.json",
-        ".github/workflows/tarski.yml",
-        ".github/actions/tarski-setup/",
+        ".github/workflows/lean.yml",
+        ".github/actions/lean-setup/",
         ...SHARED,
       ],
       // What `tarski <file.ts>`'s suites run besides tarski itself: the
@@ -73,11 +76,17 @@ const WORKFLOWS = {
         "thales/tests/conformance/",
         "pabst/tests/fixtures/",
       ],
+      // The parity suite runs refute beside prove.
+      parity: ["pabst/"],
     },
     jobs: {
-      "lean-tests": ["lean"],
-      "test262-slice": ["lean"],
-      "runner-e2e": ["lean", "exe"],
+      "lean-tests": ["prover", "semantics"],
+      "verdict-channel": ["prover"],
+      envelopes: ["prover"],
+      "prove-e2e": ["prover", "parity"],
+      "verdict-corpus": ["prover"],
+      "test262-slice": ["semantics"],
+      "runner-e2e": ["semantics", "exe"],
     },
   },
 };
@@ -127,7 +136,7 @@ function gate(workflow, needs) {
 
 function usage() {
   process.stderr.write(
-    "usage: ci-scope.js select <thales|tarski> [--all] | gate <thales|tarski> | patterns\n",
+    "usage: ci-scope.js select lean [--all] | gate lean | patterns\n",
   );
   process.exit(2);
 }
