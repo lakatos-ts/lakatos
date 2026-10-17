@@ -93,8 +93,8 @@ the illustration is best-effort. -/
 unsafe def evalWitnessSearchUnsafe (s : Expr) : MetaM (Option (List WitnessValue)) :=
   tryCatchRuntimeEx
     (try
-      let ty := mkApp (mkConst ``Option [levelZero])
-        (mkApp (mkConst ``List [levelZero]) (mkConst ``WitnessValue))
+      let ty := mkApp (mkConst ``Option [Level.zero])
+        (mkApp (mkConst ``List [Level.zero]) (mkConst ``WitnessValue))
       Meta.evalExpr (Option (List WitnessValue)) ty s
     catch _ => return none)
     (fun _ => return none)
@@ -183,14 +183,18 @@ def addTheoremSync (identity : Identity) (p proof : Expr) : Term.TermElabM Name 
 /-- The axioms every Lean proof may use without extending the trusted base. -/
 def standardAxioms : Array Name := #[``propext, ``Classical.choice, ``Quot.sound]
 
+/-- The wire's spelling of a `native_decide` admission: the axiom Lean once
+reduced through, kept after its removal because the envelope schema and every
+consumer know it by this name. -/
+def nativeAxiom : Name := `Lean.ofReduceBool
+
 /-- `native_decide` admits a private per-proof axiom named after the artifact's
 module and an elaboration counter, so the literal name changes whenever the
-file around it does; the wire carries the stable axiom that mechanism stands
-in for instead. -/
+file around it does; the wire carries one stable spelling instead. -/
 def canonicalAxiom (n : Name) : Name :=
   match n with
   | .str (.str (.str _ "_native") "native_decide") s =>
-    if s.startsWith "ax" then ``Lean.ofReduceBool else n
+    if s.startsWith "ax" then nativeAxiom else n
   | _ => n
 
 /-- A proved annotation's verdict. `method` names the rung's class — never a
@@ -314,7 +318,7 @@ def residualSites (e : Expr) : MetaM (Array (Name × String)) := do
     if let some (.opaqueInfo _) := env.find? c then
       if (env.getModuleIdxFor? c).isNone then
         seen := seen.insert c
-        let doc := ((← findDocString? env c).getD c.toString).trimRight
+        let doc := ((← findDocString? env c).getD c.toString).trimAsciiEnd.copy
         out := out.push (c, doc)
   return out.qsort (fun a b => a.1.toString < b.1.toString)
 
