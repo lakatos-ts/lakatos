@@ -11,8 +11,6 @@ const TREES = [
   "pabst/src",
   "pabst/tests",
   "thales/tests",
-  "tarski/frontend/src",
-  "tarski/frontend/tests",
   "tarski/tests",
 ];
 

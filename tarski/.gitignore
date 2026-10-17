@@ -2,5 +2,5 @@
 .lake/
 
 # The pinned test262 clone: a build artifact, fetched by
-# `node scripts/setup-test262.js` at the commit in test262/pin.json.
+# `.lake/build/bin/tarski-test262 setup` at the commit in test262/pin.json.
 .test262/

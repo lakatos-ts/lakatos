@@ -33,12 +33,6 @@ export default defineConfig({
           new URL("./pabst/src/index.ts", import.meta.url),
         ),
       },
-      {
-        find: /^@lakatos\/tarski$/,
-        replacement: fileURLToPath(
-          new URL("./tarski/frontend/src/index.ts", import.meta.url),
-        ),
-      },
     ],
   },
   test: {
@@ -48,7 +42,6 @@ export default defineConfig({
       "lemma/tests/**/*.test.ts",
       "pabst/tests/**/*.test.ts",
       "thales/tests/**/*.test.ts",
-      "tarski/frontend/tests/**/*.test.ts",
       "tarski/tests/**/*.test.ts",
     ],
     // Absolute so the path is the same whatever cwd a run starts from.
@@ -60,12 +53,7 @@ export default defineConfig({
       // Count every source file, even ones no test imports, so untested
       // code drags the baseline down instead of hiding from the ratchet.
       all: true,
-      include: [
-        "core/src/**/*.ts",
-        "lemma/src/**/*.ts",
-        "pabst/src/**/*.ts",
-        "tarski/frontend/src/**/*.ts",
-      ],
+      include: ["core/src/**/*.ts", "lemma/src/**/*.ts", "pabst/src/**/*.ts"],
       exclude: ["**/*.test.ts", "**/*.d.ts"],
       reporter: ["text", "html"],
       thresholds: {
@@ -161,16 +149,19 @@ export default defineConfig({
         // Reseeded 2026-10-16: thales/frontend/src left the denominator with
         // the Lean binary replacing it as the product under test, while
         // lemma's and pabst's few unreachable arms stayed.
+        // Reseeded 2026-10-17: tarski/frontend/src left the denominator with
+        // the Lean tarski-test262 replacing it, while lemma's and pabst's few
+        // unreachable arms stayed.
         //
         // Measure this from a path with no dot-directory in it. The include
         // globs above do not match through one, and a run from, say, a
         // worktree under .claude/ silently reports every loaded file instead
         // — different denominator, different numbers.
         autoUpdate: true,
-        statements: 99.76,
-        branches: 99.12,
+        statements: 99.73,
+        branches: 99.04,
         functions: 100,
-        lines: 99.83,
+        lines: 99.81,
       },
     },
   },

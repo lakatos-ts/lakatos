@@ -33,14 +33,6 @@ const PACKAGES: { dir: string; forbidden: string[] }[] = [
     forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "tarski"],
   },
   {
-    dir: "tarski/frontend/src",
-    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
-  },
-  {
-    dir: "tarski/frontend/tests",
-    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
-  },
-  {
     dir: "tarski/tests",
     forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
   },
@@ -145,73 +137,28 @@ describe("import layering", () => {
   });
 
   it("tarski names no workspace package but lemma, its parser bridge", () => {
-    const offenders = [
-      ...tsFiles(path.join(root, "tarski/frontend/src")),
-      ...tsFiles(path.join(root, "tarski/frontend/tests")),
-      ...tsFiles(path.join(root, "tarski/tests")),
-    ].filter((f) =>
+    const offenders = tsFiles(path.join(root, "tarski/tests")).filter((f) =>
       /["']@lakatos\/(?!(?:tarski|lemma)["'])/.test(readFileSync(f, "utf8")),
     );
     expect(offenders).toEqual([]);
   });
 
-  it("tarski is a workspace package with the test262 bin, depending on lemma alone", () => {
-    const pkg = JSON.parse(
-      readFileSync(path.join(root, "tarski/package.json"), "utf8"),
-    ) as {
-      name: string;
-      bin: Record<string, string>;
-      exports: Record<string, unknown>;
-      dependencies?: Record<string, string>;
-    };
-    expect(pkg.name).toBe("@lakatos/tarski");
-    expect(pkg.bin).toEqual({ "tarski-test262": "dist/test262/cli.js" });
-    expect(Object.keys(pkg.exports)).toEqual(["."]);
-    expect(
-      Object.keys(pkg.dependencies ?? {}).filter((d) =>
-        d.startsWith("@lakatos/"),
-      ),
-    ).toEqual(["@lakatos/lemma"]);
-    const rootPkg = JSON.parse(
-      readFileSync(path.join(root, "package.json"), "utf8"),
-    ) as { bin?: Record<string, string> };
-    expect(rootPkg.bin?.["tarski-test262"]).toBeUndefined();
-    expect(
-      existsSync(path.join(root, "schemas/tarski-estree.schema.json")),
-    ).toBe(false);
-  });
-
-  // `dist/test262/` needs a recursive glob, which must not sweep in the
-  // build info tsc -b writes beside the output.
-  it("tarski's tarball ships no build info", () => {
-    const [packed] = JSON.parse(
-      execFileSync("npm", ["pack", "--dry-run", "--json", "-w", "tarski"], {
-        cwd: root,
-        encoding: "utf8",
-      }),
-    ) as { files: { path: string }[] }[];
-    const paths = packed!.files.map((f) => f.path);
-    expect(paths).toContain("dist/test262/cli.js");
-    expect(paths.filter((p) => p.endsWith(".tsbuildinfo"))).toEqual([]);
-  });
-
-  it("thales's suites name no workspace package but core, lemma, and tarski", () => {
+  it("thales's suites name no workspace package but core and lemma", () => {
     const offenders = tsFiles(path.join(root, "thales/tests")).filter((f) =>
-      /["']@lakatos\/(?!core[/"']|lemma["']|tarski[/"'])/.test(
-        readFileSync(f, "utf8"),
-      ),
+      /["']@lakatos\/(?!core[/"']|lemma["'])/.test(readFileSync(f, "utf8")),
     );
     expect(offenders).toEqual([]);
   });
 
-  // thales is a Lean executable, so the workspace is the four TypeScript
-  // packages and the root holds no sources of its own.
-  it("the workspace is core, lemma, pabst, and tarski, with no thales package", () => {
+  // thales and tarski are Lean executables, so the workspace is the three
+  // TypeScript packages and the root holds no sources of its own.
+  it("the workspace is core, lemma, and pabst, with no thales or tarski package", () => {
     expect(existsSync(path.join(root, "thales/package.json"))).toBe(false);
+    expect(existsSync(path.join(root, "tarski/package.json"))).toBe(false);
     const rootPkg = JSON.parse(
       readFileSync(path.join(root, "package.json"), "utf8"),
     ) as { workspaces: string[] };
-    expect(rootPkg.workspaces).toEqual(["core", "lemma", "pabst", "tarski"]);
+    expect(rootPkg.workspaces).toEqual(["core", "lemma", "pabst"]);
     const rootTsconfig = JSON.parse(
       readFileSync(path.join(root, "tsconfig.json"), "utf8"),
     ) as {
@@ -223,7 +170,6 @@ describe("import layering", () => {
       "./core",
       "./lemma",
       "./pabst",
-      "./tarski",
     ]);
     expect(rootTsconfig.files).toEqual([]);
     expect(rootTsconfig.include).toBeUndefined();
@@ -252,7 +198,7 @@ describe("import layering", () => {
   });
 
   it("every workspace package publishes publicly", () => {
-    for (const dir of ["core", "lemma", "pabst", "tarski"]) {
+    for (const dir of ["core", "lemma", "pabst"]) {
       const pkg = JSON.parse(
         readFileSync(path.join(root, dir, "package.json"), "utf8"),
       ) as { publishConfig?: { access?: string } };
@@ -268,7 +214,7 @@ describe("import layering", () => {
           "pack",
           "--dry-run",
           "--json",
-          ...["core", "lemma", "pabst", "tarski"].flatMap((w) => ["-w", w]),
+          ...["core", "lemma", "pabst"].flatMap((w) => ["-w", w]),
         ],
         { cwd: root, encoding: "utf8" },
       ),
@@ -282,7 +228,6 @@ describe("import layering", () => {
   for (const { pkg: pkgDir, src } of [
     { pkg: "lemma", src: "lemma/src" },
     { pkg: "pabst", src: "pabst/src" },
-    { pkg: "tarski", src: "tarski/frontend/src" },
   ]) {
     it(`${pkgDir} declares every package its sources import at runtime`, () => {
       const pkg = JSON.parse(
