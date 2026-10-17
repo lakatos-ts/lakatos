@@ -23,8 +23,8 @@ the conjecture to be repaired. That loop is what these tools run.
 
 ## The tools
 
-Lakatos is five sibling tools: four npm packages under the `@lakatos`
-scope and thales, a Lean executable. Each one's README says how to install
+Lakatos is five sibling tools: three npm packages under the `@lakatos`
+scope and two Lean packages, thales and tarski. Each one's README says how to install
 and use it on its own.
 
 - [`@lakatos/pabst`](pabst/) — refutation. The `pabst` bin compiles each
@@ -50,12 +50,13 @@ and use it on its own.
   (`LAKATOS_LEMMA` points thales at the checkout's lemma until lemma
   0.2.0 is published.)
 
-- [`@lakatos/tarski`](tarski/) — the JavaScript semantics: the Lean
+- [`tarski/`](tarski/) — the JavaScript semantics: the Lean
   library the proofs are stated against, an evaluator over the same
   definitions, the `tarski` executable, which runs one TypeScript file on
   that evaluator behind thales's typecheck gate
   ([running a file](tarski/README.md#running-a-file-tarski-filets)), and
-  the `tarski-test262` bin.
+  `tarski-test262`, which runs test262 against it. Both are Lean
+  executables built with `lake` in `tarski/`; there is no npm package.
 - [`@lakatos/lemma`](lemma/) — the Lemma annotation language and the
   TypeScript front end both engines share: its [spec](lemma/spec/), the
   discovery, extraction, parsing, and typecheck gate, the parser bridge
@@ -171,8 +172,8 @@ stated in the spec's
 ## Layout
 
 One repository, an npm workspace of [`core/`](core/), [`lemma/`](lemma/),
-[`pabst/`](pabst/), and [`tarski/`](tarski/), beside the Lean
-[`thales/`](thales/). The root is private: it builds, typechecks, tests,
+and [`pabst/`](pabst/), beside the Lean [`thales/`](thales/) and
+[`tarski/`](tarski/). The root is private: it builds, typechecks, tests,
 and formats every TypeScript package, runs thales's suites and check
 scripts, holds CI, and keeps the repository-wide tests in `tests/`
 (layering, the Lemma surface, the trust section, prove-and-refute parity,

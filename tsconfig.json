@@ -4,7 +4,6 @@
   "references": [
     { "path": "./core" },
     { "path": "./lemma" },
-    { "path": "./pabst" },
-    { "path": "./tarski" }
+    { "path": "./pabst" }
   ]
 }
