@@ -40,41 +40,9 @@
 set -eu
 
 root="${1:-Tarski}"
+here=$(dirname "$0")
 
 pattern='(\bFloat\.[A-Za-z]|\.(isNaN|isInf|isFinite|toU[A-Za-z0-9]*|toInt[0-9]*|floor|ceil|round|abs|sqrt|exp|log|pow|toString|toBits|frExp|scaleB)\b)'
-
-# Blank out comments and string-literal text, keeping line numbers and
-# interpolated terms.
-strip='
-BEGIN { depth = 0; instr = 0; interp = 0 }
-{
-  line = $0; n = length(line); out = ""; i = 1
-  while (i <= n) {
-    c = substr(line, i, 1); two = substr(line, i, 2)
-    if (interp > 0) {
-      if (c == "{") interp++
-      else if (c == "}") interp--
-      out = out c; i++; continue
-    }
-    if (instr) {
-      if (c == "\\") { out = out "  "; i += 2; continue }
-      if (c == "{") { interp = 1; out = out c; i++; continue }
-      if (c == "\"") { instr = 0; out = out " "; i++; continue }
-      out = out " "; i++; continue
-    }
-    if (depth > 0) {
-      if (two == "/-") { depth++; out = out "  "; i += 2; continue }
-      if (two == "-/") { depth--; out = out "  "; i += 2; continue }
-      out = out " "; i++; continue
-    }
-    if (two == "/-") { depth++; out = out "  "; i += 2; continue }
-    if (two == "--") { while (i <= n) { out = out " "; i++ }; continue }
-    if (c == "\"") { instr = 1; out = out " "; i++; continue }
-    out = out c; i++
-  }
-  print out
-}
-'
 
 hits=$(mktemp)
 trap 'rm -f "$hits"' EXIT
@@ -82,7 +50,7 @@ trap 'rm -f "$hits"' EXIT
 scanned=0
 for file in $(find "$root" -name '*.lean' | sort); do
   scanned=$((scanned + 1))
-  awk "$strip" "$file" | grep -nE "$pattern" | sed "s|^|$file:|" >>"$hits" || true
+  awk -f "$here/lean-strip.awk" "$file" | grep -nE "$pattern" | sed "s|^|$file:|" >>"$hits" || true
 done
 
 violations=$(wc -l <"$hits" | tr -d ' ')
