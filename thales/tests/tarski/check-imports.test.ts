@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -111,6 +117,37 @@ describe("check-imports.sh", () => {
     );
     expect(r.status, r.stdout + r.stderr).toBe(0);
     expect(r.stdout).toContain("imports: 1 file(s) clean");
+  });
+
+  // The check is the only thing holding the line, so a scan that could
+  // not look is a failure, never a pass.
+  it.each<[string, string[]]>([
+    ["no semantics trees", []],
+    ["empty semantics trees", ["Js", "Tarski"]],
+  ])("refuses a root with %s", (_, dirs) => {
+    const root = tree({});
+    for (const d of dirs) mkdirSync(path.join(root, d));
+    const r = run(CHECK, root);
+    expect(r.status, r.stdout + r.stderr).toBe(2);
+    expect(r.stdout).toContain("imports: no Lean files under");
+  });
+
+  it("refuses a root that does not exist", () => {
+    const r = run(CHECK, path.join(tree({}), "missing"));
+    expect(r.status, r.stdout + r.stderr).toBe(2);
+  });
+
+  it("refuses a file it cannot read", () => {
+    const root = tree({
+      "Tarski/Eval.lean": "import Js\n",
+      "Tarski/Hidden.lean": "import ThalesDsl\n",
+    });
+    chmodSync(path.join(root, "Tarski/Hidden.lean"), 0o000);
+    const r = run(CHECK, root);
+    expect(r.status, r.stdout + r.stderr).toBe(2);
+    expect(r.stdout).toContain(
+      `imports: cannot read ${root}/Tarski/Hidden.lean`,
+    );
   });
 
   it("passes this package", () => {

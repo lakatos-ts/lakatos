@@ -11,7 +11,9 @@
 #
 # The optional argument is the package root to scan (default `.`), so CI
 # can point the check at `scripts/import-fixture`, which plants a
-# violation, and see it fail.
+# violation, and see it fail. A root holding no Lean files under `Js/`
+# or `Tarski/`, or a file the check cannot read, exits 2: a scan that did
+# not look is not a pass.
 #
 # Usage: sh scripts/check-imports.sh [package-root]
 set -eu
@@ -23,7 +25,8 @@ pattern='^[[:space:]]*(public[[:space:]]+)?(meta[[:space:]]+)?import[[:space:]]+
 
 files=$(mktemp)
 hits=$(mktemp)
-trap 'rm -f "$files" "$hits"' EXIT
+stripped=$(mktemp)
+trap 'rm -f "$files" "$hits" "$stripped"' EXIT
 
 for f in "$root/Js.lean" "$root/Tarski.lean"; do
   if [ -f "$f" ]; then printf '%s\n' "$f" >>"$files"; fi
@@ -37,11 +40,20 @@ while IFS= read -r file; do
   [ -n "$file" ] || continue
   scanned=$((scanned + 1))
   shown=${file#./}
-  awk -f "$here/lean-strip.awk" "$file" | grep -nE "$pattern" |
+  if ! awk -f "$here/lean-strip.awk" "$file" >"$stripped"; then
+    echo "imports: cannot read $shown"
+    exit 2
+  fi
+  grep -nE "$pattern" "$stripped" |
     while IFS= read -r hit; do printf '%s:%s\n' "$shown" "$hit"; done >>"$hits" || true
 done <<EOF
 $(sort "$files")
 EOF
+
+if [ "$scanned" -eq 0 ]; then
+  echo "imports: no Lean files under $root/Js or $root/Tarski"
+  exit 2
+fi
 
 violations=$(wc -l <"$hits" | tr -d ' ')
 if [ "$violations" -ne 0 ]; then
