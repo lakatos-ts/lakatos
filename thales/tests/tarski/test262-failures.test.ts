@@ -1,4 +1,4 @@
-// `tarski/test262/failures.md` against `tarski/test262/expected.json`.
+// `thales/test262/failures.md` against `thales/test262/expected.json`.
 //
 // The table is written by hand — classifying a failure means reading the
 // test, which no script can do — so this is what keeps it honest as the

@@ -1,13 +1,13 @@
 # The failure list for the PR-gated slice
 
 Written 2026-09-15 against test262 at `419d3e0a2273ba01a3bfcbec423f2801425b8e93`
-(`tarski/test262/pin.json`), from one run of the slice, which this reproduces:
+(`thales/test262/pin.json`), from one run of the slice, which this reproduces:
 
 ```bash
 LAKATOS_LEMMA=$PWD/../lemma .lake/build/bin/tarski-test262 --slice-file test262/slice.txt
 ```
 
-Every failing test in `tarski/test262/slice.txt` is classified here — the
+Every failing test in `thales/test262/slice.txt` is classified here — the
 harness, the 27 language directories the thales emitter maps (#383), the
 three built-ins directories #382 added, the two global parsers #388
 added, the two class directories #384 added, the fifteen declaration
@@ -19,8 +19,8 @@ added, the ten iterator, `for`-`of`, spread, and array-literal
 directories #394 added, the forty-eight `Array` directories #390
 added, `test/language/expressions/super`, which #601 added, and the `in`
 and `delete` directories #599 added — and
-`tarski/tests/test262-failures.test.ts` holds this file and
-`tarski/test262/expected.json` together: each directory named here is a key
+`thales/tests/tarski/test262-failures.test.ts` holds this file and
+`thales/test262/expected.json` together: each directory named here is a key
 of that file, every directory with a positive `fail` count appears, and the
 `fails` column sums to exactly that count. So a ratchet that moves a count
 has to re-classify what moved.

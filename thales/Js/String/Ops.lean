@@ -19,7 +19,7 @@ Two limits are deliberate, and both are the absence of a Unicode
 character database rather than a shape this file could not hold:
 `upperAscii`/`lowerAscii` map `a`–`z` only, and `normalizeForm?`
 validates its form and answers its input. Shipping the UCD is a slice of
-its own; the follow-up issue is named in `tarski/test262/failures.md`.
+its own; the follow-up issue is named in `test262/failures.md`.
 -/
 
 namespace Js

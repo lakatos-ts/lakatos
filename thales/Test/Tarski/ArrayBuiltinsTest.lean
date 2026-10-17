@@ -70,7 +70,7 @@ A comparator sort, `map` and `filter` through ArraySpeciesCreate,
 `indexOf`, an unbounded `flat`, and `Array.from` over an array-like with
 a mapper — the whole of what this slice is for, in one program. It is
 `Test/Tarski/fixtures/array-builtins.json` too, run on the binary by
-`tarski.yml`. -/
+`lean.yml`. -/
 
 /-- `(a, b) => a - b` -/
 private def comparator : Expr :=

@@ -9,7 +9,7 @@ import {
 import { shardOf } from "../scripts/shard.js";
 
 // Needs the Lean toolchain and is minutes-slow, so it only runs when asked:
-// thales.yml sets the variable; unit and coverage runs stay identical
+// lean.yml sets the variable; unit and coverage runs stay identical
 // everywhere by never running it implicitly.
 const enabled = process.env.LAKATOS_PROVE_E2E === "1";
 

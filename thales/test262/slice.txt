@@ -1,5 +1,5 @@
 # The PR-gated slice: what `tarski-test262 --slice-file` runs and what
-# `tarski/test262/expected.json` pins a row of the table for. The tarski
+# `test262/expected.json` pins a row of the table for. The tarski
 # workflow reads this file, so growing the slice is a line here rather
 # than an edit to a workflow command.
 #

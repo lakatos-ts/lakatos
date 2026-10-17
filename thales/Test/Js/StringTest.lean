@@ -10,7 +10,7 @@ Lean `String` at all. The first section below is that claim, stated as
 kernel-checked facts — `decide` reduces a `JsString` literal, which is
 why `List UInt16` was chosen over `Array UInt16`.
 
-The second claim is the defect `tarski/test262/failures.md` filed against
+The second claim is the defect `test262/failures.md` filed against
 #391: the relational order is **code-unit** order, under which
 `"\u{10000}"` is less than `"￿"`, where Lean's `String` order —
 code points — says the opposite.

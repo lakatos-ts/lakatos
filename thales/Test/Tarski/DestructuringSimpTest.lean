@@ -21,7 +21,7 @@ six minutes with no answer, and the issue's own
 `const [a, b = 5] = [1]; const { c } = { c: 2 }; a + b + c` elaborates in
 fifty seconds and then times out in the kernel. The ceiling is the heap's
 representation rather than the protocol, which is the same finding
-`tarski/CLAUDE.md` records for `Gate`, so the larger programs are pinned
+`CLAUDE.md` records for `Gate`, so the larger programs are pinned
 by `#eval` here and by `Test/Tarski/DestructuringTest.lean` in full.
 
 Four literals need lemmas of their own, as `Test/Tarski/ArraySimpTest.lean`

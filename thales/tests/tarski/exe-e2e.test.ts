@@ -17,7 +17,7 @@ import { BUILD_TIMEOUT_MS, ensureBinary } from "./helpers/binary.js";
 
 // `tarski <file.ts>` against the real binary and the real lemma: the Lean
 // executable that replaced `thales-exe`. It needs the Lean toolchain, so
-// it runs under LAKATOS_TARSKI_E2E=1 in `tarski.yml` and skips elsewhere.
+// it runs under LAKATOS_TARSKI_E2E=1 in `lean.yml` and skips elsewhere.
 //
 // lemma is this checkout's, through LAKATOS_LEMMA, except in the resolver
 // cases, which put a fake `npm` on PATH and a scratch HOME under the

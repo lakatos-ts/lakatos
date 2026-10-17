@@ -22,7 +22,7 @@ import { ensureBinary } from "./helpers/binary.js";
 // control.
 //
 // It needs the real binary, so it runs where `test262-e2e.test.ts` runs —
-// `tarski.yml`, the one job with Node and Lean — and skips elsewhere.
+// `lean.yml`, the one job with Node and Lean — and skips elsewhere.
 //
 // Each fixture is stripped and parsed through lemma's barrel and run with
 // `tarski exec`, not with `tarski <file.ts>`: what is measured is the

@@ -71,7 +71,7 @@ Math.fround(0.1) === 0.10000000149011612 && Number.isSafeInteger(2 ** 53 - 1) ==
   Number.EPSILON === 2 ** -52;
 ```
 
-`tarski/Test/Tarski/fixtures/number-math.json` is the same program
+`Test/Tarski/fixtures/number-math.json` is the same program
 arriving through the parser bridge, and the workflow runs the binary on
 it. -/
 

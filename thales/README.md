@@ -41,8 +41,7 @@ mention the old compiler's vocabulary predate the rewrite).
 
 Thales runs from a lakatos checkout with the Lean toolchain
 ([elan](https://github.com/leanprover/elan)) and Node: `lake` builds the
-Lean side from this directory, which requires the JS-semantics library in
-`../tarski`, and lemma, the TypeScript front end, runs as a subprocess.
+Lean side from this directory, the JS-semantics library included, and lemma, the TypeScript front end, runs as a subprocess.
 Build the checkout once — `npm install && npm run build` at its root,
 `lake build thales` here — then run the binary from your project's
 directory, where its `tsconfig.json` is:
@@ -75,7 +74,7 @@ them, ends it with no envelope.
 ## Building
 
 ```bash
-lake build thales           # from thales/: the binary, ThalesDsl and tarski's Js first
+lake build                  # from thales/: every library and all three executables
 npm run build               # from the repo root: lemma, which the binary runs
 ```
 
@@ -94,7 +93,7 @@ lakatos checkout with the Lean toolchain; lemma needs Node 24+:
 
 ```bash
 npm install && npm run build        # lemma, from the repo root
-cd tarski
+cd thales
 lake build tarski tarski-test262
 .lake/build/bin/tarski-test262 setup
 LAKATOS_LEMMA=$PWD/../lemma .lake/build/bin/tarski-test262 --slice-file test262/slice.txt
@@ -103,7 +102,7 @@ LAKATOS_LEMMA=$PWD/../lemma .lake/build/bin/tarski-test262 --slice-file test262/
 ### Running a file: `tarski <file.ts>`
 
 ```bash
-path/to/lakatos/tarski/.lake/build/bin/tarski <file.ts>
+path/to/lakatos/thales/.lake/build/bin/tarski <file.ts>
 ```
 
 `tarski` runs one TypeScript file on the evaluator, the Lean definitions
@@ -119,7 +118,7 @@ built lemma checkout instead, which is what a lakatos checkout uses until
 that release is published:
 
 ```bash
-LAKATOS_LEMMA=path/to/lakatos/lemma path/to/lakatos/tarski/.lake/build/bin/tarski src/foo.ts
+LAKATOS_LEMMA=path/to/lakatos/lemma path/to/lakatos/thales/.lake/build/bin/tarski src/foo.ts
 ```
 
 Its honesty limits are the proofs' own. A proof's model is checked against

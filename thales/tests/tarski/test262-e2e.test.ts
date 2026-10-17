@@ -7,7 +7,7 @@ import { BUILD_TIMEOUT_MS, ensureBinary, PACKAGE } from "./helpers/binary.js";
 // `Test/fixtures/fake-tarski.sh`, whose exit codes and stderr lines
 // transcribe `Tarski/Main.lean`'s contract; this run puts the real binary
 // in its place over the same tree and demands the same table. It needs the
-// Lean toolchain, so it runs under LAKATOS_TARSKI_E2E=1 in `tarski.yml`.
+// Lean toolchain, so it runs under LAKATOS_TARSKI_E2E=1 in `lean.yml`.
 const REPO = path.dirname(path.resolve(PACKAGE));
 const TREE = path.join(PACKAGE, "Test", "fixtures", "test262");
 const FAKE = path.join(PACKAGE, "Test", "fixtures", "fake-tarski.sh");
