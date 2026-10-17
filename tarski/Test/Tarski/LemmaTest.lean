@@ -2,7 +2,7 @@ import Tarski.Lemma
 
 /-! lemma's documents decode strictly, version first; the resolver's paths
 are where the design record puts them. Running lemma itself is
-`frontend/tests/exe-e2e.test.ts`'s, which needs Node. -/
+`tests/exe-e2e.test.ts`'s, which needs Node. -/
 
 open Lean Tarski.Lemma
 

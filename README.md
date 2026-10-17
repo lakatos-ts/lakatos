@@ -50,12 +50,13 @@ and use it on its own.
   (`LAKATOS_LEMMA` points thales at the checkout's lemma until lemma
   0.2.0 is published.)
 
-- [`@lakatos/tarski`](tarski/) — the JavaScript semantics: the Lean
+- [`tarski/`](tarski/) — the JavaScript semantics: the Lean
   library the proofs are stated against, an evaluator over the same
   definitions, the `tarski` executable, which runs one TypeScript file on
   that evaluator behind thales's typecheck gate
   ([running a file](tarski/README.md#running-a-file-tarski-filets)), and
-  the `tarski-test262` bin.
+  `tarski-test262`, which runs test262 against it. Both are Lean
+  executables built with `lake` in `tarski/`; there is no npm package.
 - [`@lakatos/lemma`](lemma/) — the Lemma annotation language and the
   TypeScript front end both engines share: its [spec](lemma/spec/), the
   discovery, extraction, parsing, and typecheck gate, the parser bridge

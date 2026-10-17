@@ -1,10 +1,10 @@
 # The failure list for the PR-gated slice
 
 Written 2026-09-15 against test262 at `419d3e0a2273ba01a3bfcbec423f2801425b8e93`
-(`tarski/test262/pin.json`), from one run of
+(`tarski/test262/pin.json`), from one run of the slice, which this reproduces:
 
 ```bash
-node dist/test262/cli.js --slice-file test262/slice.txt
+LAKATOS_LEMMA=$PWD/../lemma .lake/build/bin/tarski-test262 --slice-file test262/slice.txt
 ```
 
 Every failing test in `tarski/test262/slice.txt` is classified here — the
