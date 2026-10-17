@@ -3,7 +3,7 @@ import Tarski.Test262.Plan
 open Tarski.Test262
 open System (FilePath)
 
-/-! Run from `tarski/`, as `lake build TarskiTest` and `lake env lean` do. -/
+/-! Run from `thales/`, as `lake build Test` and `lake env lean` do. -/
 
 /-- The fake tree: one file per decision the planner makes. -/
 def ROOT : FilePath := "Test/fixtures/test262"
@@ -28,7 +28,7 @@ def runOf (rel : String) : IO (String × Option String) := do
 -- These tests read the package's files by relative path.
 #eval show IO Unit from do
   unless ← ("lakefile.lean" : System.FilePath).pathExists do
-    throw (IO.userError "run from tarski/, as lake build TarskiTest does")
+    throw (IO.userError "run from thales/, as lake build Test does")
 
 def expect (what : String) (ok : Bool) : IO Unit :=
   unless ok do throw (IO.userError s!"failed: {what}")

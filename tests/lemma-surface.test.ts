@@ -6,13 +6,7 @@ import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Everything outside lemma/ — lemma's own tests may reach for internals. */
-const TREES = [
-  "tests",
-  "pabst/src",
-  "pabst/tests",
-  "thales/tests",
-  "tarski/tests",
-];
+const TREES = ["tests", "pabst/src", "pabst/tests", "thales/tests"];
 
 /** Anchored on `from`, so prose and `vi.mock` targets are not hits. Mocking a
  * lemma internal is fine — the seam is narrower than the barrel. */

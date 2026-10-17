@@ -6,8 +6,8 @@ import { spawnSync } from "node:child_process";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
-/** The `tarski/` lake package. */
-export const TARSKI = fileURLToPath(new URL("../..", import.meta.url));
+/** The `thales/` lake package. */
+export const PACKAGE = fileURLToPath(new URL("../../..", import.meta.url));
 
 /** The budget one `lake build` gets. */
 export const BUILD_TIMEOUT_MS = 600_000;
@@ -21,7 +21,7 @@ export function ensureBinary(
   target: "tarski" | "tarski-test262" = "tarski",
 ): BinaryResult {
   const build = spawnSync("lake", ["build", target], {
-    cwd: TARSKI,
+    cwd: PACKAGE,
     encoding: "utf8",
     timeout: BUILD_TIMEOUT_MS,
   });
@@ -36,6 +36,6 @@ export function ensureBinary(
   }
   return {
     kind: "ready",
-    binary: path.join(TARSKI, ".lake", "build", "bin", target),
+    binary: path.join(PACKAGE, ".lake", "build", "bin", target),
   };
 }

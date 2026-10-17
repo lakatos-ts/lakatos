@@ -24,7 +24,7 @@ import { BUILD_TIMEOUT_MS, ensureBinary } from "./helpers/binary.js";
 // binary to watch the pinned release be installed and reused.
 const e2e = process.env.LAKATOS_TARSKI_E2E === "1";
 
-const REPO = fileURLToPath(new URL("../..", import.meta.url));
+const REPO = fileURLToPath(new URL("../../..", import.meta.url));
 const LEMMA = path.join(REPO, "lemma");
 
 /** The first case may pay for one `lake build tarski`. */

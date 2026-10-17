@@ -34,7 +34,7 @@ describe("the documents the Lean tests are run against", () => {
     it(`agree with lemma's golden for ${name}`, () => {
       const lean = path.join(
         root,
-        "tarski/Test/Tarski/fixtures",
+        "thales/Test/Tarski/fixtures",
         `${name}.json`,
       );
       const golden = path.join(

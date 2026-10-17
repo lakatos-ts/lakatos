@@ -56,9 +56,9 @@ describe("the trust section", () => {
     }
     expect(
       resolved,
-      "the section must link tarski/test262/results.md; if the table moved, " +
-        "repoint this link (and tarski/CLAUDE.md's note about it)",
-    ).toContain(path.join(REPO, "tarski", "test262", "results.md"));
+      "the section must link thales/test262/results.md; if the table moved, " +
+        "repoint this link (and thales/CLAUDE.md's note about it)",
+    ).toContain(path.join(REPO, "thales", "test262", "results.md"));
   });
 
   it("states the two limits", () => {

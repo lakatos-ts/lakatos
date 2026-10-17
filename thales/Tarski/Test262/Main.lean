@@ -278,7 +278,7 @@ def runSlices (cfg : RunConfig) : IO (Array Result) := do
 
 /-- What the binary is handed besides its arguments. -/
 structure Context where
-  /-- The `tarski/` lake package. -/
+  /-- The `thales/` lake package. -/
   root : FilePath
   /-- `LAKATOS_TEST262`. -/
   checkoutEnv : Option String := none
@@ -360,7 +360,7 @@ def cli (argv : List String) (ctx : Context) : IO UInt32 := do
   let binary : FilePath := (o.binary.map FilePath.mk).getD (defaultBinary ctx.root)
   unless ← binary.pathExists do
     ctx.err s!"tarski-test262: no evaluator at {binary}"
-    ctx.err "run `lake build tarski` in tarski/"
+    ctx.err "run `lake build tarski` in thales/"
     return 2
   let lemma ← match ← ctx.lemma with
     | .ok bin => pure bin
@@ -398,6 +398,6 @@ def cli (argv : List String) (ctx : Context) : IO UInt32 := do
 end Tarski.Test262
 
 def main (args : List String) : IO UInt32 := do
-  let some root ← Tarski.Test262.findTarskiRoot (← IO.appPath)
-    | do IO.eprintln "tarski-test262: no tarski package here"; return 2
+  let some root ← Tarski.Test262.findPackageRoot (← IO.appPath)
+    | do IO.eprintln "tarski-test262: no thales package here"; return 2
   Tarski.Test262.cli args { root, checkoutEnv := ← Tarski.Lemma.envVar "LAKATOS_TEST262" }

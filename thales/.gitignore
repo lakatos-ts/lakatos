@@ -16,3 +16,7 @@ test.js
 
 # Worktrees
 .worktrees/
+
+# The pinned test262 clone: a build artifact, fetched by
+# `.lake/build/bin/tarski-test262 setup` at the commit in test262/pin.json.
+.test262/

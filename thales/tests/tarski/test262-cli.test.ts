@@ -2,12 +2,12 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { BUILD_TIMEOUT_MS, ensureBinary, TARSKI } from "./helpers/binary.js";
+import { BUILD_TIMEOUT_MS, ensureBinary, PACKAGE } from "./helpers/binary.js";
 
 // The committed files, read structurally: the runner writes them with
 // Lean's printer, so key order and spacing are not a contract.
 const read = (name: string): string =>
-  readFileSync(path.join(TARSKI, "test262", name), "utf8");
+  readFileSync(path.join(PACKAGE, "test262", name), "utf8");
 
 interface Counts {
   pass: number;
@@ -135,16 +135,16 @@ describe.runIf(process.env.LAKATOS_TARSKI_E2E === "1")(
         [
           "test/pass",
           "--test262",
-          path.join(TARSKI, "Test", "fixtures", "test262"),
+          path.join(PACKAGE, "Test", "fixtures", "test262"),
           "--binary",
-          path.join(TARSKI, "Test", "fixtures", "fake-tarski.sh"),
+          path.join(PACKAGE, "Test", "fixtures", "fake-tarski.sh"),
         ],
         {
           encoding: "utf8",
           env: {
             ...process.env,
             LAKATOS_LEMMA: path.join(
-              path.dirname(path.resolve(TARSKI)),
+              path.dirname(path.resolve(PACKAGE)),
               "lemma",
             ),
           },

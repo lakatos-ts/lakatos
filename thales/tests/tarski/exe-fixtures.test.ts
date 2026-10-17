@@ -31,7 +31,7 @@ import { ensureBinary } from "./helpers/binary.js";
 // `exe-e2e.test.ts` is where the gated command is run.
 const e2e = process.env.LAKATOS_TARSKI_E2E === "1";
 
-const REPO = fileURLToPath(new URL("../..", import.meta.url));
+const REPO = fileURLToPath(new URL("../../..", import.meta.url));
 
 /** The four fixture roots. "Every `@ensures` fixture in the repo" is the
  * issue's phrase, and it is not only thales's. */

@@ -5,7 +5,7 @@ open System (FilePath)
 
 /-! The command line and the run loop over the fake tree, with the fake
 binary in the evaluator's place and this checkout's lemma parsing. Run
-from `tarski/`, after `npm run build` at the repo root. -/
+from `thales/`, after `npm run build` at the repo root. -/
 
 def TREE : FilePath := "Test/fixtures/test262"
 def FAKE : FilePath := "Test/fixtures/fake-tarski.sh"
@@ -14,7 +14,7 @@ def LEMMA : FilePath := "../lemma/dist/cli.js"
 -- These tests read the package's files by relative path.
 #eval show IO Unit from do
   unless ← ("lakefile.lean" : System.FilePath).pathExists do
-    throw (IO.userError "run from tarski/, as lake build TarskiTest does")
+    throw (IO.userError "run from thales/, as lake build Test does")
 
 def expect (what : String) (ok : Bool) : IO Unit :=
   unless ok do throw (IO.userError s!"failed: {what}")

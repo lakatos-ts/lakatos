@@ -16,7 +16,7 @@ interface Expectations {
 
 const read = (name: string): string =>
   readFileSync(
-    fileURLToPath(new URL(`../test262/${name}`, import.meta.url)),
+    fileURLToPath(new URL(`../../test262/${name}`, import.meta.url)),
     "utf8",
   );
 

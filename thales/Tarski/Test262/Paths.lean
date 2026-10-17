@@ -4,11 +4,11 @@ namespace Tarski.Test262
 
 open System (FilePath)
 
-/-- The `tarski/` lake package: the nearest ancestor of `start` that either
-holds a `tarski/lakefile.lean` or is one itself. -/
-partial def findTarskiRoot (start : FilePath) : IO (Option FilePath) := do
+/-- The `thales/` lake package: the nearest ancestor of `start` that either
+holds a `thales/lakefile.lean` or is one itself. -/
+partial def findPackageRoot (start : FilePath) : IO (Option FilePath) := do
   let rec up (dir : FilePath) : IO (Option FilePath) := do
-    for candidate in [dir, dir / "tarski"] do
+    for candidate in [dir, dir / "thales"] do
       if ← (candidate / "lakefile.lean").pathExists then return some candidate
     match dir.parent with
     | some parent => if parent == dir then return none else up parent

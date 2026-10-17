@@ -7,12 +7,12 @@ open System (FilePath)
 /-! A scratch repository with two commits stands in for tc39/test262, so
 the fetch-by-SHA path runs without the network. The pin names the older
 commit, which shows the fetch is by SHA and not a clone of a branch tip.
-Run from `tarski/`. -/
+Run from `thales/`. -/
 
 -- These tests read the package's files by relative path.
 #eval show IO Unit from do
   unless ← ("lakefile.lean" : System.FilePath).pathExists do
-    throw (IO.userError "run from tarski/, as lake build TarskiTest does")
+    throw (IO.userError "run from thales/, as lake build Test does")
 
 def expect (what : String) (ok : Bool) : IO Unit :=
   unless ok do throw (IO.userError s!"failed: {what}")

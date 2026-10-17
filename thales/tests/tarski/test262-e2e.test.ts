@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { spawnSync } from "node:child_process";
 import * as path from "node:path";
-import { BUILD_TIMEOUT_MS, ensureBinary, TARSKI } from "./helpers/binary.js";
+import { BUILD_TIMEOUT_MS, ensureBinary, PACKAGE } from "./helpers/binary.js";
 
 // What ties the fake binary to the real one. The runner's Lean tests run
 // `Test/fixtures/fake-tarski.sh`, whose exit codes and stderr lines
 // transcribe `Tarski/Main.lean`'s contract; this run puts the real binary
 // in its place over the same tree and demands the same table. It needs the
 // Lean toolchain, so it runs under LAKATOS_TARSKI_E2E=1 in `tarski.yml`.
-const REPO = path.dirname(path.resolve(TARSKI));
-const TREE = path.join(TARSKI, "Test", "fixtures", "test262");
-const FAKE = path.join(TARSKI, "Test", "fixtures", "fake-tarski.sh");
+const REPO = path.dirname(path.resolve(PACKAGE));
+const TREE = path.join(PACKAGE, "Test", "fixtures", "test262");
+const FAKE = path.join(PACKAGE, "Test", "fixtures", "fake-tarski.sh");
 
 interface Run {
   status: number | null;
