@@ -14,15 +14,18 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const script = path.join(root, "scripts", "ci-scope.js");
 
-// The script answers as the workflows will read it: one `group=bool`
-// line per group, appended to GITHUB_OUTPUT.
-const select = (
-  workflow: string,
-  paths: string[],
-  ...flags: string[]
-): Record<string, string> =>
+const GROUPS = ["prover", "semantics", "exe", "parity"] as const;
+type Group = (typeof GROUPS)[number];
+
+/** The answer selecting exactly `groups`. */
+const only = (...groups: Group[]): Record<string, string> =>
+  Object.fromEntries(GROUPS.map((g) => [g, String(groups.includes(g))]));
+
+// The script answers as the workflow will read it: one `group=bool` line
+// per group, appended to GITHUB_OUTPUT.
+const select = (paths: string[], ...flags: string[]): Record<string, string> =>
   Object.fromEntries(
-    execFileSync("node", [script, "select", workflow, ...flags], {
+    execFileSync("node", [script, "select", "lean", ...flags], {
       cwd: root,
       encoding: "utf8",
       input: paths.map((p) => `${p}\n`).join(""),
@@ -34,125 +37,116 @@ const select = (
   );
 
 describe("ci-scope select", () => {
-  it("a docs-only diff selects no Lean job in either workflow", () => {
-    const paths = ["README.md", "docs/design/five-tools.md"];
-    expect(select("thales", paths)).toEqual({ lean: "false", parity: "false" });
-    expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
+  it("a docs-only diff selects no Lean job", () => {
+    expect(select(["README.md", "docs/design/five-tools.md"])).toEqual(only());
   });
 
   it("a pabst source change selects only the parity host", () => {
-    const paths = ["pabst/src/cli.ts", "pabst/tests/cli.test.ts"];
-    expect(select("thales", paths)).toEqual({ lean: "false", parity: "true" });
-    expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
+    expect(select(["pabst/src/cli.ts", "pabst/tests/cli.test.ts"])).toEqual(
+      only("parity"),
+    );
   });
 
   it("a pabst fixture also selects the exe fixture suite", () => {
-    const paths = ["pabst/tests/fixtures/e2e/bounded.ts"];
-    expect(select("thales", paths)).toEqual({ lean: "false", parity: "true" });
-    expect(select("tarski", paths)).toEqual({ lean: "false", exe: "true" });
+    expect(select(["pabst/tests/fixtures/e2e/bounded.ts"])).toEqual(
+      only("parity", "exe"),
+    );
   });
 
-  it("a lemma change runs all of thales and the exe suite", () => {
-    const p = "lemma/tests/cli.test.ts";
-    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", [p])).toEqual({ lean: "false", exe: "true" });
+  it("a lemma change runs the prover and the exe suite", () => {
+    expect(select(["lemma/tests/cli.test.ts"])).toEqual(only("prover", "exe"));
   });
 
-  it("a core change runs all of thales and nothing in tarski", () => {
-    const p = "core/src/envelope.ts";
-    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", [p])).toEqual({ lean: "false", exe: "false" });
+  it("a core change runs the prover and nothing of the semantics", () => {
+    expect(select(["core/src/envelope.ts"])).toEqual(only("prover"));
   });
 
   it.each([
     "lemma/src/estree.ts",
     "lemma/schemas/tarski-estree.schema.json",
     "lemma/package.json",
-  ])("a parser bridge change (%s) runs all of tarski too", (p) => {
-    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", [p])).toEqual({ lean: "true", exe: "true" });
+  ])("a parser bridge change (%s) runs the semantics too", (p) => {
+    expect(select([p])).toEqual(only("prover", "semantics", "exe"));
   });
 
-  it("a thales Lean change runs thales and nothing in tarski", () => {
-    const paths = ["thales/ThalesDsl/Emit.lean"];
-    expect(select("thales", paths)).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
-  });
-
-  it("a thales script or suite change runs thales and nothing in tarski", () => {
-    const paths = [
-      "thales/scripts/check-envelopes.js",
-      "thales/tests/cli-bin.test.ts",
-    ];
-    expect(select("thales", paths)).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
+  it.each([
+    "thales/ThalesDsl/Emit.lean",
+    "thales/Thales/Cli.lean",
+    "thales/scripts/check-envelopes.js",
+    "thales/tests/cli-bin.test.ts",
+    "thales/README.md",
+    "thales/CLAUDE.md",
+  ])("a prover-only change (%s) skips the test262 slice", (p) => {
+    expect(select([p])).toEqual(only("prover"));
   });
 
   it.each([
     "thales/tests/fixtures/tracer.ts",
     "thales/tests/conformance/theorem/stacked-blocks.ts",
   ])("a thales fixture (%s) also runs the exe fixture suite", (p) => {
-    expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", [p])).toEqual({ lean: "false", exe: "true" });
+    expect(select([p])).toEqual(only("prover", "exe"));
   });
 
-  it("a tarski change runs both workflows in full", () => {
-    const paths = ["tarski/Tarski/Eval.lean"];
-    expect(select("thales", paths)).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", paths)).toEqual({ lean: "true", exe: "false" });
+  it.each([
+    "thales/Tarski/Eval.lean",
+    "thales/Js/Runtime.lean",
+    "thales/Js.lean",
+    "thales/Test/Tarski/NumberTest.lean",
+    "thales/Test/fixtures/fake-tarski.sh",
+    "thales/tests/tarski/exe-e2e.test.ts",
+    "thales/test262/slice.txt",
+    "thales/scripts/check-imports.sh",
+    "thales/scripts/lean-strip.awk",
+    "thales/lakefile.lean",
+    "thales/lean-toolchain",
+  ])("a semantics change (%s) runs the prover and the slice", (p) => {
+    expect(select([p])).toEqual(only("prover", "semantics"));
   });
 
-  it("a workflow or setup action selects its own workflow only", () => {
-    expect(select("thales", [".github/workflows/tarski.yml"])).toEqual({
-      lean: "false",
-      parity: "false",
-    });
-    expect(select("tarski", [".github/workflows/tarski.yml"])).toEqual({
-      lean: "true",
-      exe: "false",
-    });
-    expect(
-      select("thales", [".github/actions/thales-setup/action.yml"]),
-    ).toEqual({ lean: "true", parity: "false" });
-    expect(select("tarski", [".github/workflows/lakatos.yml"])).toEqual({
-      lean: "false",
-      exe: "false",
-    });
+  it("the workflow and its setup action select both Lean groups", () => {
+    expect(select([".github/workflows/lean.yml"])).toEqual(
+      only("prover", "semantics"),
+    );
+    expect(select([".github/actions/lean-setup/action.yml"])).toEqual(
+      only("prover", "semantics"),
+    );
+    expect(select([".github/workflows/lakatos.yml"])).toEqual(only());
   });
 
   it.each(["package-lock.json", "vitest.config.ts", "scripts/ci-scope.js"])(
-    "a dependency, test config, or selection change (%s) runs everything",
+    "a dependency, test config, or selection change (%s) runs both Lean groups",
     (p) => {
-      expect(select("thales", [p])).toEqual({ lean: "true", parity: "false" });
-      expect(select("tarski", [p])).toEqual({ lean: "true", exe: "false" });
+      expect(select([p])).toEqual(only("prover", "semantics"));
     },
   );
 
   it("a sibling directory sharing a prefix does not select", () => {
-    const paths = ["tests-notes/a.md", "core2/x.ts", "thalesx/a.lean"];
-    expect(select("thales", paths)).toEqual({ lean: "false", parity: "false" });
-    expect(select("tarski", paths)).toEqual({ lean: "false", exe: "false" });
+    expect(
+      select(["tests-notes/a.md", "core2/x.ts", "thalesx/a.lean"]),
+    ).toEqual(only());
+  });
+
+  it("a sibling of a semantics directory is the prover's alone", () => {
+    expect(select(["thales/Tarskix/A.lean", "thales/Jsx.lean"])).toEqual(
+      only("prover"),
+    );
   });
 
   it("--all selects every group whatever the diff", () => {
-    expect(select("thales", [], "--all")).toEqual({
-      lean: "true",
-      parity: "true",
-    });
-    expect(select("tarski", [], "--all")).toEqual({
-      lean: "true",
-      exe: "true",
-    });
+    expect(select([], "--all")).toEqual(
+      only("prover", "semantics", "exe", "parity"),
+    );
   });
 
   it("an empty diff selects nothing", () => {
-    expect(select("thales", [])).toEqual({ lean: "false", parity: "false" });
+    expect(select([])).toEqual(only());
   });
 
   it("an unknown workflow or mode exits 2", () => {
     for (const args of [
-      ["select", "pabst"],
-      ["choose", "thales"],
+      ["select", "thales"],
+      ["select", "tarski"],
+      ["choose", "lean"],
       ["select"],
     ]) {
       const r = spawnSync("node", [script, ...args], {
@@ -186,68 +180,79 @@ type Needs = Record<
   { result: string; outputs?: Record<string, string> }
 >;
 
-const gate = (workflow: string, needs: Needs) =>
-  spawnSync("node", [script, "gate", workflow], {
+const JOBS = [
+  "lean-tests",
+  "test262-slice",
+  "runner-e2e",
+  "verdict-channel",
+  "envelopes",
+  "prove-e2e",
+  "verdict-corpus",
+] as const;
+
+const PROVER_JOBS = [
+  "lean-tests",
+  "verdict-channel",
+  "envelopes",
+  "prove-e2e",
+  "verdict-corpus",
+];
+
+const succeeded = (...jobs: string[]): Record<string, string> =>
+  Object.fromEntries(jobs.map((j) => [j, "success"]));
+
+const needsOf = (
+  selected: Record<string, string>,
+  results: Record<string, string>,
+): Needs => ({
+  changes: { result: "success", outputs: selected },
+  ...Object.fromEntries(
+    JOBS.map((j) => [j, { result: results[j] ?? "skipped" }]),
+  ),
+});
+
+const gate = (needs: Needs) =>
+  spawnSync("node", [script, "gate", "lean"], {
     cwd: root,
     encoding: "utf8",
     input: JSON.stringify(needs),
   });
 
-const thalesNeeds = (
-  selected: { lean: string; parity: string },
-  results: Record<string, string>,
-): Needs => ({
-  changes: { result: "success", outputs: selected },
-  "lean-tests": { result: results["lean-tests"] ?? "skipped" },
-  "verdict-channel": { result: results["verdict-channel"] ?? "skipped" },
-  envelopes: { result: results.envelopes ?? "skipped" },
-  "prove-e2e": { result: results["prove-e2e"] ?? "skipped" },
-  "verdict-corpus": { result: results["verdict-corpus"] ?? "skipped" },
-});
-
-const allThales = {
-  "lean-tests": "success",
-  "verdict-channel": "success",
-  envelopes: "success",
-  "prove-e2e": "success",
-  "verdict-corpus": "success",
-};
-
 describe("ci-scope gate", () => {
   it("passes when everything was selected and succeeded", () => {
     const r = gate(
-      "thales",
-      thalesNeeds({ lean: "true", parity: "false" }, allThales),
+      needsOf(only("prover", "semantics", "exe", "parity"), succeeded(...JOBS)),
     );
     expect(r.status, r.stderr).toBe(0);
   });
 
   it("passes when nothing was selected and everything was skipped", () => {
-    const r = gate(
-      "thales",
-      thalesNeeds({ lean: "false", parity: "false" }, {}),
-    );
+    const r = gate(needsOf(only(), {}));
     expect(r.status, r.stderr).toBe(0);
   });
 
   it("passes when only the parity host was selected and ran", () => {
-    const r = gate(
-      "thales",
-      thalesNeeds(
-        { lean: "false", parity: "true" },
-        { "prove-e2e": "success" },
-      ),
-    );
+    const r = gate(needsOf(only("parity"), succeeded("prove-e2e")));
     expect(r.status, r.stderr).toBe(0);
   });
 
-  it("passes for tarski with only the exe suite selected", () => {
-    const r = gate("tarski", {
-      changes: { result: "success", outputs: { lean: "false", exe: "true" } },
-      "lean-tests": { result: "skipped" },
-      "test262-slice": { result: "skipped" },
-      "runner-e2e": { result: "success" },
-    });
+  it("passes with only the exe suite selected", () => {
+    const r = gate(needsOf(only("exe"), succeeded("runner-e2e")));
+    expect(r.status, r.stderr).toBe(0);
+  });
+
+  it("passes a prover-only run that skipped the slice", () => {
+    const r = gate(needsOf(only("prover"), succeeded(...PROVER_JOBS)));
+    expect(r.status, r.stderr).toBe(0);
+  });
+
+  it("passes a semantics-only run", () => {
+    const r = gate(
+      needsOf(
+        only("semantics"),
+        succeeded("lean-tests", "test262-slice", "runner-e2e"),
+      ),
+    );
     expect(r.status, r.stderr).toBe(0);
   });
 
@@ -255,11 +260,10 @@ describe("ci-scope gate", () => {
     "rejects a selected job that ended in %s, naming it",
     (result) => {
       const r = gate(
-        "thales",
-        thalesNeeds(
-          { lean: "true", parity: "false" },
-          { ...allThales, envelopes: result },
-        ),
+        needsOf(only("prover"), {
+          ...succeeded(...PROVER_JOBS),
+          envelopes: result,
+        }),
       );
       expect(r.status).toBe(1);
       expect(r.stderr).toContain(`envelopes: ${result}, expected success`);
@@ -268,11 +272,10 @@ describe("ci-scope gate", () => {
 
   it("rejects a selected job that was skipped", () => {
     const r = gate(
-      "thales",
-      thalesNeeds(
-        { lean: "true", parity: "false" },
-        { ...allThales, "verdict-corpus": "skipped" },
-      ),
+      needsOf(only("prover"), {
+        ...succeeded(...PROVER_JOBS),
+        "verdict-corpus": "skipped",
+      }),
     );
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("verdict-corpus: skipped, expected success");
@@ -280,47 +283,46 @@ describe("ci-scope gate", () => {
 
   it("rejects an unselected job that ran", () => {
     const r = gate(
-      "thales",
-      thalesNeeds(
-        { lean: "false", parity: "false" },
-        { "lean-tests": "success" },
-      ),
+      needsOf(only("prover"), {
+        ...succeeded(...PROVER_JOBS),
+        "test262-slice": "success",
+      }),
     );
     expect(r.status).toBe(1);
-    expect(r.stderr).toContain("lean-tests: success, expected skipped");
+    expect(r.stderr).toContain("test262-slice: success, expected skipped");
   });
 
   it("rejects a changes job that did not succeed", () => {
-    const needs = thalesNeeds({ lean: "true", parity: "false" }, {});
+    const needs = needsOf(only("prover"), {});
     needs.changes = { result: "failure" };
-    const r = gate("thales", needs);
+    const r = gate(needs);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("changes job did not succeed: failure");
   });
 
   it("rejects a changes job that answered for only some groups", () => {
-    const needs = thalesNeeds({ lean: "true", parity: "false" }, allThales);
-    needs.changes = { result: "success", outputs: { lean: "true" } };
-    const r = gate("thales", needs);
+    const needs = needsOf(only("prover"), succeeded(...PROVER_JOBS));
+    needs.changes = { result: "success", outputs: { prover: "true" } };
+    const r = gate(needs);
     expect(r.status).toBe(1);
-    expect(r.stderr).toContain("no answer for parity");
+    expect(r.stderr).toContain("no answer for semantics");
   });
 
   it("rejects a job the table does not know, and a known job missing", () => {
-    const extra = thalesNeeds({ lean: "true", parity: "false" }, allThales);
+    const extra = needsOf(only("prover"), succeeded(...PROVER_JOBS));
     extra["verdict-channel-4"] = { result: "success" };
-    expect(gate("thales", extra).stderr).toContain(
+    expect(gate(extra).stderr).toContain(
       "verdict-channel-4: not a job this gate knows",
     );
-    const missing = thalesNeeds({ lean: "true", parity: "false" }, allThales);
+    const missing = needsOf(only("prover"), succeeded(...PROVER_JOBS));
     delete missing["prove-e2e"];
-    const r = gate("thales", missing);
+    const r = gate(missing);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("prove-e2e: missing, expected success");
   });
 });
 
-// The workflows feed the script git's own listing, NUL-separated: git
+// The workflow feeds the script git's own listing, NUL-separated: git
 // otherwise C-quotes a path with a non-ASCII byte, and a quoted path
 // matches nothing.
 describe("ci-scope select over git's listing", () => {
@@ -356,9 +358,9 @@ describe("ci-scope select over git's listing", () => {
     }
   };
 
-  const selectFrom = (workflow: string, listing: Buffer) =>
+  const selectFrom = (listing: Buffer) =>
     Object.fromEntries(
-      execFileSync("node", [script, "select", workflow], {
+      execFileSync("node", [script, "select", "lean"], {
         cwd: root,
         encoding: "utf8",
         input: listing,
@@ -369,23 +371,14 @@ describe("ci-scope select over git's listing", () => {
     );
 
   it("an exact-file pattern matches a NUL-terminated path", () => {
-    const listing = diffOf(["package-lock.json"]);
-    expect(selectFrom("thales", listing)).toEqual({
-      lean: "true",
-      parity: "false",
-    });
-    expect(selectFrom("tarski", listing)).toEqual({
-      lean: "true",
-      exe: "false",
-    });
+    expect(selectFrom(diffOf(["package-lock.json"]))).toEqual(
+      only("prover", "semantics"),
+    );
   });
 
   it("a path with a non-ASCII byte still selects", () => {
     const listing = diffOf(["thales/ThalesDsl/café.lean", "docs/über.md"]);
     expect(listing.toString("utf8")).not.toContain('"');
-    expect(selectFrom("thales", listing)).toEqual({
-      lean: "true",
-      parity: "false",
-    });
+    expect(selectFrom(listing)).toEqual(only("prover"));
   });
 });

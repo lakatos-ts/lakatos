@@ -4,11 +4,9 @@ package-lock.json
 # local Claude Code artifacts (globally gitignored, so absent in CI)
 .claude/
 
-# the two Lean packages' build trees and lake-managed manifests
+# the Lean package's build tree and lake-managed manifest
 thales/.lake/
 thales/lake-manifest.json
-tarski/.lake/
-tarski/lake-manifest.json
 
 # hand-curated release notes
 thales/CHANGELOG.md
@@ -25,15 +23,15 @@ lemma/tests/fixtures/
 
 # the evaluator's fixtures: a fake test262 tree and binary for the runner,
 # and the Lean tests' copies of the bridge's goldens
-tarski/Test/fixtures/
-tarski/Test/Tarski/fixtures/
+thales/Test/fixtures/
+thales/Test/Tarski/fixtures/
 
 # the pinned test262 clone: upstream's bytes, and gitignored one directory
 # down, which prettier does not read
-tarski/.test262/
+thales/.test262/
 
 # the test262 runner's generated files, printed by Lean's JSON and
 # Markdown renderers and compared structurally
-tarski/test262/expected.json
-tarski/test262/results.json
-tarski/test262/results.md
+thales/test262/expected.json
+thales/test262/results.json
+thales/test262/results.md

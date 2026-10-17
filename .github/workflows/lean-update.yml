@@ -1,9 +1,8 @@
 name: Lean update
 
-# Weekly check for a new stable Lean release and dependency drift. tarski
-# owns the toolchain pin; thales's lean-toolchain is a symlink to it, and
-# thales is the package the pin has to build. The action handles `lake
-# update` in tarski and never touches the pin: its "latest tagged
+# Weekly check for a new stable Lean release and dependency drift in
+# thales, the one lake package. The action handles `lake update` there
+# and never touches the pin: its "latest tagged
 # release" includes release candidates, and the pin follows stable
 # releases only, so a step of our own resolves the latest stable release.
 # Whatever changed, thales is built before anything is opened: a clean
@@ -31,15 +30,14 @@ jobs:
         uses: actions/checkout@v7
 
       # Dependencies only. The action installs elan, which the steps
-      # below rely on. tarski has no dependencies today, so this is a
+      # below rely on. thales has no dependencies today, so this is a
       # no-op until it gains one; when it does, a dependency that breaks
-      # tarski is the action's own issue, and one that builds tarski
-      # reaches the thales build below through the changed manifest.
+      # the build is the action's own issue.
       - name: Update dependencies
         id: deps
         uses: leanprover-community/lean-update@main
         with:
-          lake_package_directory: tarski
+          lake_package_directory: thales
           update_lean_toolchain: never
           on_update_succeeds: silent
           on_update_fails: issue
@@ -55,21 +53,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           latest="leanprover/lean4:$(gh api repos/leanprover/lean4/releases/latest --jq .tag_name)"
-          current=$(cat tarski/lean-toolchain)
+          current=$(cat thales/lean-toolchain)
           echo "pinned $current, latest stable $latest"
           if [ "$latest" != "$current" ]; then
-            echo "$latest" > tarski/lean-toolchain
-            (cd tarski && lake update)
+            echo "$latest" > thales/lean-toolchain
+            (cd thales && lake update)
           fi
-          if git diff --quiet -- tarski/lean-toolchain tarski/lake-manifest.json; then
+          if git diff --quiet -- thales/lean-toolchain thales/lake-manifest.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
           echo "toolchain=$latest" >> "$GITHUB_OUTPUT"
 
-      # Building thales builds tarski. The tests and the binary are the
-      # targets CI builds beyond the default; a removed constant in a test
+      # The tests are the one target CI builds beyond the default; a removed constant in a test
       # file is as much a break as one in the library.
       - name: Build thales
         id: build
@@ -78,7 +75,7 @@ jobs:
         working-directory: thales
         run: |
           lake build 2>&1 | tee "$RUNNER_TEMP/thales-build.log"
-          lake build ThalesDslTest thales 2>&1 | tee -a "$RUNNER_TEMP/thales-build.log"
+          lake build Test 2>&1 | tee -a "$RUNNER_TEMP/thales-build.log"
 
       - name: Open a pull request
         if: steps.resolve.outputs.changed == 'true' && steps.build.outcome == 'success'
@@ -88,11 +85,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tarski/lean-toolchain tarski/lake-manifest.json
+          git add thales/lean-toolchain thales/lake-manifest.json
           git commit -m "Lean ${TOOLCHAIN#leanprover/lean4:}"
           git push --force origin HEAD:refs/heads/auto-update-lean/patch
           cat > "$RUNNER_TEMP/pr-body.md" <<BODY
-          \`tarski/lean-toolchain\` moves to \`$TOOLCHAIN\`, the latest stable release, and thales builds on it: \`lake build\`, \`ThalesDslTest\`, and \`thales\`.
+          \`thales/lean-toolchain\` moves to \`$TOOLCHAIN\`, the latest stable release, and thales builds on it: \`lake build\` and \`Test\`.
 
           Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
@@ -121,7 +118,7 @@ jobs:
             exit 0
           fi
           {
-            echo "\`$TOOLCHAIN\` is the latest stable release and tarski builds on it, but thales does not, so no pull request was opened."
+            echo "\`$TOOLCHAIN\` is the latest stable release, but thales does not build on it, so no pull request was opened."
             echo
             echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             echo

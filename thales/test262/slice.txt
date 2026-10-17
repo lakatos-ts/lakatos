@@ -1,0 +1,128 @@
+# The PR-gated slice: what `tarski-test262 --slice-file` runs and what
+# `test262/expected.json` pins a row of the table for. The tarski
+# workflow reads this file, so growing the slice is a line here rather
+# than an edit to a workflow command.
+#
+# One path per line, relative to the test262 checkout. A line starting
+# with `#` is a comment and a blank line is skipped; everything else is a
+# directory or a file the runner walks, in the order written.
+
+# The harness itself. It is assembled into every other test, so its own
+# row is the first thing a refusal shows up in.
+test/harness
+
+# The operators the thales emitter maps (#383).
+test/language/expressions/addition
+test/language/expressions/subtraction
+test/language/expressions/multiplication
+test/language/expressions/division
+test/language/expressions/modulus
+test/language/expressions/less-than
+test/language/expressions/greater-than
+test/language/expressions/less-than-or-equal
+test/language/expressions/greater-than-or-equal
+test/language/expressions/strict-equals
+test/language/expressions/strict-does-not-equals
+test/language/expressions/logical-and
+test/language/expressions/logical-or
+test/language/expressions/logical-not
+test/language/expressions/conditional
+test/language/expressions/assignment
+test/language/expressions/unary-minus
+test/language/expressions/unary-plus
+
+# The statements it maps (#383).
+test/language/statements/if
+test/language/statements/let
+test/language/statements/const
+test/language/statements/return
+test/language/statements/throw
+test/language/statements/block
+test/language/statements/variable
+test/language/statements/while
+test/language/statements/for
+
+# The built-ins the library dispatches (#382).
+test/built-ins/Number
+test/built-ins/Math
+test/built-ins/Boolean
+
+# The two global parsers, which are the same library definitions the
+# `Number` members are (#388).
+test/built-ins/parseFloat
+test/built-ins/parseInt
+
+# The classes (#384).
+test/language/statements/class
+test/language/expressions/class
+
+# Declaration instantiation, jumps, and the arguments object (#393). The
+# issue's subject — hoisting, the dead zone, `switch`, labels,
+# `do`/`while`, and `arguments` — plus `try`, `call`, `function-code`,
+# and `block-scope`, which are where the declaration-instantiation and
+# dead-zone tests live.
+test/language/statements/do-while
+test/language/statements/labeled
+test/language/statements/switch
+test/language/statements/break
+test/language/statements/continue
+test/language/statements/empty
+test/language/statements/expression
+test/language/statements/function
+test/language/statements/try
+test/language/expressions/function
+test/language/expressions/arrow-function
+test/language/expressions/call
+test/language/arguments-object
+test/language/function-code
+test/language/block-scope
+
+# The Object and Function built-ins and the property protocol (#389).
+test/built-ins/Object
+test/built-ins/Function
+
+# Template literals and object-literal members (#395). `object/dstr` and
+# `object/method-definition` come with `object` and stay mostly
+# unsupported: patterns are #394's, generators and `async` methods the
+# epic's.
+test/language/expressions/template-literal
+test/language/expressions/tagged-template
+test/language/expressions/object
+
+# Symbols, JSON, and the Error refinements (#392). The issue's `*Error`
+# glob, expanded literally, plus `NativeErrors`, where `TypeError` and
+# the rest of the seven actually live.
+test/built-ins/Symbol
+test/built-ins/JSON
+test/built-ins/Error
+test/built-ins/NativeErrors
+test/built-ins/AggregateError
+test/built-ins/SuppressedError
+test/built-ins/ThrowTypeError
+
+# The String built-ins and the wrapper (#391).
+test/built-ins/String
+
+# Iterators, for-of, spread, and destructuring (#394). Spread has no
+# directory of its own at the pin: its tests are the `spread-*` files
+# under `call` (already here), `new`, `array`, and `super`, which has a
+# block of its own below. The `dstr` subtree of
+# every directory above ratchets with this block.
+test/language/statements/for-of
+test/language/expressions/array
+test/language/expressions/new
+test/built-ins/ArrayIteratorPrototype
+
+# The Array built-ins (#390), the four iterator members #394 added among
+# them. fromAsync is async and not run; the ES2023 members are the
+# follow-up's.
+test/built-ins/Array
+
+# Super calls and super property references (#601), the class
+# directory #384 left out.
+test/language/expressions/super
+
+# The brand check `#x in o` and `delete` of a super reference, with the
+# rest of `in` and `delete` beside them.
+test/language/expressions/in
+test/language/expressions/delete

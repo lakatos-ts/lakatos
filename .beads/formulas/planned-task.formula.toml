@@ -15,7 +15,7 @@ required = true
 id = "plan"
 title = "Plan: {{title}}"
 labels = ["plan"]
-description = "Read GitHub issue #{{issue}} and the current tarski/ code. Write the implementation plan (file layout, module names, test locations, in-issue sequencing) into the implement step's design field with `bd update <implement-id> --design-file`. If the plan hits a design fork the maintainer should see, add a human gate on the implement step. Close when the design is written."
+description = "Read GitHub issue #{{issue}} and the current thales/Js/ and thales/Tarski/ code. Write the implementation plan (file layout, module names, test locations, in-issue sequencing) into the implement step's design field with `bd update <implement-id> --design-file`. If the plan hits a design fork the maintainer should see, add a human gate on the implement step. Close when the design is written."
 
 [[steps]]
 id = "implement"

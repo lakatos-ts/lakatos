@@ -42,7 +42,6 @@ export default defineConfig({
       "lemma/tests/**/*.test.ts",
       "pabst/tests/**/*.test.ts",
       "thales/tests/**/*.test.ts",
-      "tarski/tests/**/*.test.ts",
     ],
     // Absolute so the path is the same whatever cwd a run starts from.
     globalSetup: [

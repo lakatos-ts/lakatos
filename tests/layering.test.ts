@@ -10,31 +10,27 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PACKAGES: { dir: string; forbidden: string[] }[] = [
   {
     dir: "core/src",
-    forbidden: ["src", "lemma", "pabst", "engines", "tarski", "thales"],
+    forbidden: ["src", "lemma", "pabst", "engines", "thales"],
   },
   {
     dir: "lemma/src",
-    forbidden: ["src", "pabst", "engines", "tarski", "thales"],
+    forbidden: ["src", "pabst", "engines", "thales"],
   },
   {
     dir: "lemma/tests",
-    forbidden: ["src", "tests", "core", "pabst", "engines", "tarski", "thales"],
+    forbidden: ["src", "tests", "core", "pabst", "engines", "thales"],
   },
   {
     dir: "pabst/src",
-    forbidden: ["src", "tests", "core", "lemma", "engines", "tarski", "thales"],
+    forbidden: ["src", "tests", "core", "lemma", "engines", "thales"],
   },
   {
     dir: "pabst/tests",
-    forbidden: ["src", "tests", "core", "lemma", "engines", "tarski", "thales"],
+    forbidden: ["src", "tests", "core", "lemma", "engines", "thales"],
   },
   {
     dir: "thales/tests",
-    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "tarski"],
-  },
-  {
-    dir: "tarski/tests",
-    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines", "thales"],
+    forbidden: ["src", "tests", "core", "lemma", "pabst", "engines"],
   },
 ];
 
@@ -136,13 +132,6 @@ describe("import layering", () => {
     expect(existsSync(path.join(root, "engines/pabst"))).toBe(false);
   });
 
-  it("tarski names no workspace package but lemma, its parser bridge", () => {
-    const offenders = tsFiles(path.join(root, "tarski/tests")).filter((f) =>
-      /["']@lakatos\/(?!(?:tarski|lemma)["'])/.test(readFileSync(f, "utf8")),
-    );
-    expect(offenders).toEqual([]);
-  });
-
   it("thales's suites name no workspace package but core and lemma", () => {
     const offenders = tsFiles(path.join(root, "thales/tests")).filter((f) =>
       /["']@lakatos\/(?!core[/"']|lemma["'])/.test(readFileSync(f, "utf8")),
@@ -154,7 +143,14 @@ describe("import layering", () => {
   // TypeScript packages and the root holds no sources of its own.
   it("the workspace is core, lemma, and pabst, with no thales or tarski package", () => {
     expect(existsSync(path.join(root, "thales/package.json"))).toBe(false);
-    expect(existsSync(path.join(root, "tarski/package.json"))).toBe(false);
+    // tarski's Lean lives in the thales lake package now. Asked of git, so
+    // a checkout's ignored leftovers under tarski/ do not fail it.
+    expect(
+      execFileSync("git", ["ls-files", "tarski"], {
+        cwd: root,
+        encoding: "utf8",
+      }),
+    ).toBe("");
     const rootPkg = JSON.parse(
       readFileSync(path.join(root, "package.json"), "utf8"),
     ) as { workspaces: string[] };

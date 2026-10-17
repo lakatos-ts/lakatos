@@ -2393,7 +2393,7 @@ type TStmt =
     }
   | { t: "opaque"; failure: FailedDecl };
 
-/** The `ErrorKind`s of `tarski/Tarski/Value.lean`, in that declaration's
+/** The `ErrorKind`s of `thales/Tarski/Value.lean`, in that declaration's
  * order; `AggregateError` is absent there too. The check is on the spelling
  * the source wrote, not on what the name resolves to. */
 const ERROR_KINDS: ReadonlySet<string> = new Set([
