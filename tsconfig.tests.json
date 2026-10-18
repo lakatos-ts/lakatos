@@ -15,7 +15,6 @@
     "core/tests",
     "lemma/tests",
     "pabst/tests",
-    "thales/tests",
-    "tarski/tests"
+    "thales/tests"
   ]
 }

@@ -15,7 +15,7 @@ const fixture = (name: string): string =>
 const read = (name: string): string => readFileSync(fixture(name), "utf8");
 
 // The goldens are the seam itself, not a convenience: the Lean decoder is
-// written to the same schema, and `tarski/Test/Tarski/fixtures/` holds a
+// written to the same schema, and `thales/Test/Tarski/fixtures/` holds a
 // copy of numeric-loop's that the binary is run on in CI. A diff here is
 // a change to the contract between the two languages.
 const FIXTURES = [
@@ -1850,7 +1850,7 @@ describe("the schema as the seam", () => {
   });
 
   // These are the shapes a broken producer sends. The Lean decoder
-  // refuses each of them too — `tarski/Test/Tarski/DecodeTest.lean` is the
+  // refuses each of them too — `thales/Test/Tarski/DecodeTest.lean` is the
   // other half — but the schema is what says the document is off-contract
   // before anyone decodes it.
   const rejected: [string, unknown][] = [
