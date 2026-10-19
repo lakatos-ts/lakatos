@@ -88,7 +88,7 @@ def elabProp (stx : TSyntax `term) : Elab.Term.TermElabM Expr := do
   let some (.proved proof) ← attemptOracle ⟨"c.ts", "g", "q"⟩ p
       (← `((none : Option (List WitnessValue)))) [] | return false
   let some v ← admitHeldProof ⟨"c.ts", "g", "q"⟩ p proof | return false
-  return v.szs == .Theorem && v.axioms == some #[``Lean.ofReduceBool]
+  return v.szs == .Theorem && v.axioms == some #[nativeAxiom]
 
 -- The oracle's witness is searched compiled: a witness at the far end of
 -- a wide range costs what the scan costs, not one whnf step per element.
@@ -123,3 +123,12 @@ noncomputable opaque noImpl : Option (List WitnessValue)
   let some (.refuted v) ← attemptOracle ⟨"c.ts", "f", "p"⟩ p
       (← `((noImpl : Option (List ThalesDsl.WitnessValue)))) ["n"] | return false
   return v.szs == .GaveUp && v.counterexample.isNone
+
+-- A false proposition the kernel rejected is read back as falsity, whatever
+-- shape the reduced instance takes.
+/-- info: true -/
+#guard_msgs in
+#eval show Elab.Term.TermElabM Bool from do
+  let p ← Elab.Term.elabTerm (← `((3 : Nat) < 2)) (some (mkSort .zero))
+  let v ← diagnoseDecideFailure ⟨"c.ts", "f", "p"⟩ p [] (← `(none))
+  return v.any (·.reason == "the property is false on its bounded domain")
