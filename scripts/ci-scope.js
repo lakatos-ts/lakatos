@@ -26,13 +26,11 @@ const SHARED = [
 const WORKFLOWS = {
   lean: {
     groups: {
-      // The prover builds on the semantics and imports core and lemma; its
-      // suites and the repository-wide checks live under tests/.
+      // The prover builds on the semantics and imports core and lemma.
       prover: [
         "thales/",
         "core/",
         "lemma/",
-        "tests/",
         ".github/workflows/lean.yml",
         ".github/actions/lean-setup/",
         ...SHARED,
@@ -76,14 +74,12 @@ const WORKFLOWS = {
         "thales/tests/conformance/",
         "pabst/tests/fixtures/",
       ],
-      // The parity suite runs refute beside prove.
-      parity: ["pabst/"],
     },
     jobs: {
       "lean-tests": ["prover", "semantics"],
       "verdict-channel": ["prover"],
       envelopes: ["prover"],
-      "prove-e2e": ["prover", "parity"],
+      "prove-e2e": ["prover"],
       "verdict-corpus": ["prover"],
       "test262-slice": ["semantics"],
       "runner-e2e": ["semantics", "exe"],

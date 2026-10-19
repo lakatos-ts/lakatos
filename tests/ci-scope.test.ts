@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const script = path.join(root, "scripts", "ci-scope.js");
 
-const GROUPS = ["prover", "semantics", "exe", "parity"] as const;
+const GROUPS = ["prover", "semantics", "exe"] as const;
 type Group = (typeof GROUPS)[number];
 
 /** The answer selecting exactly `groups`. */
@@ -41,15 +41,15 @@ describe("ci-scope select", () => {
     expect(select(["README.md", "docs/design/five-tools.md"])).toEqual(only());
   });
 
-  it("a pabst source change selects only the parity host", () => {
+  it("a pabst source change selects no Lean job", () => {
     expect(select(["pabst/src/cli.ts", "pabst/tests/cli.test.ts"])).toEqual(
-      only("parity"),
+      only(),
     );
   });
 
-  it("a pabst fixture also selects the exe fixture suite", () => {
+  it("a pabst fixture selects the exe fixture suite", () => {
     expect(select(["pabst/tests/fixtures/e2e/bounded.ts"])).toEqual(
-      only("parity", "exe"),
+      only("exe"),
     );
   });
 
@@ -133,9 +133,7 @@ describe("ci-scope select", () => {
   });
 
   it("--all selects every group whatever the diff", () => {
-    expect(select([], "--all")).toEqual(
-      only("prover", "semantics", "exe", "parity"),
-    );
+    expect(select([], "--all")).toEqual(only("prover", "semantics", "exe"));
   });
 
   it("an empty diff selects nothing", () => {
@@ -221,18 +219,13 @@ const gate = (needs: Needs) =>
 describe("ci-scope gate", () => {
   it("passes when everything was selected and succeeded", () => {
     const r = gate(
-      needsOf(only("prover", "semantics", "exe", "parity"), succeeded(...JOBS)),
+      needsOf(only("prover", "semantics", "exe"), succeeded(...JOBS)),
     );
     expect(r.status, r.stderr).toBe(0);
   });
 
   it("passes when nothing was selected and everything was skipped", () => {
     const r = gate(needsOf(only(), {}));
-    expect(r.status, r.stderr).toBe(0);
-  });
-
-  it("passes when only the parity host was selected and ran", () => {
-    const r = gate(needsOf(only("parity"), succeeded("prove-e2e")));
     expect(r.status, r.stderr).toBe(0);
   });
 

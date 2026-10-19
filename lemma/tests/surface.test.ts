@@ -3,7 +3,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const REPO = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+);
 
 /** Everything outside lemma/ — lemma's own tests may reach for internals. */
 const TREES = ["tests", "pabst/src", "pabst/tests", "thales/tests"];
