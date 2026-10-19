@@ -7,7 +7,6 @@ on:
       - "core/**"
       - "spec/**"
       - "tests/**"
-      - "parity/**"
       - "lemma/**"
       - "pabst/**"
       - "thales/tests/**"

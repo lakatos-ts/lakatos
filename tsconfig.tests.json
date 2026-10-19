@@ -12,7 +12,6 @@
     "lemma/src",
     "pabst/src",
     "tests",
-    "parity",
     "core/tests",
     "lemma/tests",
     "pabst/tests",

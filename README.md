@@ -176,9 +176,7 @@ One repository, an npm workspace of [`core/`](core/), [`lemma/`](lemma/),
 and [`pabst/`](pabst/), beside [`thales/`](thales/), the one Lean package, holding thales and
 tarski. The root is private: it builds, typechecks, tests,
 and formats every TypeScript package, runs thales's suites and check
-scripts, and holds CI. Each package carries its own checks; the
-prove-and-refute parity suite in `parity/` runs on a schedule, never as a
-required check.
+scripts, and holds CI. Each package carries its own checks.
 
 ## License
 
