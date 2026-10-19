@@ -9,10 +9,16 @@ import { schemaValidator } from "./helpers/schema-validator.js";
 // tests under `Test/ThalesEmit/` render. The emitter's unit tests are
 // lemma's; these pin what thales consumes, through lemma's barrel.
 
+/** lemma ships its schemas beside its entry point. */
+const lemmaSchemas = new URL(
+  "../schemas/",
+  import.meta.resolve("@lakatos/lemma"),
+);
+
 const expectValidEmission = schemaValidator(
-  new URL("../../lemma/schemas/thales-emission.schema.json", import.meta.url),
+  new URL("thales-emission.schema.json", lemmaSchemas),
   "emission",
-  [new URL("../../lemma/schemas/tarski-estree.schema.json", import.meta.url)],
+  [new URL("tarski-estree.schema.json", lemmaSchemas)],
 );
 
 /** The emission lemma documents `file` with, as thales writes it. */

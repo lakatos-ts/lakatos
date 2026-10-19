@@ -15,7 +15,6 @@ import {
   canonical,
   checker,
   engineRoot,
-  lemmaDir,
   repoRoot,
   thalesBinary,
 } from "./harness.js";
@@ -405,7 +404,7 @@ for (const fixture of fixtures) {
   const r = spawnSync(bin, [file], {
     cwd: dir,
     encoding: "utf8",
-    env: { ...process.env, LAKATOS_LEMMA: lemmaDir },
+    env: process.env,
     timeout: 600_000 + 300_000 + 120_000 * 20,
     maxBuffer: 64 * 1024 * 1024,
   });

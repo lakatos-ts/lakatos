@@ -19,13 +19,19 @@ import { BUILD_TIMEOUT_MS, ensureBinary } from "./helpers/binary.js";
 // executable that replaced `thales-exe`. It needs the Lean toolchain, so
 // it runs under LAKATOS_TARSKI_E2E=1 in `lean.yml` and skips elsewhere.
 //
-// lemma is this checkout's, through LAKATOS_LEMMA, except in the resolver
+// lemma is the one LAKATOS_LEMMA names, else the pinned release, except in the resolver
 // cases, which put a fake `npm` on PATH and a scratch HOME under the
 // binary to watch the pinned release be installed and reused.
 const e2e = process.env.LAKATOS_TARSKI_E2E === "1";
 
-const REPO = fileURLToPath(new URL("../../..", import.meta.url));
-const LEMMA = path.join(REPO, "lemma");
+/** A built lemma checkout, which `lean.yml` always names. */
+/** A built lemma: the checkout LAKATOS_LEMMA names, else the installed
+ * package (its entry point sits one directory under the package). */
+const LEMMA =
+  process.env.LAKATOS_LEMMA ||
+  path.dirname(
+    path.dirname(fileURLToPath(import.meta.resolve("@lakatos/lemma"))),
+  );
 
 /** The first case may pay for one `lake build tarski`. */
 const FIRST_TIMEOUT_MS = BUILD_TIMEOUT_MS + 60_000;
@@ -47,7 +53,7 @@ interface Run {
 function tarski(
   cwd: string,
   args: string[],
-  env: NodeJS.ProcessEnv = { ...process.env, LAKATOS_LEMMA: LEMMA },
+  env: NodeJS.ProcessEnv = process.env,
 ): Run {
   const r = spawnSync(binary, args, { cwd, env, encoding: "utf8" });
   return { code: r.status, stdout: r.stdout, stderr: r.stderr };

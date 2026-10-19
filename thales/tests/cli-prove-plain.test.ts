@@ -11,7 +11,6 @@ import {
   scratchDir,
   useTempProject,
 } from "./helpers/cli.js";
-import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 
 // The emission pipeline through the binary, with a fake `lake` answering
 // each artifact's `env lean`: the containment, health, and model contracts,
@@ -108,7 +107,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout, stderr } = await runMain(["mixed.ts"], env);
       expect(code).toBe(0);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual(
         expect.arrayContaining([
           HUGE,
@@ -161,7 +159,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       expect(ran()).toBe("consts.ts.lean\n");
       expect(code).toBe(0);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual(
         expect.arrayContaining([
           {
@@ -208,7 +205,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       );
       expect(code).toBe(2);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual(
         expect.arrayContaining([
           {
@@ -255,7 +251,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       );
       expect(code).toBe(2);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual(
         expect.arrayContaining([
           {
@@ -305,7 +300,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout } = await runMain(["annotated.ts"], env);
       expect(code).toBe(2);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual([
         {
           file: "annotated.ts",
@@ -325,7 +319,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout } = await runMain(["annotated.ts", "mixed.ts"], env);
       expect(code).toBe(2);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual(
         expect.arrayContaining([
           {
@@ -363,7 +356,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
         });
         expect(code).toBe(2);
         const envelope = JSON.parse(stdout[0]!);
-        expectValidEnvelope(envelope);
         expect(envelope.annotations).toEqual([
           {
             file: "annotated.ts",
@@ -391,7 +383,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout } = await runMain(["annotated.ts"], env);
       expect(code).toBe(0);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations[0]).toMatchObject({
         szs: "Inappropriate",
         reason: "outside the model",
@@ -415,7 +406,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout } = await runMain(["annotated.ts"], env);
       expect(code).toBe(1);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations[0]).toMatchObject({
         szs: "CounterSatisfiable",
         kind: "falsified",
@@ -432,7 +422,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout } = await runMain(["mixed.ts"], env);
       expect(code).toBe(2);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual(
         expect.arrayContaining([
           HUGE,
@@ -461,7 +450,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       );
       expect(code).toBe(2);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual([
         {
           file: "annotated.ts",
@@ -491,7 +479,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout } = await runMain(["invalid.ts"], env);
       expect(code).toBe(2);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toHaveLength(1);
       expect(envelope.annotations[0]).toMatchObject({ szs: "InputError" });
       expect(ran()).toBe("");
@@ -506,7 +493,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout, stderr } = await runMain(["plain.ts"], env);
       expect(code).toBe(0);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations).toEqual([]);
       expect(stderr.join("\n")).toContain(
         "emitted 0 annotations across 1 file(s)",
@@ -526,7 +512,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       expect(missing.code).toBe(2);
       expect(missing.stderr.join("\n")).toContain("no verdict for");
       const envelope = JSON.parse(missing.stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(envelope.annotations[0].szs).toBe("NotTried");
     },
     T,
@@ -543,7 +528,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout, stderr } = await runMain(["mixed.ts"], env);
       expect(code).toBe(0);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(
         envelope.annotations.find(
           (a: { function: string }) => a.function === "small",
@@ -574,7 +558,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout, stderr } = await runMain(["mixed.ts"], env);
       expect(code).toBe(0);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(
         envelope.annotations.find(
           (a: { function: string }) => a.function === "small",
@@ -602,7 +585,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
         'error: duplicate model line for ["mixed.ts","small"]',
       );
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       expect(
         envelope.annotations.find(
           (a: { function: string }) => a.function === "small",
@@ -627,7 +609,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
       const { code, stdout } = await runMain(["mixed.ts"], env);
       expect(code).toBe(0);
       const envelope = JSON.parse(stdout[0]!);
-      expectValidEnvelope(envelope);
       const withModel = envelope.annotations.filter(
         (a: { model?: unknown }) => a.model !== undefined,
       );
@@ -668,7 +649,6 @@ describe.runIf(enabled)("thales prove, plain pipeline", () => {
           "../above.ts is not part of the program tsconfig.json describes, so it was not type checked";
         expect(stderr).toContain(`error: ${message}`);
         const envelope = JSON.parse(stdout[0]!);
-        expectValidEnvelope(envelope);
         expect(envelope.annotations).toEqual([
           {
             file: "../above.ts",

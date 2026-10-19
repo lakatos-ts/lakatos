@@ -84,15 +84,7 @@ describe.runIf(enabled)("thales end-to-end (tracer)", () => {
     // The class-binder flagship (Point#distance non-negativity), pinned at
     // today's honest refusal; class modeling landing flips this to Theorem.
     fs.copyFileSync(
-      path.join(
-        repoRoot,
-        "lemma",
-        "spec",
-        "fixtures",
-        "binder",
-        "accept",
-        "class-binder.ts",
-      ),
+      path.join(repoRoot, "thales", "tests", "fixtures", "class-binder.ts"),
       path.join(dir, "point.ts"),
     );
   });

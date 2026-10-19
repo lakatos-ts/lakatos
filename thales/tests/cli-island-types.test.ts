@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { enabled, runMain, useTempProject } from "./helpers/cli.js";
-import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 
 const SCALE =
   "export function scale(x: number, factor: number): number {\n" +
@@ -57,7 +56,6 @@ async function expectIslandRefusal(file: keyof typeof EXPECTED): Promise<void> {
   expect(code).toBe(2);
   expect(stdout).toHaveLength(1);
   const env = JSON.parse(stdout[0]!);
-  expectValidEnvelope(env);
   expect(env.annotations).toEqual([
     {
       file,

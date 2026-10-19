@@ -27,10 +27,6 @@ export function thalesBinary() {
   return path.join(engineRoot, ".lake", "build", "bin", "thales");
 }
 
-/** This checkout's lemma, built by the root build; the binary reaches it
- * through LAKATOS_LEMMA. */
-export const lemmaDir = path.join(repoRoot, "lemma");
-
 /** JSON text with every object's keys sorted, at every depth: equality
  * of envelopes is equality of values, never of key order. */
 export function canonical(value) {
