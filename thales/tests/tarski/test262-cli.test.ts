@@ -141,13 +141,7 @@ describe.runIf(process.env.LAKATOS_TARSKI_E2E === "1")(
         ],
         {
           encoding: "utf8",
-          env: {
-            ...process.env,
-            LAKATOS_LEMMA: path.join(
-              path.dirname(path.resolve(PACKAGE)),
-              "lemma",
-            ),
-          },
+          env: process.env,
         },
       );
       expect(r.status, r.stderr).toBe(0);

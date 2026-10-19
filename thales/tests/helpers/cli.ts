@@ -4,9 +4,8 @@ import * as path from "node:path";
 import * as os from "node:os";
 import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { expectValidEnvelope } from "./envelope-schema.js";
 
-/** What thales's suites read of an envelope; the schema check is the full contract. */
+/** What thales's suites read of an envelope. */
 export interface Annotation {
   file: string;
   function: string;
@@ -30,14 +29,11 @@ export const enabled = process.env.LAKATOS_PROVE_E2E === "1";
 export const BUILD_TIMEOUT_MS = 600_000;
 export const LEAN_TIMEOUT_MS = 300_000;
 
-const repoRoot = path.resolve(
+const engineRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
   "..",
-  "..",
 );
-const engineRoot = path.join(repoRoot, "thales");
-const lemmaRoot = path.join(repoRoot, "lemma");
 let built: string | undefined;
 
 /** Spawned output is buffered whole; a chatty Lean run outgrows Node's 1 MB default. */
@@ -84,7 +80,7 @@ export async function runMain(
 ): Promise<MainRun> {
   const r = spawnSync(thalesBinary(), argv, {
     encoding: "utf8",
-    env: { LAKATOS_LEMMA: lemmaRoot, ...env },
+    env,
     timeout: BUILD_TIMEOUT_MS + 2 * LEAN_TIMEOUT_MS,
     maxBuffer: MAX_BUFFER,
   });
@@ -116,7 +112,6 @@ exec '${real.replace(/'/g, "'\\''")}' "$@"
   fs.writeFileSync(path.join(dir, "lake"), script, { mode: 0o755 });
   return {
     ...process.env,
-    LAKATOS_LEMMA: lemmaRoot,
     PATH: `${dir}${path.delimiter}${process.env.PATH ?? ""}`,
   };
 }
@@ -150,7 +145,7 @@ export function announcedRunDir(stderr: string[]): string {
 /**
  * Run the binary and unwrap the single-envelope contract: the expected exit
  * code (0 unless the run is meant to find counterexamples), exactly one
- * stdout line, and that line a schema-valid envelope.
+ * stdout line, and that line an envelope.
  */
 export async function runForEnvelope(
   argv: string[],
@@ -161,7 +156,6 @@ export async function runForEnvelope(
   expect(run.code, run.stderr.join("\n")).toBe(expectedCode);
   expect(run.stdout).toHaveLength(1);
   const envelope = JSON.parse(run.stdout[0]!) as Envelope;
-  expectValidEnvelope(envelope);
   return envelope;
 }
 

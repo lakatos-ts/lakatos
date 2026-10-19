@@ -12,7 +12,6 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import { BUILD_TIMEOUT_MS, ensureBinary } from "./helpers/binary.js";
 
 // `tarski <file.ts>` against the real binary and the real lemma: the Lean
@@ -24,8 +23,8 @@ import { BUILD_TIMEOUT_MS, ensureBinary } from "./helpers/binary.js";
 // binary to watch the pinned release be installed and reused.
 const e2e = process.env.LAKATOS_TARSKI_E2E === "1";
 
-const REPO = fileURLToPath(new URL("../../..", import.meta.url));
-const LEMMA = path.join(REPO, "lemma");
+/** A built lemma checkout, which `lean.yml` always names. */
+const LEMMA = process.env.LAKATOS_LEMMA ?? "";
 
 /** The first case may pay for one `lake build tarski`. */
 const FIRST_TIMEOUT_MS = BUILD_TIMEOUT_MS + 60_000;
@@ -47,7 +46,7 @@ interface Run {
 function tarski(
   cwd: string,
   args: string[],
-  env: NodeJS.ProcessEnv = { ...process.env, LAKATOS_LEMMA: LEMMA },
+  env: NodeJS.ProcessEnv = process.env,
 ): Run {
   const r = spawnSync(binary, args, { cwd, env, encoding: "utf8" });
   return { code: r.status, stdout: r.stdout, stderr: r.stderr };
@@ -76,6 +75,7 @@ beforeAll(() => {
   const built = ensureBinary();
   expect(built.kind, JSON.stringify(built)).toBe("ready");
   if (built.kind === "ready") binary = built.binary;
+  expect(LEMMA, "set LAKATOS_LEMMA to a built lemma").not.toBe("");
   expect(existsSync(path.join(LEMMA, "dist", "cli.js"))).toBe(true);
 }, FIRST_TIMEOUT_MS);
 

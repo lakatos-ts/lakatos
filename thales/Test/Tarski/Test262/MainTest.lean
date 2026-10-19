@@ -4,12 +4,22 @@ open Tarski.Test262
 open System (FilePath)
 
 /-! The command line and the run loop over the fake tree, with the fake
-binary in the evaluator's place and this checkout's lemma parsing. Run
-from `thales/`, after `npm run build` at the repo root. -/
+binary in the evaluator's place and a built lemma, named by
+`LAKATOS_LEMMA`, parsing. Run from `thales/`. -/
 
 def TREE : FilePath := "Test/fixtures/test262"
 def FAKE : FilePath := "Test/fixtures/fake-tarski.sh"
-def LEMMA : FilePath := "../lemma/dist/cli.js"
+
+/-- The bin of the lemma checkout `LAKATOS_LEMMA` names. -/
+def lemmaBin : IO (Except String FilePath) := do
+  match (← IO.getEnv "LAKATOS_LEMMA").filter (· ≠ "") with
+  | none => return .error "set LAKATOS_LEMMA to a built lemma checkout"
+  | some dir =>
+    let cwd ← IO.currentDir
+    let pkg : FilePath := if (dir : FilePath).isAbsolute then dir else cwd / dir
+    let bin := pkg / "dist" / "cli.js"
+    if ← bin.pathExists then return .ok bin
+    else return .error s!"no lemma at {bin}: build it first"
 
 -- These tests read the package's files by relative path.
 #eval show IO Unit from do
@@ -28,9 +38,7 @@ structure Ran where
 
 /-- `cli` with both streams captured, the way a person reads them. -/
 def invokeWith (argv : List String) (checkoutEnv : Option String := none)
-    (lemma : IO (Except String FilePath) := do
-      if ← LEMMA.pathExists then return .ok ((← IO.currentDir) / LEMMA)
-      else return .error s!"no lemma at {LEMMA}: run npm run build at the repo root") : IO Ran := do
+    (lemma : IO (Except String FilePath) := lemmaBin) : IO Ran := do
   let out ← IO.mkRef (#[] : Array String)
   let err ← IO.mkRef (#[] : Array String)
   let status ← cli argv { root := ← IO.currentDir, checkoutEnv, lemma, jobs := pure 4,

@@ -1,29 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 
-const REPO = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
+const spec = readFileSync(
+  new URL("../spec/semantics.md", import.meta.url),
+  "utf8",
 );
-
-const SPEC = path.join(REPO, "lemma", "spec", "semantics.md");
-const spec = readFileSync(SPEC, "utf8");
-const readme = readFileSync(path.join(REPO, "README.md"), "utf8");
 
 const HEADING = "### What a Theorem rests on";
 
-/** GitHub's slug for a heading: lower-case, spaces to hyphens, drop the rest. */
-function slug(heading: string): string {
-  return heading
-    .replace(/^#+\s*/, "")
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
+/** The published conformance table, in the thales repository. */
+const RESULTS =
+  "https://github.com/lakatos-ts/thales/blob/main/test262/results.md";
 
 /** From a heading to the next heading at the same level or above, or to EOF. */
 function section(text: string, heading: string, stop: RegExp): string {
@@ -52,17 +39,11 @@ describe("the trust section", () => {
 
   it("links the committed test262 results table", () => {
     const targets = [...trust.matchAll(/\]\(([^)]+)\)/g)].map(([, t]) => t!);
-    const resolved = targets.map((t) => path.resolve(REPO, "lemma", "spec", t));
-    for (const [i, file] of resolved.entries()) {
-      expect(existsSync(file), `${targets[i]} does not resolve to a file`).toBe(
-        true,
-      );
-    }
     expect(
-      resolved,
-      "the section must link thales/test262/results.md; if the table moved, " +
-        "repoint this link (and thales/CLAUDE.md's note about it)",
-    ).toContain(path.join(REPO, "thales", "test262", "results.md"));
+      targets,
+      "the section must link thales's results table; if it moved, repoint " +
+        "this link (and thales/CLAUDE.md's note about it)",
+    ).toContain(RESULTS);
   });
 
   it("states the two limits", () => {
@@ -97,12 +78,5 @@ describe("the trust section", () => {
     expect(
       section(spec, "### Islands (host expressions)", /^#{2,3} /m),
     ).toMatch(/What a Theorem rests on\* below/);
-  });
-});
-
-describe("the README", () => {
-  it("points at the trust section from its architecture section", () => {
-    const architecture = section(readme, "## Architecture", /^## /m);
-    expect(architecture).toContain(`lemma/spec/semantics.md#${slug(HEADING)}`);
   });
 });

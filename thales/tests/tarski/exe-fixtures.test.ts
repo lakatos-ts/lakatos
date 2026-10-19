@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import { parseScript, stripTypes } from "@lakatos/lemma";
 import { ensureBinary } from "./helpers/binary.js";
 
-// Every `@ensures` fixture in the repo, run on the tarski evaluator and
+// Every `@ensures` fixture in this package, run on the tarski evaluator and
 // under Node, with the two compared. This is what says the evaluator is an
 // evaluator rather than a plausible-looking one: the same programs
 // `thales` proves theorems about, executed, with an engine as the
@@ -31,16 +31,10 @@ import { ensureBinary } from "./helpers/binary.js";
 // `exe-e2e.test.ts` is where the gated command is run.
 const e2e = process.env.LAKATOS_TARSKI_E2E === "1";
 
-const REPO = fileURLToPath(new URL("../../..", import.meta.url));
+const PACKAGE = fileURLToPath(new URL("../..", import.meta.url));
 
-/** The four fixture roots. "Every `@ensures` fixture in the repo" is the
- * issue's phrase, and it is not only thales's. */
-const ROOTS = [
-  "thales/tests/fixtures",
-  "thales/tests/conformance",
-  "pabst/tests/fixtures",
-  "lemma/spec/fixtures",
-];
+/** The two fixture roots. */
+const ROOTS = ["tests/fixtures", "tests/conformance"];
 
 function walk(dir: string, out: string[]): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -56,13 +50,13 @@ function walk(dir: string, out: string[]): string[] {
   return out;
 }
 
-/** The corpus, as repo-relative posix paths, sorted. */
+/** The corpus, as package-relative posix paths, sorted. */
 function corpus(): string[] {
   const files: string[] = [];
-  for (const root of ROOTS) walk(path.join(REPO, root), files);
+  for (const root of ROOTS) walk(path.join(PACKAGE, root), files);
   return files
     .filter((f) => readFileSync(f, "utf8").includes("@ensures"))
-    .map((f) => path.relative(REPO, f).split(path.sep).join("/"))
+    .map((f) => path.relative(PACKAGE, f).split(path.sep).join("/"))
     .sort();
 }
 
@@ -71,45 +65,22 @@ function corpus(): string[] {
  * Measured, not predicted: a row that moves is either a slice that landed
  * or a regression, and either way it belongs in a diff.
  *
- * Seventeen of the corpus's two hundred and eighty. The eight
- * `ImportDeclaration` rows are the multi-file fixtures, which the evaluator
- * refuses by design — it resolves no module graph. The rest is syntax
- * outside the evaluated fragment: BigInt, a regular expression, `&`,
- * `??`, a computed *class* key, an `async` function, and an
- * `export default class` with no name, which is a class declaration with
- * no `id` once the module syntax is off it. The four fixtures refused
- * for a template literal left this map when #395 landed, the one
- * `Parameter` row — a rest constructor parameter — left it when #394
- * did, and the private-getter row left it when private methods and
- * accessors did.
+ * Nine of the corpus's hundred and ninety-one. The six `ImportDeclaration`
+ * rows are the multi-file fixtures, which the evaluator refuses by design —
+ * it resolves no module graph. The rest is syntax outside the evaluated
+ * fragment: an `async` function and `&`.
  */
 const UNSUPPORTED: Record<string, string> = {
-  "pabst/tests/fixtures/e2e/bounded.ts": "BigIntLiteral",
-  "pabst/tests/fixtures/e2e/readme-example.ts": "BigIntLiteral",
-  "pabst/tests/fixtures/e2e/regex-guard.ts": "RegularExpressionLiteral",
-  "thales/tests/conformance/inappropriate/await-remote.ts":
+  "tests/conformance/inappropriate/await-remote.ts":
     "FunctionDeclaration async",
-  "thales/tests/conformance/inappropriate/bare-import/main.ts":
-    "ImportDeclaration",
-  "thales/tests/conformance/inappropriate/import-cycle/main.ts":
-    "ImportDeclaration",
-  "thales/tests/conformance/inappropriate/unmodeled-operator.ts":
-    "BinaryExpression &",
-  "thales/tests/conformance/theorem/aliased-export/main.ts":
-    "ImportDeclaration",
-  "thales/tests/conformance/theorem/barrel-import/main.ts": "ImportDeclaration",
-  "thales/tests/conformance/theorem/imported-constants/main.ts":
-    "ImportDeclaration",
-  "thales/tests/conformance/theorem/imported-scale/main.ts":
-    "ImportDeclaration",
-  "thales/tests/fixtures/tracer.ts": "FunctionDeclaration async",
-  "lemma/spec/fixtures/attach/reject/anonymous-class.ts": "ClassDeclaration",
-  "lemma/spec/fixtures/attach/reject/computed-name.ts": "ComputedPropertyName",
-  "lemma/spec/fixtures/binder/reject/ctor-param-optional.ts":
-    "LogicalExpression ??",
-  "lemma/spec/fixtures/island/accept/reexported-import.ts": "ImportDeclaration",
-  "lemma/spec/fixtures/island/reject/imported-not-reexported.ts":
-    "ImportDeclaration",
+  "tests/conformance/inappropriate/bare-import/main.ts": "ImportDeclaration",
+  "tests/conformance/inappropriate/import-cycle/main.ts": "ImportDeclaration",
+  "tests/conformance/inappropriate/unmodeled-operator.ts": "BinaryExpression &",
+  "tests/conformance/theorem/aliased-export/main.ts": "ImportDeclaration",
+  "tests/conformance/theorem/barrel-import/main.ts": "ImportDeclaration",
+  "tests/conformance/theorem/imported-constants/main.ts": "ImportDeclaration",
+  "tests/conformance/theorem/imported-scale/main.ts": "ImportDeclaration",
+  "tests/fixtures/tracer.ts": "FunctionDeclaration async",
 };
 
 /**
@@ -121,7 +92,7 @@ const DISAGREES: Record<string, string> = {};
 
 /** One `tarski exec`, under a timeout: a fixture that diverges must not
  * take the suite with it. `tarski` itself imposes none — a program hangs as
- * it would under `node` — but a batch of 276 is a different contract. */
+ * it would under `node` — but a batch of 191 is a different contract. */
 const EXEC_TIMEOUT_MS = 30_000;
 
 /** The whole corpus, run once: two spawns a fixture is enough. */
@@ -130,7 +101,7 @@ const MEASURE_TIMEOUT_MS = 600_000;
 describe("the fixture roots", () => {
   it("all exist, so the walk never runs over a stale path", () => {
     for (const root of ROOTS)
-      expect(existsSync(path.join(REPO, root)), root).toBe(true);
+      expect(existsSync(path.join(PACKAGE, root)), root).toBe(true);
   });
 });
 
@@ -138,14 +109,14 @@ describe.runIf(e2e)(
   "every @ensures fixture, on the evaluator and on Node",
   () => {
     const files = corpus();
-    const scratch = path.join(REPO, ".lakatos", "exe-fixtures");
+    const scratch = path.join(PACKAGE, ".lakatos", "exe-fixtures");
     /** The node kind each refused fixture named. */
     const refused: Record<string, string> = {};
     /** What each supported fixture did differently from Node. */
     const disagreed: Record<string, string> = {};
 
     // One pass, in a hook, so the two claims below are two readings of one
-    // measurement rather than two runs of the same 280 programs.
+    // measurement rather than two runs of the same 191 programs.
     beforeAll(() => {
       rmSync(scratch, { recursive: true, force: true });
       mkdirSync(scratch, { recursive: true });
@@ -158,7 +129,7 @@ describe.runIf(e2e)(
         mkdirSync(outDir, { recursive: true });
         const base = path.basename(file).replace(/\.ts$/, "");
         const script = stripTypes(
-          readFileSync(path.join(REPO, file), "utf8"),
+          readFileSync(path.join(PACKAGE, file), "utf8"),
           file,
         );
         const documentPath = path.join(outDir, `${base}.json`);
@@ -204,7 +175,7 @@ describe.runIf(e2e)(
     // An emptied fixture root would otherwise make this whole suite pass
     // by having nothing to compare.
     it("has a corpus to compare", () => {
-      expect(files.length).toBeGreaterThan(250);
+      expect(files.length).toBeGreaterThan(180);
     });
 
     it("refuses exactly the fixtures it is pinned to refuse", () => {
