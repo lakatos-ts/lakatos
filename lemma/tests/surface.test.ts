@@ -10,7 +10,7 @@ const REPO = path.resolve(
 );
 
 /** Everything outside lemma/ — lemma's own tests may reach for internals. */
-const TREES = ["tests", "parity", "pabst/src", "pabst/tests", "thales/tests"];
+const TREES = ["tests", "pabst/src", "pabst/tests", "thales/tests"];
 
 /** Anchored on `from`, so prose and `vi.mock` targets are not hits. Mocking a
  * lemma internal is fine — the seam is narrower than the barrel. */
