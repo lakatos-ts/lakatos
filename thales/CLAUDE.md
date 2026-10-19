@@ -98,7 +98,7 @@ Beside the verdicts, each `#thales_validate` prints exactly one line: `thales-mo
 - An artifact's lean timeout grows by `VALIDATE_TIMEOUT_MS` per `#thales_validate` it carries, so a file with many validated declarations is not killed for being large.
 - **An unvalidated model never moves a verdict.** The command's `simp` can get stuck but cannot refute, so a model line reports what was established about the correspondence and nothing about the properties. The envelope's `model` field joins these lines onto annotations: required on a `Theorem`, carried on the prover's `GaveUp`, `Timeout`, `CounterSatisfiable`, and `Inappropriate`, and on no other status and no refuter entry.
 
-The status set lives in exactly two places on this side: the `Szs` inductive here and the `szs` values of the repo's `spec/envelope.schema.json` (minus the CLI-only `InputError` and `User`). `tests/verdict-contract.test.ts` pins them against each other, so a new status is an edit to the schema and one here.
+The `Szs` inductive here is the prove pipeline's status set, and `tests/verdict-contract.test.ts` checks that each constructor goes on the wire under its own name. Nothing in this package pins it against the shared vocabulary, the `szs` values of the repo's `spec/envelope.schema.json` (which add the CLI-only `InputError` and `User`): a new status is an edit to both.
 
 ## Tests
 
