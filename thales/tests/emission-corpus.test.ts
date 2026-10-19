@@ -10,9 +10,9 @@ import { schemaValidator } from "./helpers/schema-validator.js";
 // lemma's; these pin what thales consumes, through lemma's barrel.
 
 const expectValidEmission = schemaValidator(
-  new URL("../lemma/schemas/thales-emission.schema.json", import.meta.url),
+  new URL("../../lemma/schemas/thales-emission.schema.json", import.meta.url),
   "emission",
-  [new URL("../lemma/schemas/tarski-estree.schema.json", import.meta.url)],
+  [new URL("../../lemma/schemas/tarski-estree.schema.json", import.meta.url)],
 );
 
 /** The emission lemma documents `file` with, as thales writes it. */

@@ -4,7 +4,7 @@
  * Everything else under `lemma/src/` is internal — exported only so one lemma
  * module can call another, so a lemma test can reach it, or so `.d.ts` emit can
  * name a type in an exported signature. Consumers outside `lemma/` import this
- * module and nothing else; `tests/lemma-surface.test.ts` enforces that.
+ * module and nothing else; `tests/surface.test.ts` enforces that.
  */
 
 export { LemmaError } from "./errors.js";

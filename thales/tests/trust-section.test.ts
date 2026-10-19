@@ -3,7 +3,11 @@ import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const REPO = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+);
 
 const SPEC = path.join(REPO, "lemma", "spec", "semantics.md");
 const spec = readFileSync(SPEC, "utf8");
