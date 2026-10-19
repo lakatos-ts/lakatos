@@ -5,15 +5,9 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        // Suites run the workspace package from source: a change in core
-        // reaches an engine's tests without a build, and coverage sees it.
-        find: /^@lakatos\/core\/(envelope|szs|interrupt|run-dir|runner)$/,
-        replacement: fileURLToPath(
-          new URL("./core/src/$1.ts", import.meta.url),
-        ),
-      },
-      {
-        // Same for lemma: the barrel is its only export.
+        // Suites run the workspace packages from source: a change in lemma
+        // reaches pabst's tests without a build, and coverage sees it. The
+        // barrel is lemma's only export.
         find: /^@lakatos\/lemma$/,
         replacement: fileURLToPath(
           new URL("./lemma/src/index.ts", import.meta.url),
@@ -38,7 +32,6 @@ export default defineConfig({
   test: {
     include: [
       "tests/**/*.test.ts",
-      "core/tests/**/*.test.ts",
       "lemma/tests/**/*.test.ts",
       "pabst/tests/**/*.test.ts",
       "thales/tests/**/*.test.ts",
@@ -52,7 +45,7 @@ export default defineConfig({
       // Count every source file, even ones no test imports, so untested
       // code drags the baseline down instead of hiding from the ratchet.
       all: true,
-      include: ["core/src/**/*.ts", "lemma/src/**/*.ts", "pabst/src/**/*.ts"],
+      include: ["lemma/src/**/*.ts", "pabst/src/**/*.ts"],
       exclude: ["**/*.test.ts", "**/*.d.ts"],
       reporter: ["text", "html"],
       thresholds: {

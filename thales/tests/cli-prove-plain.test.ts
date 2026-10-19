@@ -12,7 +12,6 @@ import {
   useTempProject,
 } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
-import { unstatedModelReason } from "@lakatos/core/envelope";
 
 // The emission pipeline through the binary, with a fake `lake` answering
 // each artifact's `env lean`: the containment, health, and model contracts,
@@ -52,7 +51,7 @@ function loggingLake(body = ""): {
  * fakes below mostly ship no model lines, so this is those entries' field. */
 const unstated = (fn: string) => ({
   status: "unvalidated" as const,
-  reason: unstatedModelReason(fn),
+  reason: `no correspondence obligation was stated for '${fn}'`,
 });
 
 const HUGE = {

@@ -8,11 +8,9 @@
     "declaration": false
   },
   "include": [
-    "core/src",
     "lemma/src",
     "pabst/src",
     "tests",
-    "core/tests",
     "lemma/tests",
     "pabst/tests",
     "thales/tests"

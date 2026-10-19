@@ -258,7 +258,7 @@ run everything from the repository root:
 ```bash
 npm install
 npm test          # vitest (root suite, includes pabst/tests)
-npm run build     # tsc -b: core, lemma, then pabst/dist/
+npm run build     # tsc -b: lemma, then pabst/dist/
 ```
 
 Requires Node 24+.

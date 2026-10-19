@@ -57,8 +57,8 @@ describe("ci-scope select", () => {
     expect(select(["lemma/tests/cli.test.ts"])).toEqual(only("prover", "exe"));
   });
 
-  it("a core change runs the prover and nothing of the semantics", () => {
-    expect(select(["core/src/envelope.ts"])).toEqual(only("prover"));
+  it("an envelope schema change runs the prover and nothing of the semantics", () => {
+    expect(select(["spec/envelope.schema.json"])).toEqual(only("prover"));
   });
 
   it.each([

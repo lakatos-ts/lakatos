@@ -69,7 +69,7 @@ describe("runTool", () => {
   let dir: string;
   beforeEach(() => {
     prev = process.cwd();
-    dir = fs.mkdtempSync(path.join(os.tmpdir(), "core-runner-"));
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "pabst-runner-"));
     process.chdir(dir);
   });
   afterEach(() => {
@@ -310,7 +310,7 @@ describe("runTool's run directory", () => {
   let dir: string;
   beforeEach(() => {
     prev = process.cwd();
-    dir = fs.mkdtempSync(path.join(os.tmpdir(), "core-run-dir-"));
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "pabst-run-dir-"));
     process.chdir(dir);
   });
   afterEach(() => {
@@ -383,7 +383,7 @@ describe("packageVersion", () => {
   });
 
   it("fails loudly when no package.json lies above the module", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "core-noversion-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pabst-noversion-"));
     try {
       expect(() =>
         packageVersion(new URL(`file://${dir}/mod.js`).href),

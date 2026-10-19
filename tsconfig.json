@@ -1,9 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
   "files": [],
-  "references": [
-    { "path": "./core" },
-    { "path": "./lemma" },
-    { "path": "./pabst" }
-  ]
+  "references": [{ "path": "./lemma" }, { "path": "./pabst" }]
 }

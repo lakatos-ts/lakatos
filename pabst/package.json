@@ -35,7 +35,6 @@
     }
   },
   "dependencies": {
-    "@lakatos/core": "^0.1.0",
     "@lakatos/lemma": "^0.1.0",
     "vitest": "^5.0.0"
   },
