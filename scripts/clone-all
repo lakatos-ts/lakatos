@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Clone each lakatos tool repository beside this one, skipping any already
+# present. The clones are independent repositories; this one ignores them.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+for repo in lemma pabst thales; do
+  if [ -d "$repo/.git" ]; then
+    echo "$repo: present"
+  else
+    git clone "git@github.com:lakatos-ts/$repo.git" "$repo"
+  fi
+done

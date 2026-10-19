@@ -23,50 +23,45 @@ the conjecture to be repaired. That loop is what these tools run.
 
 ## The tools
 
-Lakatos is five sibling tools: three npm packages under the `@lakatos`
-scope and two Lean tools, thales and tarski, in one lake package. Each one's README says how to install
-and use it on its own.
+Lakatos is a family of tools, each in its own repository under
+[`lakatos-ts`](https://github.com/lakatos-ts); this one is the umbrella.
+Each tool's README says how to install and use it on its own.
 
-- [`@lakatos/pabst`](pabst/) — refutation. The `pabst` bin compiles each
-  `@ensures` property to [fast-check](https://fast-check.dev/) runs and
-  reports a counterexample when it finds one:
+- [`pabst`](https://github.com/lakatos-ts/pabst) — refutation. The
+  `@lakatos/pabst` bin compiles each `@ensures` property to
+  [fast-check](https://fast-check.dev/) runs and reports a counterexample
+  when it finds one:
 
   ```bash
   npm install --save-dev @lakatos/pabst
   npx pabst src/foo.ts
   ```
 
-- [`thales`](thales/) — proof. A Lean executable that renders annotated
-  TypeScript as plain Lean 4 and attempts a proof per property. It needs a
-  lakatos checkout with the Lean toolchain
-  ([elan](https://github.com/leanprover/elan)), built once with
-  `npm install && npm run build` at the root and `lake build thales` in
-  `thales/`, and runs from your project's directory:
+- [`thales`](https://github.com/lakatos-ts/thales) — proof. A Lean
+  executable that renders annotated TypeScript as plain Lean 4 and
+  attempts a proof per property. It runs from a clone built with
+  `lake build thales` (the Lean toolchain via
+  [elan](https://github.com/leanprover/elan), and Node 24+), from your
+  project's directory:
 
   ```bash
-  LAKATOS_LEMMA=path/to/lakatos/lemma path/to/lakatos/thales/.lake/build/bin/thales src/foo.ts
+  path/to/thales/.lake/build/bin/thales src/foo.ts
   ```
 
-  (`LAKATOS_LEMMA` points thales at the checkout's lemma until lemma
-  0.2.0 is published.)
+- tarski — the JavaScript semantics, in the
+  [thales](https://github.com/lakatos-ts/thales#tarski-the-semantics-and-the-evaluator)
+  repository: the Lean library the proofs are stated against, an
+  evaluator over the same definitions, the `tarski` executable, which
+  runs one TypeScript file on that evaluator behind thales's typecheck
+  gate, and `tarski-test262`, which runs test262 against it.
+- [`lemma`](https://github.com/lakatos-ts/lemma) — the Lemma annotation
+  language and the TypeScript front end both engines share
+  (`@lakatos/lemma`): its spec, discovery, extraction, parsing, and the
+  typecheck gate, the parser bridge to the evaluator's ESTree, thales's
+  emitter, and the `lemma` bin, which prints one checked-program
+  document per file.
 
-- [tarski](thales/README.md#tarski-the-semantics-and-the-evaluator) — the JavaScript semantics: the Lean
-  library the proofs are stated against, an evaluator over the same
-  definitions, the `tarski` executable, which runs one TypeScript file on
-  that evaluator behind thales's typecheck gate
-  ([running a file](thales/README.md#running-a-file-tarski-filets)), and
-  `tarski-test262`, which runs test262 against it. Both are Lean
-  executables built with `lake` in `thales/`, beside `thales`; there is no
-  npm package.
-- [`@lakatos/lemma`](lemma/) — the Lemma annotation language and the
-  TypeScript front end both engines share: its [spec](lemma/spec/), the
-  discovery, extraction, parsing, and typecheck gate, the parser bridge
-  to the evaluator's ESTree, thales's emitter, and the `lemma` bin,
-  which prints one checked-program document per file (for now carrying
-  the emitter's per-declaration JSON as its `emission`, and each
-  annotation's outcome).
-
-Properties are written in [Lemma](lemma/spec/), a little specification
+Properties are written in [Lemma](https://github.com/lakatos-ts/lemma/tree/main/spec), a little specification
 language embedded in JSDoc; annotated files remain ordinary TypeScript
 accepted by `tsc --strict`. Both engines type check the whole project
 first, under its own `tsconfig.json` with strict forced on top, and refuse
@@ -166,15 +161,20 @@ What a `PROVED` verdict rests on — per declaration, the envelope's
 `model` field says whether the prover's model was proved equal to the
 evaluator's run of it, and why not — and the limits that remain are
 stated in the spec's
-[What a Theorem rests on](lemma/spec/semantics.md#what-a-theorem-rests-on).
+[What a Theorem rests on](https://github.com/lakatos-ts/lemma/blob/main/spec/semantics.md#what-a-theorem-rests-on).
 
 ## Layout
 
-One repository, an npm workspace of [`lemma/`](lemma/) and
-[`pabst/`](pabst/), beside [`thales/`](thales/), the one Lean package, holding thales and
-tarski. The root is private: it builds, typechecks, tests,
-and formats every TypeScript package, runs thales's suites and check
-scripts, and holds CI. Each package carries its own checks.
+This repository holds what the tools share and no tool's code: this
+README, [`spec/`](spec/) (the envelope schema, the output contract every
+engine honors), the design records under [`docs/design/`](docs/design/),
+and `scripts/clone-all`, which clones the tool repositories beside it
+for working across them:
+
+```bash
+git clone git@github.com:lakatos-ts/lakatos.git && cd lakatos
+scripts/clone-all     # lemma/, pabst/, thales/, each its own repository
+```
 
 ## License
 
