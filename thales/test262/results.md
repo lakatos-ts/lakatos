@@ -78,7 +78,7 @@ The evaluator run against test262 at `419d3e0a2273ba01a3bfcbec423f2801425b8e93`,
 | test/language/destructuring                   |    19 |    15 |     0 |           3 |       0 |             0 |       1 |
 | test/language/directive-prologue              |    51 |     0 |     0 |           0 |       0 |             0 |      51 |
 | test/language/eval-code                       |   347 |     5 |    64 |          54 |       0 |             0 |     224 |
-| test/language/expressions                     |  9068 |  2964 |   317 |        3123 |       0 |             3 |    2661 |
+| test/language/expressions                     |  9068 |  2976 |   317 |        3111 |       0 |             3 |    2661 |
 | test/language/function-code                   |   217 |    93 |     6 |           9 |       0 |             0 |     109 |
 | test/language/future-reserved-words           |    29 |    22 |     0 |           0 |       0 |             0 |       7 |
 | test/language/global-code                     |    28 |     5 |     6 |          12 |       0 |             0 |       5 |
@@ -96,7 +96,7 @@ The evaluator run against test262 at `419d3e0a2273ba01a3bfcbec423f2801425b8e93`,
 | test/language/statements                      |  7841 |  2701 |   313 |        1944 |       0 |             3 |    2880 |
 | test/language/types                           |   102 |    74 |     8 |          11 |       0 |             0 |       9 |
 | test/language/white-space                     |    61 |    20 |    16 |          25 |       0 |             0 |       0 |
-| total                                         | 42860 | 14092 | 10198 |       11065 |       0 |            22 |    7483 |
+| total                                         | 42860 | 14104 | 10198 |       11053 |       0 |            22 |    7483 |
 
 ## Not run and skipped
 
@@ -136,7 +136,7 @@ The evaluator run against test262 at `419d3e0a2273ba01a3bfcbec423f2801425b8e93`,
 | ImportKeyword                  |    72 |
 | $262.agent                     |    59 |
 | Property async                 |    52 |
-| BinaryExpression <<            |    46 |
+| BinaryExpression <<            |    47 |
 | BinaryExpression >>>           |    44 |
 | BinaryExpression &             |    38 |
 | BinaryExpression >>            |    37 |
@@ -157,12 +157,10 @@ The evaluator run against test262 at `419d3e0a2273ba01a3bfcbec423f2801425b8e93`,
 | Decorator                      |    14 |
 | $262.evalScript                |    12 |
 | PropertyAccessExpression       |    11 |
-| PrivateIdentifier              |     9 |
 | AssignmentExpression **=       |     5 |
 | CallExpression                 |     4 |
 | ElementAccessExpression        |     4 |
 | PropertyDefinition numeric key |     4 |
-| UnaryExpression delete super   |     4 |
 | AccessorKeyword                |     2 |
 | AssignmentExpression target    |     1 |
 | DebuggerStatement              |     1 |
