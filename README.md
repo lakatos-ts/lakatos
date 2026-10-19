@@ -158,7 +158,7 @@ interrupted run.
 ```
 
 The engines never depend on each other; both may depend on `lemma`,
-which depends on no engine. Both honor the envelope's JSON Schema,
+and thales on `tarski`, neither of which depends on an engine. Both honor the envelope's JSON Schema,
 [`spec/envelope.schema.json`](spec/envelope.schema.json), the output
 contract.
 

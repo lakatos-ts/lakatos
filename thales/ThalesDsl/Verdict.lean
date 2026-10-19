@@ -10,8 +10,9 @@ structure Identity where
   property : String
 
 /-- The SZS statuses a verdict can carry, closed so a status cannot be
-invented or misspelled at an emission site. The CLI's `ProveStatus`
-(root `src/szs.ts`) enumerates exactly these; the root suite pins the two. -/
+invented or misspelled at an emission site. They must be the `szs` values
+of the repo's `spec/envelope.schema.json` less `InputError` and `User`;
+nothing checks the two agree. -/
 inductive Szs where
   | Theorem
   | CounterSatisfiable
