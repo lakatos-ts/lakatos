@@ -130,3 +130,8 @@ example (x y z : JsNumber) (p : TsModel.GuardedNorm)
           (if FloatOps.sameValue z (-0) = true then 0 else z) = p := by
   simp only [js_norm] at h
   exact h
+
+-- A ground Float comparison evaluates under its simproc alone, either way.
+example : ((1 : Float) < 2) = True := by simp only [reduceFloatLt]
+example : ((2 : Float) < 1) = False := by simp only [reduceFloatLt]
+example : ((1 : Float) ≤ 1) = True := by simp only [reduceFloatLe]

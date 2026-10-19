@@ -120,7 +120,7 @@ def extractWitnessCompiled (names : List String) (searchStx : TSyntax `term) :
     catch _ => return none)
     (fun _ => return none)
 
-/-- After the kernel rejects a decide proof, reduce the `Decidable` instance
+/-- After the kernel rejects a decide proof, reduce `decide` on the instance
 to tell a false property from one the kernel could not evaluate. The instance
 is re-synthesized from the proposition so nothing depends on the proof term's
 internal shape; the reduction is best-effort — failures degrade to `none`,
@@ -139,8 +139,9 @@ def diagnoseDecideFailure (identity : Identity) (p : Expr)
   tryCatchRuntimeEx
     (do
       let inst ← Meta.synthInstance (mkApp (mkConst ``Decidable) p)
-      let r ← Meta.withAtLeastTransparency .default <| Meta.whnf inst
-      if r.isAppOf ``Decidable.isFalse then
+      let r ← Meta.withAtLeastTransparency .default <|
+        Meta.whnf (mkApp2 (mkConst ``Decidable.decide) p inst)
+      if r.isConstOf ``Bool.false then
         if names.isEmpty then return some falseOnDomain
         if let some cex ← extractWitness names searchStx then
           return some ⟨identity, .CounterSatisfiable,

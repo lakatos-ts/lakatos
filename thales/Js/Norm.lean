@@ -522,7 +522,7 @@ theorem unpack_ne_nan_of_sameValue_false {x : Float}
   simp [Number.FloatOps.sameValue, hx] at h
 
 open Lean Meta Simp in
-/-- Evaluates a closed `Float` comparison by reducing its `Decidable`
+/-- Evaluates a closed `Float` comparison by reducing `decide` on its
 instance, the way the `decide` tactic does; the kernel recomputes the
 reduction when it checks the `Eq.refl` certificate. -/
 def reduceGroundFloatCmp (e : Expr) : SimpM Step := do
@@ -530,10 +530,11 @@ def reduceGroundFloatCmp (e : Expr) : SimpM Step := do
   let inst ←
     try synthInstance (mkApp (mkConst ``Decidable) e)
     catch _ => return .continue
-  let r ← withAtLeastTransparency .default <| whnf inst
-  if r.isAppOf ``Decidable.isTrue then
+  let r ← withAtLeastTransparency .default <|
+    whnf (mkApp2 (mkConst ``Decidable.decide) e inst)
+  if r.isConstOf ``Bool.true then
     return .done { expr := mkConst ``True, proof? := some (← mkEqTrue (← mkDecideProof e)) }
-  if r.isAppOf ``Decidable.isFalse then
+  if r.isConstOf ``Bool.false then
     let decEqFalse ← mkEq (mkApp2 (mkConst ``Decidable.decide) e inst) (mkConst ``Bool.false)
     let h := mkExpectedPropHint (← mkEqRefl (mkConst ``Bool.false)) decEqFalse
     let pf := mkApp3 (mkConst ``of_decide_eq_false) e inst h

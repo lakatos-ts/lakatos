@@ -123,3 +123,12 @@ noncomputable opaque noImpl : Option (List WitnessValue)
   let some (.refuted v) ← attemptOracle ⟨"c.ts", "f", "p"⟩ p
       (← `((noImpl : Option (List ThalesDsl.WitnessValue)))) ["n"] | return false
   return v.szs == .GaveUp && v.counterexample.isNone
+
+-- A false proposition the kernel rejected is read back as falsity, whatever
+-- shape the reduced instance takes.
+/-- info: true -/
+#guard_msgs in
+#eval show Elab.Term.TermElabM Bool from do
+  let p ← Elab.Term.elabTerm (← `((3 : Nat) < 2)) (some (mkSort .zero))
+  let v ← diagnoseDecideFailure ⟨"c.ts", "f", "p"⟩ p [] (← `(none))
+  return v.any (·.reason == "the property is false on its bounded domain")
