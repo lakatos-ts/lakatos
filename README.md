@@ -65,10 +65,6 @@ and use it on its own.
   which prints one checked-program document per file (for now carrying
   the emitter's per-declaration JSON as its `emission`, and each
   annotation's outcome).
-- [`@lakatos/core`](core/) — the shared runtime: the result envelope,
-  the SZS vocabulary, interrupt handling, and run directories. The
-  envelope's JSON Schema, the output contract both engines honor, is
-  [`spec/envelope.schema.json`](spec/envelope.schema.json).
 
 Properties are written in [Lemma](lemma/spec/), a little specification
 language embedded in JSDoc; annotated files remain ordinary TypeScript
@@ -156,13 +152,15 @@ interrupted run.
 ## Architecture
 
 ```
-          lemma (annotations)   core (envelope, SZS, run dirs)
-                 \                /
+                    lemma (annotations)
+                    /                \
          pabst (refute)      thales (prove) ── tarski (JS semantics)
 ```
 
-The engines never depend on each other; both may depend on `core`,
-`lemma`, and `tarski`, which depend on no engine.
+The engines never depend on each other; both may depend on `lemma`,
+which depends on no engine. Both honor the envelope's JSON Schema,
+[`spec/envelope.schema.json`](spec/envelope.schema.json), the output
+contract.
 
 What a `PROVED` verdict rests on — per declaration, the envelope's
 `model` field says whether the prover's model was proved equal to the
@@ -172,8 +170,8 @@ stated in the spec's
 
 ## Layout
 
-One repository, an npm workspace of [`core/`](core/), [`lemma/`](lemma/),
-and [`pabst/`](pabst/), beside [`thales/`](thales/), the one Lean package, holding thales and
+One repository, an npm workspace of [`lemma/`](lemma/) and
+[`pabst/`](pabst/), beside [`thales/`](thales/), the one Lean package, holding thales and
 tarski. The root is private: it builds, typechecks, tests,
 and formats every TypeScript package, runs thales's suites and check
 scripts, and holds CI. Each package carries its own checks.

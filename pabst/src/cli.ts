@@ -3,7 +3,7 @@ import { realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { LemmaError } from "@lakatos/lemma";
-import { RunDirError } from "@lakatos/core/run-dir";
+import { RunDirError } from "./run-dir.js";
 import { refute } from "./refute.js";
 import { parseSeed } from "./seed.js";
 

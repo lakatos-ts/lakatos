@@ -26,10 +26,11 @@ const SHARED = [
 const WORKFLOWS = {
   lean: {
     groups: {
-      // The prover builds on the semantics and imports core and lemma.
+      // The prover builds on the semantics, imports lemma, and its suites
+      // check the envelope schema.
       prover: [
         "thales/",
-        "core/",
+        "spec/",
         "lemma/",
         ".github/workflows/lean.yml",
         ".github/actions/lean-setup/",

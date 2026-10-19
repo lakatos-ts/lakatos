@@ -5,7 +5,6 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "core",
     "lemma",
     "pabst"
   ],
@@ -23,7 +22,7 @@
   },
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "typecheck": "tsc -b core lemma pabst && tsc -p tsconfig.tests.json",
+    "typecheck": "tsc -b lemma pabst && tsc -p tsconfig.tests.json",
     "check:envelopes": "node thales/scripts/check-envelopes.js",
     "check:verdict-channel": "node thales/scripts/check-verdict-channel.js",
     "test": "vitest run",

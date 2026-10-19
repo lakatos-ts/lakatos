@@ -48,6 +48,12 @@ describe("the pabst package", () => {
     expect(packed()).toContain("LICENSE");
   });
 
+  it("ships the runtime it used to take from core", () => {
+    const files = packed();
+    for (const mod of ["envelope", "szs", "interrupt", "run-dir", "runner"])
+      expect(files).toContain(`dist/${mod}.js`);
+  });
+
   it("declares every package its sources import at runtime", () => {
     const declared = new Set([
       ...Object.keys(pkg.dependencies ?? {}),

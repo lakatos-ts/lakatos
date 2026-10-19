@@ -1,17 +1,14 @@
 import * as path from "node:path";
 import { admit, refusalsOf } from "@lakatos/lemma";
-import {
-  UNSUPPORTED_RANGE_KIND,
-  type PlannedProperty,
-} from "@lakatos/core/envelope";
-import { RUN_ROOT, TYPECHECK_CACHE } from "@lakatos/core/run-dir";
+import { UNSUPPORTED_RANGE_KIND, type PlannedProperty } from "./envelope.js";
+import { RUN_ROOT, TYPECHECK_CACHE } from "./run-dir.js";
 import {
   packageVersion,
   runTool,
   type RunReport,
   type Spine,
   type ToolIo,
-} from "@lakatos/core/runner";
+} from "./runner.js";
 import { generate } from "./codegen.js";
 import { joinRefuteVerdicts } from "./join.js";
 import { runTests } from "./run.js";

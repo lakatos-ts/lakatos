@@ -2,7 +2,7 @@
 
 Pabst is the lakatos refutation tool: `@ensures` annotations become fast-check property tests, generated into the target project's per-run directory and executed with vitest; failures come back as per-annotation issues mapped to SZS statuses (`falsified` → CounterSatisfiable, `threw` → Error, `exhausted` → GaveUp, `budget` → Timeout).
 
-Workspace package `@lakatos/pabst`: the `refute` API (`src/refute.ts`, barrel `src/index.ts`), the `pabst` bin (`src/cli.ts`), and the `./runtime` export the generated tests import. It builds, tests, and typechecks from the repo root. The front half of a run (resolution, the typecheck gate, formula typing) is lemma's `admit`; the back half (run dir, interrupt guard, envelope, exit code) is core's `runTool`; pabst supplies only the spine. Annotation parsing is not here either: pabst consumes lemma's parsed `Binder`/`Formula` and owns only what is fast-check-specific.
+Workspace package `@lakatos/pabst`: the `refute` API (`src/refute.ts`, barrel `src/index.ts`), the `pabst` bin (`src/cli.ts`), and the `./runtime` export the generated tests import. It builds, tests, and typechecks from the repo root. The front half of a run (resolution, the typecheck gate, formula typing) is lemma's `admit`; the back half (run dir, interrupt guard, envelope, exit code) is `src/runner.ts`'s `runTool`; the refute spine plugs into it. Annotation parsing is not here either: pabst consumes lemma's parsed `Binder`/`Formula` and owns only what is fast-check-specific.
 
 ## Where to start
 
@@ -11,7 +11,8 @@ Workspace package `@lakatos/pabst`: the `refute` API (`src/refute.ts`, barrel `s
 - `src/codegen.ts` + `src/emit.ts` — string-build one vitest file per source file; `src/enumerate.ts` picks exhaustive enumeration vs sampling; `src/domains.ts` renders arbitraries from lemma's bounds.
 - `src/run.ts` — runs pabst's own vitest under the current node (no npx) and classifies the outcome.
 - `src/contract.ts` — every string that must agree across emitted test ↔ `src/runtime.ts` ↔ the verdict decoder. `tests/contract-pins.test.ts` names every other spelling to update when one changes.
-- `src/join.ts` — reads the issues back out of vitest's JSON and joins them onto the planned identities as `@lakatos/core` envelope entries; `buildEnvelope` is the test-side assembly.
+- `src/envelope.ts`, `szs.ts`, `interrupt.ts`, `run-dir.ts`, `runner.ts` — the runtime: the envelope and the SZS vocabulary, the interrupt guard, run-directory claiming, and `runTool`, the run pipeline. The envelope's JSON Schema is the repo's `spec/envelope.schema.json`; `tests/envelope-schema.test.ts` pins it against these types.
+- `src/join.ts` — reads the issues back out of vitest's JSON and joins them onto the planned identities as envelope entries; `buildEnvelope` is the test-side assembly.
 
 ## What the code can't tell you
 
@@ -25,6 +26,6 @@ Workspace package `@lakatos/pabst`: the `refute` API (`src/refute.ts`, barrel `s
 - **Generated code is disposable.** Every run writes a fresh directory; determinism comes from the seed.
 - **Engine-neutral logic goes to `lemma/`; fast-check-specific logic stays here.** `domains.ts` must not re-derive bounds arithmetic.
 - **Input faults throw `LemmaError`** (exit 2 with a one-line diagnostic); anything else escaping is an internal bug. An unrepresentable domain is not the input's fault: contained per annotation, never a run-level abort.
-- **Never depend on thales**, and vice versa; sharing goes through `@lakatos/lemma` and `@lakatos/core`.
+- **Never depend on thales**, and vice versa; sharing goes through `@lakatos/lemma`.
 
 Stryker (`npm run mutation`, root config) targets pabst's sources but runs locally only; CI runs the vitest suite.

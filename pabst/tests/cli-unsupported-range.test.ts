@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 import { runTests, type RunResult } from "../src/run.js";
-import { RUN_ROOT } from "@lakatos/core/run-dir";
+import { RUN_ROOT } from "../src/run-dir.js";
 
 // A domain that only fits after the safe-integer clamp is refused, not
 // silently narrowed — the same NotTried + unsupported-range the prover

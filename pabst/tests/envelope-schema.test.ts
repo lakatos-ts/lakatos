@@ -9,8 +9,8 @@ import {
 } from "../src/envelope.js";
 import { SZS_STATUSES } from "../src/szs.js";
 // The schema's function-name pattern mirrors the language's qualified-name
-// grammar. Core does not depend on lemma, so the pin reads lemma's source.
-import { QUALIFIED_NAME_PATTERN } from "../../lemma/src/index.js";
+// grammar.
+import { QUALIFIED_NAME_PATTERN } from "@lakatos/lemma";
 
 const META = {
   version: "0.1.0",

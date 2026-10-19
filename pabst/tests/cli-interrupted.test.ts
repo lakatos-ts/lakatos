@@ -4,7 +4,7 @@ import { runMain, useTempProject } from "./helpers/cli.js";
 import { expectValidEnvelope } from "./helpers/envelope-schema.js";
 import { main } from "../src/cli.js";
 import { runTests } from "../src/run.js";
-import { RUN_ROOT } from "@lakatos/core/run-dir";
+import { RUN_ROOT } from "../src/run-dir.js";
 
 // An interrupted run still honors the output contract: one schema-valid
 // envelope on stdout in which every annotation the engine was to evaluate

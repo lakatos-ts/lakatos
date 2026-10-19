@@ -48,7 +48,7 @@ const CLI_ONLY_STATUSES = ["InputError", "User"] as const;
 type CliOnlyStatus = (typeof CLI_ONLY_STATUSES)[number];
 
 /** The verdict statuses the prove contract carries. ThalesDsl's `Szs`
- * enumerates exactly these — tests/verdict-contract.test.ts pins the two. */
+ * enumerates the same set; nothing pins the two. */
 export type ProveStatus = Exclude<SzsStatus, CliOnlyStatus>;
 
 export const PROVE_STATUSES: ReadonlySet<ProveStatus> = new Set(
@@ -62,8 +62,7 @@ export const PROVE_STATUSES: ReadonlySet<ProveStatus> = new Set(
  * declaration: `validated`, the model was proved equal to the
  * evaluator's run of the declaration's own syntax tree, or
  * `unvalidated`, it was not, and the reason says why. ThalesDsl's
- * `ModelStatus` enumerates exactly these —
- * tests/verdict-contract.test.ts pins the two. */
+ * `ModelStatus` enumerates the same pair; nothing pins the two. */
 export const MODEL_STATUSES = ["validated", "unvalidated"] as const;
 
 export type ModelStatus = (typeof MODEL_STATUSES)[number];

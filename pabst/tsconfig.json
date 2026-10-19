@@ -7,5 +7,5 @@
     "outDir": "dist"
   },
   "include": ["src"],
-  "references": [{ "path": "../core" }, { "path": "../lemma" }]
+  "references": [{ "path": "../lemma" }]
 }
