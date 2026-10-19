@@ -168,12 +168,13 @@ stated in the spec's
 This repository holds what the tools share and no tool's code: this
 README, [`spec/`](spec/) (the envelope schema, the output contract every
 engine honors), the design records under [`docs/design/`](docs/design/),
-and `scripts/clone-all`, which clones the tool repositories beside it
-for working across them:
+and `scripts/sync`, which keeps this repository and the tool
+repositories beside it up to date, cloning any that are missing:
 
 ```bash
-git clone git@github.com:lakatos-ts/lakatos.git && cd lakatos
-scripts/clone-all     # lemma/, pabst/, thales/, each its own repository
+mkdir lakatos-ts && cd lakatos-ts
+git clone git@github.com:lakatos-ts/lakatos.git
+lakatos/scripts/sync  # ../lemma, ../pabst, ../thales, cloned or pulled
 ```
 
 ## License

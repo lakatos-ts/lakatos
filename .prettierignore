@@ -6,8 +6,3 @@ package-lock.json
 
 # bd rewrites its own config and metadata
 .beads/
-
-# the tool repositories, cloned beside this one
-lemma/
-pabst/
-thales/

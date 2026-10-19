@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Bring this repository and the tool repositories beside it up to date:
+# clone any that are missing, fast-forward the rest. A repository that
+# can't fast-forward is reported and left alone.
+set -uo pipefail
+cd "$(dirname "$0")/.."
+here=$(basename "$PWD")
+cd ..
+failed=()
+for repo in "$here" lemma pabst thales; do
+  if [ -d "$repo/.git" ] || [ -f "$repo/.git" ]; then
+    echo "$repo: pulling"
+    git -C "$repo" pull --ff-only || failed+=("$repo")
+  elif [ -e "$repo" ]; then
+    echo "$repo: exists but is not a git repository" >&2
+    failed+=("$repo")
+  else
+    git clone "git@github.com:lakatos-ts/$repo.git" "$repo" || failed+=("$repo")
+  fi
+done
+if [ ${#failed[@]} -gt 0 ]; then
+  echo "not synced: ${failed[*]}" >&2
+  exit 1
+fi
