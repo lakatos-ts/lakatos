@@ -32,11 +32,16 @@ describe("each package reads only its own files", () => {
   for (const pkg of PACKAGES) {
     it(pkg, () => {
       const pkgDir = path.join(root, pkg);
-      const others = [...PACKAGES.filter((p) => p !== pkg), "core"].join("|");
-      // A repo-relative string under another package, or a path segment
-      // naming one.
+      // lemma's own spec/ is the language spec; anyone else's is the umbrella's.
+      const others = [
+        ...PACKAGES.filter((p) => p !== pkg),
+        "core",
+        ...(pkg === "lemma" ? [] : ["spec"]),
+      ].join("|");
+      // A repo-relative string under another package, a path segment naming
+      // one, or a shell `cd ..` out of the package.
       const named = new RegExp(
-        `["'](${others})/|(join|resolve)\\([^)]*["'](${others})["']|^\\s*["'](${others})["'],`,
+        `["'](${others})/|(join|resolve)\\([^)]*["'](${others})["']|^\\s*["'](${others})["'],|\\bcd \\.\\.(\\s|\\)|$)`,
       );
       // A relative path that climbs out of the package. Lean runs from the
       // package root; everything else resolves against its own file.
