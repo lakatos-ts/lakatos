@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { MODEL_STATUSES, PROVE_STATUSES } from "@lakatos/core/szs";
+import { MODEL_STATUSES, PROVE_STATUSES } from "./helpers/vocabulary.js";
 
 const verdictLean = readFileSync(
   fileURLToPath(new URL("../ThalesDsl/Verdict.lean", import.meta.url)),

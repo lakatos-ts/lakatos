@@ -5,7 +5,19 @@ import * as os from "node:os";
 import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { expectValidEnvelope } from "./envelope-schema.js";
-import type { Envelope } from "@lakatos/core/envelope";
+
+/** What thales's suites read of an envelope; the schema check is the full contract. */
+export interface Annotation {
+  file: string;
+  function: string;
+  property: string;
+  szs: string;
+  [field: string]: unknown;
+}
+export interface Envelope {
+  annotations: Annotation[];
+  [field: string]: unknown;
+}
 
 export interface MainRun {
   code: number;
