@@ -1,6 +1,6 @@
 # Agent Instructions
 
-GitHub Issues on `lakatos-ts/lakatos` is the issue tracker. Beads (`bd`) was the agent-local task tracker and is paused as of 2026-10-09: do not run `bd`; the `.beads/` data stays in place so it can be brought back. Track a session's steps in the conversation; anything that outlives the session is a GitHub issue. `CLAUDE.md` is the fuller tour and keeps the same rule.
+GitHub Issues is the issue tracker: a tool's issues on its own repository (`lakatos-ts/lemma`, `lakatos-ts/pabst`, `lakatos-ts/thales`), cross-tool issues on `lakatos-ts/lakatos`. Beads (`bd`) was the agent-local task tracker and is paused as of 2026-10-09: do not run `bd`; the `.beads/` data stays in place so it can be brought back. Track a session's steps in the conversation; anything that outlives the session is a GitHub issue. `CLAUDE.md` is the fuller tour and keeps the same rule.
 
 ## Non-Interactive Shell Commands
 

@@ -18,3 +18,8 @@ reports/
 
 # Agent worktrees (bd-worker implement/plan steps)
 .claude/worktrees/
+
+# The tool repositories, cloned beside this one by scripts/clone-all
+/lemma/
+/pabst/
+/thales/

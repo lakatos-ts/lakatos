@@ -1,47 +1,18 @@
 {
   "name": "lakatos",
-  "version": "0.1.0",
-  "description": "Proofs and refutations for TypeScript.",
-  "type": "module",
+  "version": "0.0.0",
+  "description": "Proofs and refutations for TypeScript: the umbrella repository.",
   "private": true,
-  "workspaces": [
-    "lemma",
-    "pabst"
-  ],
   "license": "MIT",
-  "engines": {
-    "node": ">=24"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lakatos-ts/lakatos.git"
   },
-  "homepage": "https://github.com/lakatos-ts/lakatos#readme",
-  "bugs": {
-    "url": "https://github.com/lakatos-ts/lakatos/issues"
-  },
   "scripts": {
-    "build": "tsc -b tsconfig.json",
-    "typecheck": "tsc -b lemma pabst && tsc -p tsconfig.tests.json",
-    "check:envelopes": "node thales/scripts/check-envelopes.js",
-    "check:verdict-channel": "node thales/scripts/check-verdict-channel.js",
-    "test": "vitest run",
-    "test:watch": "vitest",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "coverage": "vitest run --coverage",
-    "mutation": "stryker run"
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@fast-check/vitest": "^0.5.0",
-    "@stryker-mutator/core": "^9.6.1",
-    "@stryker-mutator/vitest-runner": "^9.6.1",
-    "@types/node": "^26.6.5",
-    "@vitest/coverage-v8": "^5.0.4",
-    "ajv": "^8.20.0",
-    "fast-check": "^4.10.2",
-    "prettier": "3.9.10",
-    "typescript": "^6.0.3",
-    "vitest": "^5.0.0"
+    "prettier": "3.9.9"
   }
 }

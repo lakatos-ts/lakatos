@@ -4,19 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    # Bundle every non-breaking update (dependencies + devDependencies)
-    # into a single grouped PR.
+    # prettier is the only dependency; bundle its non-breaking updates.
     groups:
-      # vitest's plugins pin vitest as an exact-version peer, so a major
-      # bump of any one of them alone cannot install; they move together.
-      vitest:
-        applies-to: version-updates
-        patterns:
-          - "vitest"
-          - "@vitest/*"
-          - "@fast-check/vitest"
-        update-types:
-          - "major"
       minor-and-patch:
         applies-to: version-updates
         update-types:

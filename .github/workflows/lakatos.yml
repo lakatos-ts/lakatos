@@ -3,114 +3,24 @@ name: lakatos
 on:
   push:
     branches: [main]
-    paths:
-      - "spec/**"
-      - "tests/**"
-      - "lemma/**"
-      - "pabst/**"
-      - "thales/tests/**"
-      - "thales/scripts/**"
-      - "thales/Test/Tarski/fixtures/**"
-      - "thales/test262/**"
-      - "package.json"
-      - "package-lock.json"
-      - "tsconfig.json"
-      - "tsconfig.base.json"
-      - "tsconfig.tests.json"
-      - "vitest.config.ts"
-      - ".github/workflows/lakatos.yml"
-  # No path filter: these jobs are branch protection's required checks, and
-  # a required check that never reports reads as pending forever, not as
-  # skipped. A docs-only pull request would be unmergeable. The push
-  # trigger above stays filtered — nothing gates on it.
+  # No path filter: Format is the ruleset's required check, and a required
+  # check that never reports reads as pending forever.
   pull_request:
-  # The merge queue builds each candidate on top of main and runs these
-  # same jobs on it; the required checks report from this event too.
   merge_group:
 
-# A superseded pull-request run is cancelled; a merge-queue run never is.
-# Cancelling a queue run reports its required check as cancelled, which
-# ejects the pull request from the queue.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   format:
-    runs-on: ubuntu-latest
     name: Format
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
-      - name: Set up Node
-        uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 26
           cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Check formatting
-        run: npm run format:check
-
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [24, 26]
-
-    name: Node ${{ matrix.node-version }}
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v7
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      # Vitest transpiles without typechecking, so broken test code and
-      # fixtures only surface here.
-      - name: Typecheck tests and fixtures
-        run: npm run typecheck
-
-      - name: Unit tests
-        run: npx vitest run --exclude '**/e2e.test.ts'
-
-      - name: End-to-end tests
-        run: npx vitest run pabst/tests/e2e.test.ts
-
-  coverage:
-    runs-on: ubuntu-latest
-    name: Coverage
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 26
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      # Pure gate: --coverage.thresholds.autoUpdate=false stops CI from
-      # rewriting the seeded thresholds in vitest.config.ts. The ratchet
-      # (bumping the numbers up) happens on local runs; CI only enforces.
-      - name: Coverage gate
-        run: npx vitest run --coverage --coverage.thresholds.autoUpdate=false
+      - run: npm ci
+      - run: npm run format:check
