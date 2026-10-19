@@ -11,7 +11,7 @@ Workspace package `@lakatos/pabst`: the `refute` API (`src/refute.ts`, barrel `s
 - `src/codegen.ts` + `src/emit.ts` — string-build one vitest file per source file; `src/enumerate.ts` picks exhaustive enumeration vs sampling; `src/domains.ts` renders arbitraries from lemma's bounds.
 - `src/run.ts` — runs pabst's own vitest under the current node (no npx) and classifies the outcome.
 - `src/contract.ts` — every string that must agree across emitted test ↔ `src/runtime.ts` ↔ the verdict decoder. `tests/contract-pins.test.ts` names every other spelling to update when one changes.
-- `src/envelope.ts`, `szs.ts`, `interrupt.ts`, `run-dir.ts`, `runner.ts` — the runtime: the envelope and the SZS vocabulary, the interrupt guard, run-directory claiming, and `runTool`, the run pipeline. The envelope's JSON Schema is the repo's `spec/envelope.schema.json`; `tests/envelope-schema.test.ts` pins it against these types.
+- `src/envelope.ts`, `szs.ts`, `interrupt.ts`, `run-dir.ts`, `runner.ts` — the runtime: the envelope and the SZS vocabulary, the interrupt guard, run-directory claiming, and `runTool`, the run pipeline. The envelope's JSON Schema is `schemas/envelope.schema.json`, a copy of the umbrella's canonical `spec/envelope.schema.json` that nothing checks against it; `tests/envelope-schema.test.ts` pins it against these types.
 - `src/join.ts` — reads the issues back out of vitest's JSON and joins them onto the planned identities as envelope entries; `buildEnvelope` is the test-side assembly.
 
 ## What the code can't tell you
